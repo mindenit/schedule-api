@@ -7,7 +7,6 @@ import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyRateLimit from '@fastify/rate-limit'
 import fastifySwagger from '@fastify/swagger'
-import fastifySwaggerUi from '@fastify/swagger-ui'
 import fastify from 'fastify'
 import {
 	createJsonSchemaTransform,
@@ -16,6 +15,7 @@ import {
 	type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
 import { getRoutes } from './modules/index.js'
+import scalarApiReference from '@scalar/fastify-api-reference'
 
 export class App {
 	private readonly app: AppInstance
@@ -43,7 +43,16 @@ export class App {
 			methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
 		})
 
-		await this.app.register(fastifyHelmet)
+		await this.app.register(fastifyHelmet, {
+			contentSecurityPolicy: {
+				directives: {
+					'script-src': [
+						"'self'",
+						"'sha256-rEoKEh+ixY/s4bkl+CNhaCR+cWdAJ6YviVnKiRKmB9o='",
+					],
+				},
+			},
+		})
 
 		await this.app.register(fastifySwagger, {
 			transform: createJsonSchemaTransform({
@@ -60,15 +69,15 @@ export class App {
 			}),
 			openapi: {
 				info: {
-					title: 'Awesome Backend',
-					description: 'Awesome starter template for Node.js backend',
+					title: 'Mindenit Schedule API',
+					description: 'API for Mindenit Schedule application',
 					version: '0.0.0',
 				},
 			},
 		})
 
-		await this.app.register(fastifySwaggerUi, {
-			routePrefix: '/api', // TODO: change to your prefix
+		await this.app.register(scalarApiReference, {
+			routePrefix: '/api',
 		})
 
 		await this.app.register(fastifyAwilixPlugin, {

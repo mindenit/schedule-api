@@ -1,29 +1,16 @@
-# Awesome Node.js backend starter
+# Mindenit Schedule API
 
-> [!NOTE]  
-> The template will be updated over the time
-
-## Description
-
-`awesome-backend-starter` provides a powerful starter template for Node.js backend services.
-
-It comes with:
-
-- [fastify](https://fastify.dev/);
-- Modular structure;
-- Dependency injection (via [awilix](https://github.com/jeffijoe/awilix));
-- Powerful error-handling capabilities using Rust-inspired result container.
+> [!WARNING]  
+> The project is work in progress still, I'm building it in public
 
 ## Getting started
 
-1. Template is working with Node.js 22 and larger. First of all make sure that your Node.js version is capatible with requirements.
+1. Application is working with Node.js 22 and larger. First of all make sure that your Node.js version is capatible with requirements.
 
-2. Install dependencies. We use `pnpm` as package manager, but you can change it to one you more familiar with:
+2. Install dependencies. We use `pnpm` as package manager
 
 ```sh
 pnpm i
-# npm i
-# yarn i
 ```
 
 3. Copy `.env.example` to new `.env`. You can do it by simply running following script:
@@ -85,7 +72,3 @@ node --run db:drop-migration
 ## Stay in touch
 
 Author - [Kyrylo Savieliev](https://github.com/OneLiL05)
-
-## License
-
-`awesome-backend-starter` is [MIT licensed](https://github.com/OneLiL05/awesome-backend-starter/blob/main/LICENSE)

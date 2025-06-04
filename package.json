@@ -1,8 +1,8 @@
 {
-	"name": "awesome-backend-starter",
+	"name": "mindenit-schedule-api",
 	"version": "0.0.1",
 	"type": "module",
-	"description": "Awesome starter template for your next Node.js backend",
+	"description": "API for Mindenit Schedule",
 	"scripts": {
 		"build": "tsc && resolve-tspaths",
 		"start": "node --run db:apply-migration && node --run start:prod",
@@ -13,10 +13,8 @@
 		"docker:stop:dev": "docker compose down",
 		"infrastructure:start:dev": "docker compose up db cache",
 		"infrastructure:stop:dev": "docker compose down",
-		"db:start:dev": "docker compose up db",
+		"db:start:dev": "docker compose -f docker-compose.dev.yml up db",
 		"db:stop:dev": "docker compose down",
-		"cache:start:dev": "docker compose up cache",
-		"cache:stop:dev": "docker compose down",
 		"db:generate-schema": "tsc -p tsconfig.drizzle.json",
 		"db:generate-migration": "NODE_ENV=development node --run db:generate-schema && npx drizzle-kit generate --config=./drizzle.config.ts",
 		"db:apply-migration": "NODE_ENV=development npx drizzle-kit migrate --config=./drizzle.config.ts",
@@ -27,22 +25,11 @@
 		"free-ports": "npx cross-port-killer 8080",
 		"prepare": "husky"
 	},
-	"keywords": [
-		"fastify",
-		"backend",
-		"template",
-		"dependency injection",
-		"typescript",
-		"db",
-		"postgres",
-		"drizzle",
-		"docker"
-	],
 	"author": {
 		"name": "Kyrylo Savieliev",
 		"email": "k_savieliev@icloud.com"
 	},
-	"license": "MIT",
+	"license": "GPL-3.0-only",
 	"engines": {
 		"node": ">=22.x.x"
 	},
@@ -57,7 +44,7 @@
 		"@commitlint/config-conventional": "^19.7.1",
 		"@eslint/js": "^9.21.0",
 		"cpy-cli": "^5.0.0",
-		"drizzle-kit": "^0.30.5",
+		"drizzle-kit": "1.0.0-beta.1-c0277c0",
 		"eslint": "^9.21.0",
 		"eslint-config-prettier": "^10.0.2",
 		"eslint-plugin-prettier": "^5.2.3",
@@ -79,11 +66,11 @@
 		"@fastify/helmet": "^13.0.1",
 		"@fastify/rate-limit": "^10.2.2",
 		"@fastify/swagger": "^9.4.2",
-		"@fastify/swagger-ui": "^5.2.2",
+		"@scalar/fastify-api-reference": "^1.31.3",
 		"@types/node": "^22.13.8",
 		"awilix": "^12.0.4",
 		"dotenv": "^16.4.7",
-		"drizzle-orm": "^0.40.0",
+		"drizzle-orm": "1.0.0-beta.1-c0277c0",
 		"fastify": "^5.2.1",
 		"fastify-type-provider-zod": "^4.0.2",
 		"ioredis": "^5.6.1",

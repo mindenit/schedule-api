@@ -2,12 +2,10 @@ import type {
 	CommonDependencies,
 	ExternalDependencies,
 } from '@/core/types/deps.js'
-import type { UsersModuleDependencies } from '@/modules/users/types/index.js'
 import type { AwilixContainer, NameAndRegistrationPair } from 'awilix'
 import { resolveCommonDiConfig } from './commonDiConfig.js'
-import { resolveUsersModule } from '@/modules/users/index.js'
 
-type Dependencies = CommonDependencies & UsersModuleDependencies
+type Dependencies = CommonDependencies
 
 type DiConfig = NameAndRegistrationPair<Dependencies>
 
@@ -17,7 +15,6 @@ export const registerDependencies = (
 ) => {
 	const diConfig: DiConfig = {
 		...resolveCommonDiConfig(dependencies),
-		...resolveUsersModule(),
 	}
 
 	diContainer.register(diConfig)

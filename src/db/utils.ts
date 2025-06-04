@@ -1,15 +1,14 @@
-import { integer, timestamp, varchar } from 'drizzle-orm/pg-core'
+import { integer, varchar } from 'drizzle-orm/pg-core'
+
+const referencialIntegrityOptions = {
+	onDelete: 'cascade',
+	onUpdate: 'cascade',
+} as const
 
 const baseTableAttrs = {
-	id: integer().primaryKey().generatedAlwaysAsIdentity(),
-	createdAt: timestamp({ withTimezone: true, mode: 'date' })
-		.notNull()
-		.defaultNow(),
-	updatedAt: timestamp({ withTimezone: true, mode: 'date' })
-		.notNull()
-		.defaultNow()
-		.$onUpdateFn(() => new Date()),
-	name: varchar().unique().notNull(),
+	id: integer().primaryKey().notNull(),
+	fullName: varchar({ length: 255 }),
+	shortName: varchar({ length: 40 }),
 }
 
-export { baseTableAttrs }
+export { baseTableAttrs, referencialIntegrityOptions }

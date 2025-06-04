@@ -27,6 +27,8 @@ services:
       retries: 5
     networks:
       - dev
+    ports:
+      - '5432:5432'
     logging:
       driver: 'json-file'
       options:
@@ -51,6 +53,8 @@ services:
           memory: 1.5G
     networks:
       - dev
+    ports:
+      - '6432:6432'
     logging:
       driver: 'json-file'
       options:
@@ -77,6 +81,8 @@ services:
       - dev
     environment:
       - CACHE_PASSWORD=${CACHE_PASSWORD}
+    ports:
+      - '6379:6379'
     healthcheck:
       test: ['CMD', 'redis-cli', '-a', '${CACHE_PASSWORD}', 'ping']
       interval: 10s
