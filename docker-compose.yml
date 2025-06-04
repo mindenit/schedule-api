@@ -1,0 +1,103 @@
+version: '3.8'
+networks:
+  dev:
+    driver: bridge
+services:
+  db:
+    container_name: awesome-db
+    image: 'postgres:latest'
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 1.5G
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dev
+    ports:
+      - '5432:5432'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+  cache:
+    container_name: identity-cache
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 1.5G
+    command: ['--requirepass', '${CACHE_PASSWORD}']
+    ulimits:
+      memlock: -1
+    volumes:
+      - dragonflydata:/data
+    networks:
+      - dev
+    environment:
+      - CACHE_PASSWORD=${CACHE_PASSWORD}
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', '-a', '${CACHE_PASSWORD}', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+  api:
+    container_name: awesome-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.3'
+          memory: 1.5G
+    ports:
+      - '${PORT}:8080'
+    environment:
+      - NODE_ENV=production
+      - PORT=${PORT}
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_PORT=5432
+      - COOKIE_SECRET=${COOKIE_SECRET}
+      - CACHE_HOST=cache
+      - CACHE_USER=default
+      - CACHE_PASSWORD=${CACHE_PASSWORD}
+      - CACHE_PORT=6379
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - dev
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+volumes:
+  pgdata:
+  dragonflydata:

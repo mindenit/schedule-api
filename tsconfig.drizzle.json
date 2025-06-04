@@ -1,0 +1,11 @@
+{
+	"compilerOptions": {
+		"module": "NodeNext",
+		"moduleResolution": "nodenext",
+		"baseUrl": ".",
+		"outDir": "./src/db/dist",
+		"declaration": false,
+		"skipLibCheck": true
+	},
+	"include": ["./src/db/**/*.ts"]
+}
