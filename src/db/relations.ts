@@ -83,8 +83,8 @@ export const relations = defineRelations(schema, (r) => ({
 		}),
 	},
 	eventTable: {
-		groups: r.many.academicGroupTable(),
-		teachers: r.many.teacherTable(),
+		groups: r.many.eventToAcademicGroupTable(),
+		teachers: r.many.eventToTeacherTable(),
 		auditorium: r.one.auditoriumTable({
 			from: r.eventTable.auditoriumId,
 			to: r.auditoriumTable.id,
