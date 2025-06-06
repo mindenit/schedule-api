@@ -13,6 +13,7 @@ const envSchema = z.object({
 	CACHE_USER: z.string(),
 	CACHE_PASSWORD: z.string(),
 	CACHE_PORT: z.coerce.number().default(6379),
+	PROXY_BASE_URL: z.string(),
 })
 
 const env = envSchema.parse(process.env)

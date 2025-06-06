@@ -13,9 +13,14 @@ interface CacheConfig {
 	password: string
 }
 
+interface ProxyConfig {
+	baseUrl: string
+}
+
 interface Config {
 	db: DbConfig
 	cache: CacheConfig
+	proxy: ProxyConfig
 }
 
-export type { Config, DbConfig, CacheConfig }
+export type { Config, DbConfig, CacheConfig, ProxyConfig }

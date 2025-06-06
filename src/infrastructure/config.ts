@@ -1,4 +1,9 @@
-import type { Config, DbConfig, CacheConfig } from '@/core/types/index.js'
+import type {
+	Config,
+	DbConfig,
+	CacheConfig,
+	ProxyConfig,
+} from '@/core/types/index.js'
 import { env } from '@/env.js'
 
 const getDbConfig = (): DbConfig => ({
@@ -16,9 +21,14 @@ const getCacheConfig = (): CacheConfig => ({
 	port: env.CACHE_PORT,
 })
 
+const getProxyConfig = (): ProxyConfig => ({
+	baseUrl: env.PROXY_BASE_URL,
+})
+
 const getConfig = (): Config => ({
 	db: getDbConfig(),
 	cache: getCacheConfig(),
+	proxy: getProxyConfig(),
 })
 
 export { getConfig }

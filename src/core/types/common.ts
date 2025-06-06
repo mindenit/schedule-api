@@ -1,6 +1,8 @@
 import type { FastifyInstance } from 'fastify'
 import type http from 'node:http'
 
+type Maybe<T> = T | undefined | null
+
 type AppInstance = FastifyInstance<
 	http.Server,
 	http.IncomingMessage,
@@ -12,4 +14,4 @@ interface HttpError {
 	message: string
 }
 
-export type { AppInstance, HttpError }
+export type { AppInstance, HttpError, Maybe }

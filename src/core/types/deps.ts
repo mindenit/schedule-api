@@ -5,15 +5,22 @@ import type { Config } from './config.js'
 import type { AppInstance } from './common.js'
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type { Redis } from 'ioredis'
+import type { ExtractTablesFromSchema, Relations } from 'drizzle-orm'
+import * as schema from '@/db/schema/index.js'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type BaseDiConfig<T> = Record<keyof T, Resolver<any>>
+
+type DatabaseClient = PostgresJsDatabase<
+	Record<string, never>,
+	Relations<typeof schema, ExtractTablesFromSchema<typeof schema>>
+>
 
 interface CommonDependencies {
 	config: Config
 	db: {
 		connection: postgres.Sql
-		client: PostgresJsDatabase
+		client: DatabaseClient
 	}
 	cache: Redis
 	logger: FastifyBaseLogger
