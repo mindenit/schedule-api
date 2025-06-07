@@ -1,14 +1,14 @@
-import type { Auditorium, Building } from '@/db/types.js'
+import type { Auditorium, AuditoriumType, Building } from '@/db/types.js'
 import type { Maybe } from '@/core/types/common.js'
 import type { CommonDependencies } from '@/core/types/deps.js'
 import type { BaseParser } from '@/core/types/parsers.js'
 import type {
-	CistAuditoriumOutput,
+	CistAuditoriumsOutput,
 	CistAuditoriumsRawJson,
 } from '@/core/types/proxy.js'
 import { fetchProxy, hashObject } from '@/core/utils/index.js'
 
-export class AuditoriumParserImpl implements BaseParser<CistAuditoriumOutput> {
+export class AuditoriumParserImpl implements BaseParser<CistAuditoriumsOutput> {
 	private readonly endpoint: string
 
 	constructor({ config }: CommonDependencies) {
@@ -17,10 +17,11 @@ export class AuditoriumParserImpl implements BaseParser<CistAuditoriumOutput> {
 		this.endpoint = `${baseUrl}/lists/auditories`
 	}
 
-	async parse(): Promise<Maybe<CistAuditoriumOutput>> {
+	async parse(): Promise<Maybe<CistAuditoriumsOutput>> {
 		const raw = await fetchProxy<CistAuditoriumsRawJson>(this.endpoint)
 
 		const auditoriums: Auditorium[] = []
+		const auditoriumTypes: AuditoriumType[] = []
 		const buildings: Building[] = []
 
 		const hashMap = new Map<string, boolean>()
@@ -49,9 +50,20 @@ export class AuditoriumParserImpl implements BaseParser<CistAuditoriumOutput> {
 					continue
 				}
 
+				for (const type of auditorium.auditory_types) {
+					auditoriumTypes.push({
+						id: Number.parseInt(type.id),
+						name: type.short_name,
+						auditoriumId: Number.parseInt(auditorium.id),
+					})
+				}
+
 				auditoriums.push({
 					id: Number.parseInt(auditorium.id),
 					name: auditorium.short_name,
+					hasPower: Boolean(auditorium.is_have_power),
+					floor: Number.parseInt(auditorium.floor),
+					buildingId: building.id,
 				})
 
 				hashMap.set(hash, true)
@@ -64,6 +76,6 @@ export class AuditoriumParserImpl implements BaseParser<CistAuditoriumOutput> {
 			})
 		}
 
-		return { buildings, auditoriums }
+		return { buildings, auditoriums, auditoriumTypes }
 	}
 }

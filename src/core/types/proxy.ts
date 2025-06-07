@@ -1,5 +1,6 @@
 import type {
 	Auditorium,
+	AuditoriumType,
 	Building,
 	Department,
 	Direction,
@@ -9,7 +10,7 @@ import type {
 	Teacher,
 } from '@/db/types.js'
 
-type AuditoriumType = {
+type RawAuditoriumType = {
 	id: string
 	short_name: string
 }
@@ -19,7 +20,7 @@ type RawAuditorium = {
 	short_name: string
 	floor: string
 	is_have_power: string
-	auditory_types: AuditoriumType[]
+	auditory_types: RawAuditoriumType[]
 }
 
 type RawGroup = {
@@ -114,10 +115,10 @@ type CistAuditoriumsRawJson = {
 	university: University & { buildings: RawBuilding[] }
 }
 
-type CistAuditoriumOutput = {
+type CistAuditoriumsOutput = {
 	buildings: Building[]
 	auditoriums: Auditorium[]
-	specialities: Speciality[]
+	auditoriumTypes: AuditoriumType[]
 }
 
 type CistGroupsOutput = {
@@ -164,7 +165,7 @@ export type {
 	RawDirection,
 	RawSubject,
 	RawTeacher,
-	CistAuditoriumOutput,
+	CistAuditoriumsOutput,
 	CistGroupsOutput,
 	CistTeachersOutput,
 }

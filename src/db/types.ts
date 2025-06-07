@@ -1,4 +1,5 @@
 import type { academicGroupTable } from './schema/academic-group.js'
+import type { auditoriumTypeTable } from './schema/auditorium-type.js'
 import type { auditoriumTable } from './schema/auditorium.js'
 import type { buildingTable } from './schema/building.js'
 import type { departmentTable } from './schema/department.js'
@@ -9,7 +10,10 @@ import type { specialityTable } from './schema/speciality.js'
 import type { subjectTable } from './schema/subject.js'
 import type { teacherTable } from './schema/teacher.js'
 
-type Auditorium = Pick<typeof auditoriumTable.$inferSelect, 'id' | 'name'>
+type Auditorium = typeof auditoriumTable.$inferSelect
+type AuditoriumType = typeof auditoriumTypeTable.$inferSelect & {
+	auditoriumId: number
+}
 type Building = typeof buildingTable.$inferSelect
 type Group = typeof academicGroupTable.$inferSelect
 type Faculty = typeof facultyTable.$inferSelect
@@ -37,6 +41,7 @@ type EventType = (typeof eventTypeEnum.enumValues)[number]
 
 export type {
 	Auditorium,
+	AuditoriumType,
 	Building,
 	Department,
 	Direction,
