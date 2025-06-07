@@ -4,8 +4,10 @@ import type {
 } from '@/core/types/deps.js'
 import type { AwilixContainer, NameAndRegistrationPair } from 'awilix'
 import { resolveCommonDiConfig } from './commonDiConfig.js'
+import type { Parsers } from '@/core/types/parsers.js'
+import { resolveParsers } from '@/core/parsers/index.js'
 
-type Dependencies = CommonDependencies
+type Dependencies = CommonDependencies & Parsers
 
 type DiConfig = NameAndRegistrationPair<Dependencies>
 
@@ -15,6 +17,7 @@ export const registerDependencies = (
 ) => {
 	const diConfig: DiConfig = {
 		...resolveCommonDiConfig(dependencies),
+		...resolveParsers(),
 	}
 
 	diContainer.register(diConfig)
