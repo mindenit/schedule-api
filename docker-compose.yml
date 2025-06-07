@@ -87,6 +87,15 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
+  cist-proxy:
+    container_name: schedule-cist-proxy
+    image: 'ghcr.io/mindenit/cistproxy:main'
+    ports:
+      - '5035:5035'
+    networks:
+      - dev
+    environment:
+      - ASPNETCORE_HTTP_PORTS=5035
   api:
     container_name: schedule-api
     build:

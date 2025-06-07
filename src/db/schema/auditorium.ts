@@ -6,7 +6,7 @@ const { id, fullName } = baseTableAttrs
 
 export const auditoriumTable = pgTable('auditorium', (t) => ({
 	id,
-	fullName,
+	name: fullName,
 	floor: t.smallint(),
 	hasPower: t.boolean(),
 	buildingId: t.integer().references(() => buildingTable.id, {

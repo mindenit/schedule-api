@@ -10,6 +10,11 @@ export default [
 	{
 		ignores: ['coverage', 'public', 'dist', 'pnpm-lock.yaml'],
 	},
+	{
+		rules: {
+			'@typescript-eslint/no-unused-vars': 'off',
+		},
+	},
 	pluginJs.configs.recommended,
 	...tseslint.configs.recommended,
 	eslintPluginPrettierRecommended,
