@@ -1,11 +1,14 @@
-import type { Auditorium } from '@/db/types.js'
-import type { Maybe } from '../types/common.js'
-import type { CommonDependencies } from '../types/deps.js'
-import type { BaseParser } from '../types/parsers.js'
-import type { CistAuditoriumsRawJson } from '../types/proxy.js'
-import { fetchProxy, hashObject } from '../utils/index.js'
+import type { Auditorium, Building } from '@/db/types.js'
+import type { Maybe } from '@/core/types/common.js'
+import type { CommonDependencies } from '@/core/types/deps.js'
+import type { BaseParser } from '@/core/types/parsers.js'
+import type {
+	CistAuditoriumOutput,
+	CistAuditoriumsRawJson,
+} from '@/core/types/proxy.js'
+import { fetchProxy, hashObject } from '@/core/utils/index.js'
 
-export class AuditoriumParser implements BaseParser<Auditorium> {
+export class AuditoriumParserImpl implements BaseParser<CistAuditoriumOutput> {
 	private readonly endpoint: string
 
 	constructor({ config }: CommonDependencies) {
@@ -14,10 +17,12 @@ export class AuditoriumParser implements BaseParser<Auditorium> {
 		this.endpoint = `${baseUrl}/lists/auditories`
 	}
 
-	async parse(): Promise<Maybe<Auditorium[]>> {
+	async parse(): Promise<Maybe<CistAuditoriumOutput>> {
 		const raw = await fetchProxy<CistAuditoriumsRawJson>(this.endpoint)
 
 		const auditoriums: Auditorium[] = []
+		const buildings: Building[] = []
+
 		const hashMap = new Map<string, boolean>()
 
 		if (!Object.hasOwn(raw, 'university')) {
@@ -51,8 +56,14 @@ export class AuditoriumParser implements BaseParser<Auditorium> {
 
 				hashMap.set(hash, true)
 			}
+
+			buildings.push({
+				id: building.id,
+				fullName: building.full_name,
+				shortName: building.short_name,
+			})
 		}
 
-		return auditoriums
+		return { buildings, auditoriums }
 	}
 }
