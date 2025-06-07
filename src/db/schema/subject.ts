@@ -5,6 +5,6 @@ const { id, fullName, shortName } = baseTableAttrs
 
 export const subjectTable = pgTable('subject', {
 	id,
-	fullName,
-	shortName,
+	name: fullName,
+	brief: shortName,
 })

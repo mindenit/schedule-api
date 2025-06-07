@@ -1,16 +1,22 @@
-import type { Event, EventType, Group, Subject, Teacher } from '@/db/types.js'
+import type { ScheduleType } from '@/core/constants/parsers.js'
+import type { CommonDependencies, Maybe } from '@/core/types/index.js'
 import type {
 	CistScheduleRawJson,
 	RawSubject,
 	RawTeacher,
-} from '../types/proxy.js'
-import type { Maybe } from '../types/common.js'
-import type { IEventsParser } from '../types/parsers.js'
-import type { CommonDependencies } from '../types/index.js'
-import type { ScheduleType } from '../constants/parsers.js'
-import { fetchProxy } from '../utils/proxy.js'
+} from '@/core/types/proxy.js'
+import { fetchProxy } from '@/core/utils/index.js'
+import type {
+	Event,
+	EventType,
+	Group,
+	GroupData,
+	Subject,
+	TeacherData,
+} from '@/db/types.js'
+import type { EventsParser } from '../types/index.js'
 
-export class EventsParser implements IEventsParser {
+export class EventsParserImpl implements EventsParser {
 	private readonly endpoint: string
 
 	constructor({ config }: CommonDependencies) {
@@ -37,18 +43,21 @@ export class EventsParser implements IEventsParser {
 				numberPair: e.number_pair ?? 0,
 				startTime: e.start_time ?? 0,
 				endTime: e.end_time ?? 0,
-				type: EventsParser.getType(e.type),
+				type: EventsParserImpl.getType(e.type),
 				auditorium: e.auditory,
-				teachers: [] as Teacher[],
-				groups: [] as Group[],
+				teachers: [] as TeacherData[],
+				groups: [] as GroupData[],
 				subject: {
 					id: 0,
-					title: '',
+					name: '',
 					brief: '',
 				},
 			} satisfies Event
 
-			const subject = EventsParser.findSubjectById(raw.subjects, e.subject_id)
+			const subject = EventsParserImpl.findSubjectById(
+				raw.subjects,
+				e.subject_id,
+			)
 
 			if (!subject) {
 				continue
@@ -61,7 +70,7 @@ export class EventsParser implements IEventsParser {
 			}
 
 			for (const groupId of e.groups) {
-				const group = EventsParser.findGroupById(raw.groups, groupId)
+				const group = EventsParserImpl.findGroupById(raw.groups, groupId)
 
 				if (!group) {
 					continue
@@ -75,7 +84,10 @@ export class EventsParser implements IEventsParser {
 			}
 
 			for (const teacherId of e.teachers) {
-				const teacher = EventsParser.findTeacherById(raw.teachers, teacherId)
+				const teacher = EventsParserImpl.findTeacherById(
+					raw.teachers,
+					teacherId,
+				)
 
 				if (!teacher) {
 					continue
@@ -121,7 +133,7 @@ export class EventsParser implements IEventsParser {
 	private static findTeacherById(
 		teachers: RawTeacher[],
 		id: number,
-	): Maybe<Teacher> {
+	): Maybe<TeacherData> {
 		const raw = teachers.find((t) => t.id === id)
 
 		if (!raw) {
@@ -152,8 +164,11 @@ export class EventsParser implements IEventsParser {
 		}
 
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
-		const { hours, ...rest } = raw
+		const { hours, title, ...rest } = raw
 
-		return rest
+		return {
+			...rest,
+			name: title,
+		}
 	}
 }

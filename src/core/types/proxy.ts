@@ -1,4 +1,13 @@
-import type { Group } from '@/db/types.js'
+import type {
+	Auditorium,
+	Building,
+	Department,
+	Direction,
+	Faculty,
+	Group,
+	Speciality,
+	Teacher,
+} from '@/db/types.js'
 
 type AuditoriumType = {
 	id: string
@@ -13,6 +22,11 @@ type RawAuditorium = {
 	auditory_types: AuditoriumType[]
 }
 
+type RawGroup = {
+	id: number
+	name: string
+}
+
 type RawBuilding = {
 	id: string
 	short_name: string
@@ -24,7 +38,7 @@ type RawSpeciality = {
 	id: number
 	short_name: string
 	full_name: string
-	groups: Group[]
+	groups: RawGroup[]
 }
 
 type RawDirection = {
@@ -32,7 +46,7 @@ type RawDirection = {
 	short_name: string
 	full_name: string
 	specialities: RawSpeciality[]
-	groups: Group[]
+	groups: RawGroup[]
 }
 
 type RawFaculty = {
@@ -100,6 +114,25 @@ type CistAuditoriumsRawJson = {
 	university: University & { buildings: RawBuilding[] }
 }
 
+type CistAuditoriumOutput = {
+	buildings: Building[]
+	auditoriums: Auditorium[]
+	specialities: Speciality[]
+}
+
+type CistGroupsOutput = {
+	groups: Group[]
+	faculties: Faculty[]
+	specialities: Speciality[]
+	directions: Direction[]
+}
+
+type CistTeachersOutput = {
+	teachers: Teacher[]
+	faculties: Faculty[]
+	departments: Department[]
+}
+
 type CistGroupsRawJson = {
 	university: University & {
 		faculties: WithDirections<RawFaculty>[]
@@ -123,9 +156,15 @@ type CistScheduleRawJson = {
 export type {
 	CistAuditoriumsRawJson,
 	CistGroupsRawJson,
-	CistTeachersRawJson,
 	CistScheduleRawJson,
+	CistTeachersRawJson,
+	RawAuditorium,
+	RawBuilding,
 	RawDepartment,
-	RawTeacher,
+	RawDirection,
 	RawSubject,
+	RawTeacher,
+	CistAuditoriumOutput,
+	CistGroupsOutput,
+	CistTeachersOutput,
 }

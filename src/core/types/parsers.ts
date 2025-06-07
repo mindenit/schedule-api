@@ -4,7 +4,7 @@ import type { ScheduleType } from '../constants/parsers.js'
 import type { Event } from '@/db/types.js'
 
 interface BaseParser<T extends object> {
-	parse: () => Promise<Maybe<T[]>>
+	parse: () => Promise<Maybe<T>>
 }
 
 interface IEventsParser {
