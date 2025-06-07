@@ -18,7 +18,8 @@
 		"baseUrl": ".",
 		"paths": {
 			"@/*": ["./src/*"]
-		}
+		},
+		"lib": ["ESNext.Array", "ESNext"]
 	},
 	"include": ["src"]
 }
