@@ -7,6 +7,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import postgres from 'postgres'
 import { getConfig } from './config.js'
 import { Redis } from 'ioredis'
+import { relations } from '@/db/relations.js'
 
 export const resolveCommonDiConfig = (
 	dependencies: ExternalDependencies,
@@ -25,6 +26,7 @@ export const resolveCommonDiConfig = (
 
 			return {
 				client: drizzle(queryClient, {
+					relations,
 					logger: true,
 					casing: 'snake_case',
 				}),

@@ -1,10 +1,10 @@
 import { pgTable } from 'drizzle-orm/pg-core'
 import { baseTableAttrs } from '../utils.js'
 
-const { id, fullName, shortName } = baseTableAttrs
+const { fullName, shortName } = baseTableAttrs
 
-export const buildingTable = pgTable('building', {
-	id,
+export const buildingTable = pgTable('building', (t) => ({
+	id: t.varchar().primaryKey(),
 	fullName,
 	shortName,
-})
+}))
