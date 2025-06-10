@@ -16,6 +16,10 @@ import {
 } from 'fastify-type-provider-zod'
 import { getRoutes } from './modules/index.js'
 import scalarApiReference from '@scalar/fastify-api-reference'
+import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler'
+import { SCHEDULE_TYPE } from './core/constants/parsers.js'
+import { delay } from './core/utils/index.js'
+import fastifySchedule from '@fastify/schedule'
 
 export class App {
 	private readonly app: AppInstance
@@ -100,6 +104,8 @@ export class App {
 			allowList: ['127.0.0.1'],
 		})
 
+		this.app.register(fastifySchedule)
+
 		registerDependencies(diContainer, { app: this.app })
 	}
 
@@ -118,6 +124,79 @@ export class App {
 		)
 	}
 
+	private async registerPeriodicJob() {
+		const {
+			auditoriumsService,
+			auditoriumsParser,
+			groupsService,
+			groupsParser,
+			teachersService,
+			teachersParser,
+			eventsParser,
+			eventsService,
+		} = this.app.diContainer.cradle
+
+		const task = new AsyncTask('cist-postman', async () => {
+			const [auditoriums, groups, teachers] = await Promise.all([
+				auditoriumsParser.parse(),
+				groupsParser.parse(),
+				teachersParser.parse(),
+			])
+
+			if (!auditoriums || !groups || !teachers) {
+				return
+			}
+
+			await auditoriumsService.processParsedJSON(auditoriums)
+			await groupsService.processParsedJSON(groups)
+			await teachersService.processParsedJSON(teachers)
+
+			for (const group of groups.groups) {
+				const events = await eventsParser.parse(group.id, SCHEDULE_TYPE.GROUP)
+
+				if (!events) {
+					continue
+				}
+
+				await eventsService.processParsedJSON(events)
+
+				delay(3000)
+			}
+
+			for (const auditorium of auditoriums.auditoriums) {
+				const events = await eventsParser.parse(
+					auditorium.id,
+					SCHEDULE_TYPE.AUDITORIUM,
+				)
+
+				if (!events) {
+					continue
+				}
+
+				await eventsService.processParsedJSON(events)
+
+				delay(3000)
+			}
+
+			for (const auditorium of teachers.teachers) {
+				const events = await eventsParser.parse(
+					auditorium.id,
+					SCHEDULE_TYPE.TEACHER,
+				)
+
+				if (!events) {
+					continue
+				}
+
+				await eventsService.processParsedJSON(events)
+
+				delay(3000)
+			}
+		})
+
+		return new SimpleIntervalJob({ hours: 12 }, task)
+	}
+
 	async initialize(): Promise<AppInstance> {
 		try {
 			await this.registerPlugins()
@@ -127,6 +206,10 @@ export class App {
 			})
 
 			await this.app.ready()
+
+			const job = await this.registerPeriodicJob()
+
+			this.app.scheduler.addSimpleIntervalJob(job)
 
 			return this.app
 		} catch (e: unknown) {
