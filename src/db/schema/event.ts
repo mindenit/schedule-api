@@ -1,15 +1,12 @@
-import { check, pgTable } from 'drizzle-orm/pg-core'
-import { baseTableAttrs } from '../utils.js'
 import { sql } from 'drizzle-orm'
+import { bigint, check, pgTable } from 'drizzle-orm/pg-core'
 import { auditoriumTable } from './auditorium.js'
 import { eventTypeEnum } from './event-type-enum.js'
-
-const { id } = baseTableAttrs
 
 export const eventTable = pgTable(
 	'event',
 	(t) => ({
-		id,
+		id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
 		startTime: t.timestamp(),
 		endTime: t.timestamp(),
 		numberPair: t.smallint(),

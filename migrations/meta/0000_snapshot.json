@@ -1,5 +1,5 @@
 {
-	"id": "e55659a7-014b-4292-af56-0aba85b422eb",
+	"id": "cd5f44c1-0cf6-4dc3-aa7c-6f879cdec08e",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -18,7 +18,7 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"direction_id": {
 					"name": "direction_id",
@@ -123,7 +123,7 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -148,7 +148,7 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"floor": {
 					"name": "floor",
@@ -164,7 +164,7 @@
 				},
 				"building_id": {
 					"name": "building_id",
-					"type": "integer",
+					"type": "varchar",
 					"primaryKey": false,
 					"notNull": false
 				}
@@ -193,7 +193,7 @@
 			"columns": {
 				"id": {
 					"name": "id",
-					"type": "integer",
+					"type": "varchar",
 					"primaryKey": true,
 					"notNull": true
 				},
@@ -201,13 +201,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -232,13 +232,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"faculty_id": {
 					"name": "faculty_id",
@@ -279,13 +279,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"faculty_id": {
 					"name": "faculty_id",
@@ -416,9 +416,20 @@
 			"columns": {
 				"id": {
 					"name": "id",
-					"type": "integer",
+					"type": "bigint",
 					"primaryKey": true,
-					"notNull": true
+					"notNull": true,
+					"identity": {
+						"type": "always",
+						"name": "event_id_seq",
+						"schema": "public",
+						"increment": "1",
+						"startWith": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"cache": "1",
+						"cycle": false
+					}
 				},
 				"start_time": {
 					"name": "start_time",
@@ -489,13 +500,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -520,13 +531,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"direction_id": {
 					"name": "direction_id",
@@ -559,9 +570,20 @@
 			"columns": {
 				"id": {
 					"name": "id",
-					"type": "integer",
+					"type": "bigint",
 					"primaryKey": true,
-					"notNull": true
+					"notNull": true,
+					"identity": {
+						"type": "always",
+						"name": "subject_to_teacher_id_seq",
+						"schema": "public",
+						"increment": "1",
+						"startWith": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"cache": "1",
+						"cycle": false
+					}
 				},
 				"hours": {
 					"name": "hours",
@@ -600,10 +622,10 @@
 					"onDelete": "cascade",
 					"onUpdate": "cascade"
 				},
-				"subject_to_teacher_teacher_id_subject_id_fk": {
-					"name": "subject_to_teacher_teacher_id_subject_id_fk",
+				"subject_to_teacher_teacher_id_teacher_id_fk": {
+					"name": "subject_to_teacher_teacher_id_teacher_id_fk",
 					"tableFrom": "subject_to_teacher",
-					"tableTo": "subject",
+					"tableTo": "teacher",
 					"columnsFrom": ["teacher_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
@@ -630,13 +652,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -661,13 +683,13 @@
 					"name": "full_name",
 					"type": "varchar(255)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"short_name": {
 					"name": "short_name",
 					"type": "varchar(40)",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"department_id": {
 					"name": "department_id",

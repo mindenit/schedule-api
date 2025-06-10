@@ -1,7 +1,7 @@
 CREATE TYPE "public"."event_type" AS ENUM('Лк', 'Пз', 'Лб', 'Конс', 'Зал', 'Екз', 'КП/КР');--> statement-breakpoint
 CREATE TABLE "academic_group" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
+	"full_name" varchar(255) NOT NULL,
 	"direction_id" integer,
 	"speciality_id" integer
 );
@@ -14,34 +14,34 @@ CREATE TABLE "auditorium_type_to_auditorium" (
 --> statement-breakpoint
 CREATE TABLE "auditorium_type" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255)
+	"full_name" varchar(255) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "auditorium" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
+	"full_name" varchar(255) NOT NULL,
 	"floor" smallint,
 	"has_power" boolean,
-	"building_id" integer
+	"building_id" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "building" (
-	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40)
+	"id" varchar PRIMARY KEY NOT NULL,
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "department" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40),
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL,
 	"faculty_id" integer
 );
 --> statement-breakpoint
 CREATE TABLE "direction" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40),
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL,
 	"faculty_id" integer
 );
 --> statement-breakpoint
@@ -58,7 +58,7 @@ CREATE TABLE "event_to_teacher" (
 );
 --> statement-breakpoint
 CREATE TABLE "event" (
-	"id" integer PRIMARY KEY NOT NULL,
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "event_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"start_time" timestamp,
 	"end_time" timestamp,
 	"number_pair" smallint,
@@ -69,19 +69,19 @@ CREATE TABLE "event" (
 --> statement-breakpoint
 CREATE TABLE "faculty" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40)
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "speciality" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40),
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL,
 	"direction_id" integer
 );
 --> statement-breakpoint
 CREATE TABLE "subject_to_teacher" (
-	"id" integer PRIMARY KEY NOT NULL,
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "subject_to_teacher_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"hours" smallint,
 	"type" "event_type",
 	"subject_id" integer,
@@ -90,14 +90,14 @@ CREATE TABLE "subject_to_teacher" (
 --> statement-breakpoint
 CREATE TABLE "subject" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40)
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "teacher" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255),
-	"short_name" varchar(40),
+	"full_name" varchar(255) NOT NULL,
+	"short_name" varchar(40) NOT NULL,
 	"department_id" integer
 );
 --> statement-breakpoint
@@ -115,5 +115,5 @@ ALTER TABLE "event_to_teacher" ADD CONSTRAINT "event_to_teacher_teacher_id_teach
 ALTER TABLE "event" ADD CONSTRAINT "event_auditorium_id_auditorium_id_fk" FOREIGN KEY ("auditorium_id") REFERENCES "public"."auditorium"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "speciality" ADD CONSTRAINT "speciality_direction_id_direction_id_fk" FOREIGN KEY ("direction_id") REFERENCES "public"."direction"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_subject_id_subject_id_fk" FOREIGN KEY ("subject_id") REFERENCES "public"."subject"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
-ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_teacher_id_subject_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."subject"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_teacher_id_teacher_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teacher"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "teacher" ADD CONSTRAINT "teacher_department_id_department_id_fk" FOREIGN KEY ("department_id") REFERENCES "public"."department"("id") ON DELETE cascade ON UPDATE cascade;

@@ -27,6 +27,7 @@ type TeacherData = Omit<Teacher, 'departmentId'>
 type GroupData = Omit<Group, 'specialityId' | 'directionId'>
 
 type Event = {
+	id: number
 	numberPair: number
 	startTime: number
 	endTime: number
