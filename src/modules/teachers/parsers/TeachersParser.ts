@@ -61,9 +61,9 @@ export class TeachersParserImpl implements BaseParser<CistTeachersOutput> {
 				if (Object.hasOwn(department, 'departments')) {
 					for (const subDepartment of department.departments) {
 						departments.push({
-							id: department.id,
-							fullName: department.full_name,
-							shortName: department.short_name,
+							id: subDepartment.id,
+							fullName: subDepartment.full_name,
+							shortName: subDepartment.short_name,
 							facultyId: faculty.id,
 						})
 

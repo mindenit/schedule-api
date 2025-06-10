@@ -5,8 +5,9 @@ import type { CistTeachersOutput } from '@/core/types/proxy.js'
 import { facultyTable } from '@/db/schema/faculty.js'
 import { teacherTable } from '@/db/schema/teacher.js'
 import { departmentTable } from '@/db/schema/department.js'
+import type { CistService } from '@/core/types/services.js'
 
-export class TeachersService {
+export class TeachersService implements CistService<CistTeachersOutput> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
 
