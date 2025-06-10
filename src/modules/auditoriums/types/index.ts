@@ -1,9 +1,11 @@
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { BaseParser } from '@/core/types/parsers.js'
-import type { Auditorium } from '@/db/types.js'
+import type { CistAuditoriumsOutput } from '@/core/types/proxy.js'
+import type { CistService } from '@/core/types/services.js'
 
 interface AuditoriumsModuleDependencies {
-	auditoriumsParser: BaseParser<Auditorium>
+	auditoriumsParser: BaseParser<CistAuditoriumsOutput>
+	auditoriumsService: CistService<CistAuditoriumsOutput>
 }
 
 type AuditoriumsInjectableDependencies =
@@ -12,7 +14,7 @@ type AuditoriumsInjectableDependencies =
 type AuditoriumsDiConfig = BaseDiConfig<AuditoriumsModuleDependencies>
 
 export type {
-	AuditoriumsModuleDependencies,
 	AuditoriumsDiConfig,
 	AuditoriumsInjectableDependencies,
+	AuditoriumsModuleDependencies,
 }

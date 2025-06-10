@@ -4,11 +4,15 @@ import type {
 	Building,
 	Department,
 	Direction,
+	Event,
+	EventType,
 	Faculty,
 	Group,
 	Speciality,
+	Subject,
 	Teacher,
 } from '@/db/types.js'
+import type { Maybe } from './common.js'
 
 type RawAuditoriumType = {
 	id: string
@@ -111,6 +115,13 @@ type University = {
 	full_name: string
 }
 
+type SubjectHour = {
+	type: EventType
+	hours: number
+	teacherId: Maybe<number>
+	subjectId: number
+}
+
 type CistAuditoriumsRawJson = {
 	university: University & { buildings: RawBuilding[] }
 }
@@ -134,6 +145,12 @@ type CistTeachersOutput = {
 	departments: Department[]
 }
 
+type CistScheduleOutput = {
+	events: Omit<Event, 'id'>[]
+	subjects: Subject[]
+	hours: SubjectHour[]
+}
+
 type CistGroupsRawJson = {
 	university: University & {
 		faculties: WithDirections<RawFaculty>[]
@@ -155,9 +172,13 @@ type CistScheduleRawJson = {
 }
 
 export type {
+	CistAuditoriumsOutput,
 	CistAuditoriumsRawJson,
+	CistGroupsOutput,
 	CistGroupsRawJson,
+	CistScheduleOutput,
 	CistScheduleRawJson,
+	CistTeachersOutput,
 	CistTeachersRawJson,
 	RawAuditorium,
 	RawBuilding,
@@ -165,7 +186,5 @@ export type {
 	RawDirection,
 	RawSubject,
 	RawTeacher,
-	CistAuditoriumsOutput,
-	CistGroupsOutput,
-	CistTeachersOutput,
+	SubjectHour,
 }

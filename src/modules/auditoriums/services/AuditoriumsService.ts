@@ -8,8 +8,9 @@ import {
 } from '@/db/schema/index.js'
 import type { Redis } from 'ioredis'
 import type { AuditoriumsInjectableDependencies } from '../types/index.js'
+import type { CistService } from '@/core/types/services.js'
 
-export class AuditoriumsService {
+export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
 

@@ -62,7 +62,8 @@ export class AuditoriumParserImpl implements BaseParser<CistAuditoriumsOutput> {
 					id: Number.parseInt(auditorium.id),
 					name: auditorium.short_name,
 					hasPower: Boolean(auditorium.is_have_power),
-					floor: Number.parseInt(auditorium.floor),
+					floor:
+						auditorium.floor === '' ? 0 : Number.parseInt(auditorium.floor),
 					buildingId: building.id,
 				})
 
