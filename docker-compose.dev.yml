@@ -98,6 +98,10 @@ services:
     image: 'ghcr.io/mindenit/cistproxy:main'
     environment:
       - ASPNETCORE_HTTP_PORTS=5035
+    ports:
+      - '5035:5035'
+    networks:
+      - dev
   api:
     container_name: schedule-api
     build:
