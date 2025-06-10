@@ -6,8 +6,9 @@ import { facultyTable } from '@/db/schema/faculty.js'
 import { specialityTable } from '@/db/schema/speciality.js'
 import type { Redis } from 'ioredis'
 import type { GroupsInjectableDependencies } from '../types/index.js'
+import type { CistService } from '@/core/types/services.js'
 
-export class GroupsService {
+export class GroupsService implements CistService<CistGroupsOutput> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
 
