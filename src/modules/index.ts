@@ -70,36 +70,6 @@ export const getRoutes = (): Routes => {
 
 						delay(3000)
 					}
-
-					for (const auditorium of auditoriums.auditoriums) {
-						const events = await eventsParser.parse(
-							auditorium.id,
-							SCHEDULE_TYPE.AUDITORIUM,
-						)
-
-						if (!events) {
-							continue
-						}
-
-						await eventsService.processParsedJSON(events)
-
-						delay(3000)
-					}
-
-					for (const auditorium of teachers.teachers) {
-						const events = await eventsParser.parse(
-							auditorium.id,
-							SCHEDULE_TYPE.TEACHER,
-						)
-
-						if (!events) {
-							continue
-						}
-
-						await eventsService.processParsedJSON(events)
-
-						delay(3000)
-					}
 				},
 			},
 		],
