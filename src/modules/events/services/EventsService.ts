@@ -75,7 +75,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 
 					const isEventExist = await this.cache.get(teacherEventKey)
 
-					if (isEventExist) {
+					if (!isEventExist) {
 						await tx.insert(eventToTeacherTable).values({
 							eventId: e?.id,
 							teacherId: teacher.id,
@@ -91,7 +91,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 
 					const isSubjectExist = await this.cache.get(teacherSubjectKey)
 
-					if (isSubjectExist) {
+					if (!isSubjectExist) {
 						const hour = hours.find(
 							(h) =>
 								h.subjectId === event.subject.id && h.teacherId === teacher.id,
