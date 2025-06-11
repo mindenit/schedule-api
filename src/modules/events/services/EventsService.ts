@@ -68,6 +68,12 @@ export class EventsService implements CistService<CistScheduleOutput> {
 					.returning()
 
 				for (const teacher of event.teachers) {
+					const isTeacherExist = await this.cache.get(`teachers:${teacher.id}`)
+
+					if (!isTeacherExist) {
+						continue
+					}
+
 					const teacherEventKey = this.getTeacherEventKey(
 						teacher.id,
 						e?.id as number,
@@ -122,6 +128,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 					await this.cache.set(key, 'exists')
 				}
 			})
+
 			this.cache.set(key, 'exists')
 		}
 	}
