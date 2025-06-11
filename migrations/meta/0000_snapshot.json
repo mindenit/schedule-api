@@ -1,5 +1,5 @@
 {
-	"id": "cd5f44c1-0cf6-4dc3-aa7c-6f879cdec08e",
+	"id": "e168aca9-ab98-4629-b3eb-6cc3a1be869b",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -654,9 +654,9 @@
 					"primaryKey": false,
 					"notNull": true
 				},
-				"short_name": {
-					"name": "short_name",
-					"type": "varchar(40)",
+				"brief": {
+					"name": "brief",
+					"type": "varchar(100)",
 					"primaryKey": false,
 					"notNull": true
 				}

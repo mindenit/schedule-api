@@ -91,7 +91,7 @@ CREATE TABLE "subject_to_teacher" (
 CREATE TABLE "subject" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL
+	"brief" varchar(100) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "teacher" (
