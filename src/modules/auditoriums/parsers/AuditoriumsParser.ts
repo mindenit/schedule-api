@@ -1,14 +1,16 @@
 import type { Auditorium, AuditoriumType, Building } from '@/db/types.js'
 import type { Maybe } from '@/core/types/common.js'
 import type { CommonDependencies } from '@/core/types/deps.js'
-import type { BaseParser } from '@/core/types/parsers.js'
 import type {
 	CistAuditoriumsOutput,
 	CistAuditoriumsRawJson,
 } from '@/core/types/proxy.js'
 import { fetchProxy, hashObject } from '@/core/utils/index.js'
+import type { CistParser } from '@/core/types/cist.js'
 
-export class AuditoriumParserImpl implements BaseParser<CistAuditoriumsOutput> {
+export class AuditoriumsParserImpl
+	implements CistParser<CistAuditoriumsOutput>
+{
 	private readonly endpoint: string
 
 	constructor({ config }: CommonDependencies) {

@@ -4,7 +4,7 @@ export class RedisKeyBuilder {
 	}
 
 	static auditoriumTypeKey(typeId: number): string {
-		return `auditorium_types:${typeId}`
+		return `auditorium-types:${typeId}`
 	}
 
 	static buildingKey(buildingId: string): string {
@@ -40,11 +40,11 @@ export class RedisKeyBuilder {
 	}
 
 	static teacherEventKey(teacherId: number, eventId: number): string {
-		return `teacher-event:${teacherId}:${eventId}`
+		return `teacher-events:${teacherId}:${eventId}`
 	}
 
 	static teacherSubjectKey(teacherId: number, subjectId: number): string {
-		return `teacher-subject:${teacherId}:${subjectId}`
+		return `teacher-subjects:${teacherId}:${subjectId}`
 	}
 
 	static specialityKey(specialityId: number): string {

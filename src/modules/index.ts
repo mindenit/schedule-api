@@ -32,41 +32,24 @@ export const getRoutes = (): Routes => {
 				url: '/test',
 				handler: async (request, reply) => {
 					const {
-						auditoriumsService,
-						auditoriumsParser,
-						groupsService,
-						groupsParser,
-						teachersService,
-						teachersParser,
-						eventsParser,
-						eventsService,
+						auditoriumsProcessor,
+						groupsProcessor,
+						eventsProcessor,
+						teachersProcessor,
 					} = request.diScope.cradle
 
 					const [auditoriums, groups, teachers] = await Promise.all([
-						auditoriumsParser.parse(),
-						groupsParser.parse(),
-						teachersParser.parse(),
+						auditoriumsProcessor.process(),
+						groupsProcessor.process(),
+						teachersProcessor.process(),
 					])
 
 					if (!auditoriums || !groups || !teachers) {
 						return reply.status(500)
 					}
 
-					await auditoriumsService.processParsedJSON(auditoriums)
-					await groupsService.processParsedJSON(groups)
-					await teachersService.processParsedJSON(teachers)
-
-					for (const group of groups.groups) {
-						const events = await eventsParser.parse(
-							group.id,
-							SCHEDULE_TYPE.GROUP,
-						)
-
-						if (!events) {
-							continue
-						}
-
-						await eventsService.processParsedJSON(events)
+					for (const group of groups) {
+						await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
 
 						delay(3000)
 					}

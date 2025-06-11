@@ -1,28 +1,41 @@
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
+import type { ScheduleType } from '@/core/constants/parsers.js'
 import type { DatabaseClient } from '@/core/types/deps.js'
-import type { CistScheduleOutput } from '@/core/types/proxy.js'
-import type { CistService } from '@/core/types/services.js'
-import { hashObject } from '@/core/utils/hash.js'
-import { auditoriumTable } from '@/db/schema/auditorium.js'
-import { eventToAcademicGroupTable } from '@/db/schema/event-to-academic-group.js'
-import { eventToTeacherTable } from '@/db/schema/event-to-teacher.js'
-import { eventTable } from '@/db/schema/event.js'
-import { subjectToTeacherTable } from '@/db/schema/subject-to-teacher.js'
-import { subjectTable } from '@/db/schema/subject.js'
+import { hashObject } from '@/core/utils/index.js'
+import {
+	auditoriumTable,
+	eventTable,
+	eventToAcademicGroupTable,
+	eventToTeacherTable,
+	subjectTable,
+	subjectToTeacherTable,
+} from '@/db/schema/index.js'
 import { eq, sql } from 'drizzle-orm'
 import type { Redis } from 'ioredis'
-import type { EventsInjectableDependencies } from '../types/index.js'
-import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
+import type {
+	EventsInjectableDependencies,
+	EventsParser,
+	EventsProcessor,
+} from '../types/index.js'
 
-export class EventsService implements CistService<CistScheduleOutput> {
+export class EventsProcessorImpl implements EventsProcessor {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
+	private readonly parser: EventsParser
 
-	constructor({ db, cache }: EventsInjectableDependencies) {
+	constructor({ db, cache, eventsParser }: EventsInjectableDependencies) {
 		this.db = db.client
 		this.cache = cache
+		this.parser = eventsParser
 	}
 
-	async processParsedJSON(data: CistScheduleOutput): Promise<void> {
+	async process(id: number, type: ScheduleType): Promise<void> {
+		const data = await this.parser.parse(id, type)
+
+		if (!data) {
+			return
+		}
+
 		const { events, subjects, hours } = data
 
 		for (const subject of subjects) {

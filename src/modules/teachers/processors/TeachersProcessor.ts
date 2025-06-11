@@ -1,23 +1,34 @@
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
 import type { DatabaseClient } from '@/core/types/deps.js'
+import type { CistTeachersOutput } from '@/core/types/proxy.js'
+import type { Teacher } from '@/db/types.js'
 import type { Redis } from 'ioredis'
 import type { TeachersInjectableDependencies } from '../types/index.js'
-import type { CistTeachersOutput } from '@/core/types/proxy.js'
-import { facultyTable } from '@/db/schema/faculty.js'
-import { teacherTable } from '@/db/schema/teacher.js'
-import { departmentTable } from '@/db/schema/department.js'
-import type { CistService } from '@/core/types/services.js'
+import {
+	departmentTable,
+	facultyTable,
+	teacherTable,
+} from '@/db/schema/index.js'
 import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 
-export class TeachersService implements CistService<CistTeachersOutput> {
+export class TeachersProcessorImpl implements CistProcessor<Teacher[]> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
+	private readonly parser: CistParser<CistTeachersOutput>
 
-	constructor({ db, cache }: TeachersInjectableDependencies) {
+	constructor({ db, cache, teachersParser }: TeachersInjectableDependencies) {
 		this.db = db.client
 		this.cache = cache
+		this.parser = teachersParser
 	}
 
-	async processParsedJSON(data: CistTeachersOutput): Promise<void> {
+	async process(): Promise<Teacher[]> {
+		const data = await this.parser.parse()
+
+		if (!data) {
+			return []
+		}
+
 		const { teachers, faculties, departments } = data
 
 		for (const faculty of faculties) {
@@ -58,5 +69,7 @@ export class TeachersService implements CistService<CistTeachersOutput> {
 			await this.db.insert(teacherTable).values(teacher)
 			this.cache.set(key, 'exists')
 		}
+
+		return teachers
 	}
 }

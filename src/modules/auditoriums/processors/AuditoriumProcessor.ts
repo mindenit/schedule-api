@@ -1,26 +1,39 @@
-import type { DatabaseClient } from '@/core/types/index.js'
-import type { CistAuditoriumsOutput } from '@/core/types/proxy.js'
-import { buildingTable } from '@/db/schema/building.js'
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
+import type { DatabaseClient } from '@/core/types/deps.js'
+import type { Auditorium } from '@/db/types.js'
+import type { Redis } from 'ioredis'
+import type { AuditoriumsInjectableDependencies } from '../types/index.js'
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 import {
 	auditoriumTable,
 	auditoriumTypeTable,
 	auditoriumTypeToAuditoriumTable,
+	buildingTable,
 } from '@/db/schema/index.js'
-import type { Redis } from 'ioredis'
-import type { AuditoriumsInjectableDependencies } from '../types/index.js'
-import type { CistService } from '@/core/types/services.js'
-import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
+import type { CistAuditoriumsOutput } from '@/core/types/proxy.js'
 
-export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
+export class AuditoriumProcessorImpl implements CistProcessor<Auditorium[]> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
+	private readonly parser: CistParser<CistAuditoriumsOutput>
 
-	constructor({ db, cache }: AuditoriumsInjectableDependencies) {
+	constructor({
+		db,
+		cache,
+		auditoriumsParser,
+	}: AuditoriumsInjectableDependencies) {
 		this.db = db.client
 		this.cache = cache
+		this.parser = auditoriumsParser
 	}
 
-	async processParsedJSON(data: CistAuditoriumsOutput): Promise<void> {
+	async process(): Promise<Auditorium[]> {
+		const data = await this.parser.parse()
+
+		if (!data) {
+			return []
+		}
+
 		const { buildings, auditoriums, auditoriumTypes } = data
 
 		for (const building of buildings) {
@@ -68,5 +81,7 @@ export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 
 			await this.cache.set(key, 'exists')
 		}
+
+		return data.auditoriums
 	}
 }

@@ -1,11 +1,11 @@
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
-import type { BaseParser } from '@/core/types/parsers.js'
 import type { CistGroupsOutput } from '@/core/types/proxy.js'
-import type { CistService } from '@/core/types/services.js'
+import type { Group } from '@/db/types.js'
 
 interface GroupsModuleDependencies {
-	groupsParser: BaseParser<CistGroupsOutput>
-	groupsService: CistService<CistGroupsOutput>
+	groupsParser: CistParser<CistGroupsOutput>
+	groupsProcessor: CistProcessor<Group[]>
 }
 
 type GroupsInjectableDependencies =

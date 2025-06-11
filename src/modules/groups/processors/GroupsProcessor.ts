@@ -1,24 +1,35 @@
-import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
 import type { DatabaseClient } from '@/core/types/deps.js'
 import type { CistGroupsOutput } from '@/core/types/proxy.js'
-import type { CistService } from '@/core/types/services.js'
-import { academicGroupTable } from '@/db/schema/academic-group.js'
-import { directionTable } from '@/db/schema/direction.js'
-import { facultyTable } from '@/db/schema/faculty.js'
-import { specialityTable } from '@/db/schema/speciality.js'
+import type { Group } from '@/db/types.js'
 import type { Redis } from 'ioredis'
 import type { GroupsInjectableDependencies } from '../types/index.js'
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
+import {
+	academicGroupTable,
+	directionTable,
+	facultyTable,
+	specialityTable,
+} from '@/db/schema/index.js'
 
-export class GroupsService implements CistService<CistGroupsOutput> {
+export class GroupsProcessorImpl implements CistProcessor<Group[]> {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
+	private readonly parser: CistParser<CistGroupsOutput>
 
-	constructor({ db, cache }: GroupsInjectableDependencies) {
+	constructor({ db, cache, groupsParser }: GroupsInjectableDependencies) {
 		this.db = db.client
 		this.cache = cache
+		this.parser = groupsParser
 	}
 
-	async processParsedJSON(data: CistGroupsOutput): Promise<void> {
+	async process(): Promise<Group[]> {
+		const data = await this.parser.parse()
+
+		if (!data) {
+			return []
+		}
+
 		const { groups, faculties, specialities, directions } = data
 
 		for (const faculty of faculties) {
@@ -72,5 +83,7 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 			await this.db.insert(academicGroupTable).values(group)
 			await this.cache.set(key, 'exists')
 		}
+
+		return groups
 	}
 }

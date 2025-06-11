@@ -2,15 +2,18 @@ import type { ScheduleType } from '@/core/constants/parsers.js'
 import type { Maybe } from '@/core/types/common.js'
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { CistScheduleOutput } from '@/core/types/proxy.js'
-import type { CistService } from '@/core/types/services.js'
 
 interface EventsParser {
 	parse: (id: number, type: ScheduleType) => Promise<Maybe<CistScheduleOutput>>
 }
 
+interface EventsProcessor {
+	process: (id: number, type: ScheduleType) => Promise<void>
+}
+
 interface EventModuleDependencies {
 	eventsParser: EventsParser
-	eventsService: CistService<CistScheduleOutput>
+	eventsProcessor: EventsProcessor
 }
 
 type EventsInjectableDependencies =
@@ -20,6 +23,7 @@ type EventsDiConfig = BaseDiConfig<EventModuleDependencies>
 export type {
 	EventModuleDependencies,
 	EventsDiConfig,
-	EventsParser,
 	EventsInjectableDependencies,
+	EventsParser,
+	EventsProcessor,
 }

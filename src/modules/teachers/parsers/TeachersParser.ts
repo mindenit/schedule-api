@@ -1,7 +1,7 @@
 import type { Department, Faculty, Teacher } from '@/db/types.js'
 import type { Maybe } from '@/core/types/common.js'
 import type { CommonDependencies } from '@/core/types/deps.js'
-import type { BaseParser } from '@/core/types/parsers.js'
+import type { CistParser } from '@/core/types/parsers.js'
 import type {
 	CistTeachersOutput,
 	CistTeachersRawJson,
@@ -10,7 +10,7 @@ import type {
 } from '@/core/types/proxy.js'
 import { fetchProxy } from '@/core/utils/proxy.js'
 
-export class TeachersParserImpl implements BaseParser<CistTeachersOutput> {
+export class TeachersParserImpl implements CistParser<CistTeachersOutput> {
 	private readonly endpoint: string
 	private hashSet: Set<number>
 	private teachers: Teacher[]

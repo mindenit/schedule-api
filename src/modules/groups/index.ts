@@ -1,9 +1,9 @@
 import { asClass } from 'awilix'
+import { GroupsParserImpl } from './parsers/GroupsParser.js'
 import type { GroupsDiConfig } from './types/index.js'
-import { GroupParserImpl } from './parsers/GroupsParser.js'
-import { GroupsService } from './services/GroupsService.js'
+import { GroupsProcessorImpl } from './processors/GroupsProcessor.js'
 
 export const resolveGroupsModule = (): GroupsDiConfig => ({
-	groupsParser: asClass(GroupParserImpl).singleton(),
-	groupsService: asClass(GroupsService).singleton(),
+	groupsParser: asClass(GroupsParserImpl).singleton(),
+	groupsProcessor: asClass(GroupsProcessorImpl).singleton(),
 })
