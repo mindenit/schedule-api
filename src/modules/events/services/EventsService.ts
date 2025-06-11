@@ -11,6 +11,7 @@ import { subjectTable } from '@/db/schema/subject.js'
 import { eq, sql } from 'drizzle-orm'
 import type { Redis } from 'ioredis'
 import type { EventsInjectableDependencies } from '../types/index.js'
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 
 export class EventsService implements CistService<CistScheduleOutput> {
 	private readonly db: DatabaseClient
@@ -25,7 +26,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 		const { events, subjects, hours } = data
 
 		for (const subject of subjects) {
-			const key = this.getSubjectKey(subject.id)
+			const key = RedisKeyBuilder.subjectKey(subject.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -39,8 +40,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 
 		for (const event of events) {
 			const eventHash = hashObject(event)
-
-			const key = this.getEventKey(eventHash)
+			const key = RedisKeyBuilder.eventKey(eventHash)
 
 			const isExist = await this.cache.exists(key)
 
@@ -68,13 +68,15 @@ export class EventsService implements CistService<CistScheduleOutput> {
 					.returning()
 
 				for (const teacher of event.teachers) {
-					const isTeacherExist = await this.cache.get(`teachers:${teacher.id}`)
+					const isTeacherExist = await this.cache.get(
+						RedisKeyBuilder.teacherKey(teacher.id),
+					)
 
 					if (!isTeacherExist) {
 						continue
 					}
 
-					const teacherEventKey = this.getTeacherEventKey(
+					const teacherEventKey = RedisKeyBuilder.teacherEventKey(
 						teacher.id,
 						e?.id as number,
 					)
@@ -90,7 +92,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 						await this.cache.set(key, 'exists')
 					}
 
-					const teacherSubjectKey = this.getTeacherSubjectKey(
+					const teacherSubjectKey = RedisKeyBuilder.teacherSubjectKey(
 						teacher.id,
 						event.subject.id,
 					)
@@ -112,7 +114,7 @@ export class EventsService implements CistService<CistScheduleOutput> {
 				}
 
 				for (const group of event.groups) {
-					const key = this.getGroupEventKey(group.id, e?.id as number)
+					const key = RedisKeyBuilder.groupEventKey(group.id, e?.id as number)
 
 					const isExist = await this.cache.get(key)
 
@@ -131,25 +133,5 @@ export class EventsService implements CistService<CistScheduleOutput> {
 
 			this.cache.set(key, 'exists')
 		}
-	}
-
-	private getEventKey(hash: string): string {
-		return `events:${hash}`
-	}
-
-	private getSubjectKey(subjectId: number): string {
-		return `subjects:${subjectId}`
-	}
-
-	private getGroupEventKey(groupId: number, eventId: number): string {
-		return `group-event:${groupId}:${eventId}`
-	}
-
-	private getTeacherEventKey(teacherId: number, eventId: number): string {
-		return `teacher-event:${teacherId}:${eventId}`
-	}
-
-	private getTeacherSubjectKey(teacherId: number, subjectId: number): string {
-		return `teacher-subject:${teacherId}:${subjectId}`
 	}
 }

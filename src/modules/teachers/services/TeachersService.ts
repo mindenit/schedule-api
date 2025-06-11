@@ -6,6 +6,7 @@ import { facultyTable } from '@/db/schema/faculty.js'
 import { teacherTable } from '@/db/schema/teacher.js'
 import { departmentTable } from '@/db/schema/department.js'
 import type { CistService } from '@/core/types/services.js'
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 
 export class TeachersService implements CistService<CistTeachersOutput> {
 	private readonly db: DatabaseClient
@@ -20,7 +21,7 @@ export class TeachersService implements CistService<CistTeachersOutput> {
 		const { teachers, faculties, departments } = data
 
 		for (const faculty of faculties) {
-			const key = this.getFacultyKey(faculty.id)
+			const key = RedisKeyBuilder.facultyKey(faculty.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -33,7 +34,7 @@ export class TeachersService implements CistService<CistTeachersOutput> {
 		}
 
 		for (const department of departments) {
-			const key = this.getDepartmentsKey(department.id)
+			const key = RedisKeyBuilder.departmentKey(department.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -46,7 +47,7 @@ export class TeachersService implements CistService<CistTeachersOutput> {
 		}
 
 		for (const teacher of teachers) {
-			const key = this.getTeacherKey(teacher.id)
+			const key = RedisKeyBuilder.teacherKey(teacher.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -57,17 +58,5 @@ export class TeachersService implements CistService<CistTeachersOutput> {
 			await this.db.insert(teacherTable).values(teacher)
 			this.cache.set(key, 'exists')
 		}
-	}
-
-	private getFacultyKey(facultyId: number): string {
-		return `faculties:${facultyId}`
-	}
-
-	private getDepartmentsKey(departmentId: number): string {
-		return `departments:${departmentId}`
-	}
-
-	private getTeacherKey(teacherId: number): string {
-		return `teachers:${teacherId}`
 	}
 }

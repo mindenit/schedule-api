@@ -1,12 +1,13 @@
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 import type { DatabaseClient } from '@/core/types/deps.js'
 import type { CistGroupsOutput } from '@/core/types/proxy.js'
+import type { CistService } from '@/core/types/services.js'
 import { academicGroupTable } from '@/db/schema/academic-group.js'
 import { directionTable } from '@/db/schema/direction.js'
 import { facultyTable } from '@/db/schema/faculty.js'
 import { specialityTable } from '@/db/schema/speciality.js'
 import type { Redis } from 'ioredis'
 import type { GroupsInjectableDependencies } from '../types/index.js'
-import type { CistService } from '@/core/types/services.js'
 
 export class GroupsService implements CistService<CistGroupsOutput> {
 	private readonly db: DatabaseClient
@@ -21,7 +22,7 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 		const { groups, faculties, specialities, directions } = data
 
 		for (const faculty of faculties) {
-			const key = this.getFacultyKey(faculty.id)
+			const key = RedisKeyBuilder.facultyKey(faculty.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -34,7 +35,7 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 		}
 
 		for (const direction of directions) {
-			const key = this.getDirectionKey(direction.id)
+			const key = RedisKeyBuilder.directionKey(direction.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -47,7 +48,7 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 		}
 
 		for (const speciality of specialities) {
-			const key = this.getSpecialityKey(speciality.id)
+			const key = RedisKeyBuilder.specialityKey(speciality.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -60,7 +61,7 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 		}
 
 		for (const group of groups) {
-			const key = this.getGroupKey(group.id)
+			const key = RedisKeyBuilder.groupKey(group.id)
 
 			const isExist = await this.cache.get(key)
 
@@ -71,21 +72,5 @@ export class GroupsService implements CistService<CistGroupsOutput> {
 			await this.db.insert(academicGroupTable).values(group)
 			await this.cache.set(key, 'exists')
 		}
-	}
-
-	private getGroupKey(groupId: number): string {
-		return `groups:${groupId}`
-	}
-
-	private getSpecialityKey(specialityId: number): string {
-		return `specialities:${specialityId}`
-	}
-
-	private getDirectionKey(directionId: number): string {
-		return `directions:${directionId}`
-	}
-
-	private getFacultyKey(facultyId: number): string {
-		return `faculties:${facultyId}`
 	}
 }

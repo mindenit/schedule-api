@@ -9,6 +9,7 @@ import {
 import type { Redis } from 'ioredis'
 import type { AuditoriumsInjectableDependencies } from '../types/index.js'
 import type { CistService } from '@/core/types/services.js'
+import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 
 export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 	private readonly db: DatabaseClient
@@ -23,7 +24,7 @@ export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 		const { buildings, auditoriums, auditoriumTypes } = data
 
 		for (const building of buildings) {
-			const key = this.getBuildingKey(building.id)
+			const key = RedisKeyBuilder.buildingKey(building.id)
 
 			const isExists = await this.cache.get(key)
 
@@ -36,7 +37,7 @@ export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 		}
 
 		for (const auditorium of auditoriums) {
-			const key = this.getAuditoriumKey(auditorium.id)
+			const key = RedisKeyBuilder.auditoriumKey(auditorium.id)
 
 			const isExists = await this.cache.get(key)
 
@@ -49,7 +50,7 @@ export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 		}
 
 		for (const type of auditoriumTypes) {
-			const key = this.getAuditoriumTypeKey(type.id)
+			const key = RedisKeyBuilder.auditoriumTypeKey(type.id)
 
 			const isExists = await this.cache.get(key)
 
@@ -67,17 +68,5 @@ export class AuditoriumsService implements CistService<CistAuditoriumsOutput> {
 
 			await this.cache.set(key, 'exists')
 		}
-	}
-
-	private getAuditoriumKey(auditoriumId: number) {
-		return `auditoriums:${auditoriumId}`
-	}
-
-	private getAuditoriumTypeKey(typeId: number) {
-		return `auditorium_types:${typeId}`
-	}
-
-	private getBuildingKey(buildingId: string): string {
-		return `buildings:${buildingId}`
 	}
 }
