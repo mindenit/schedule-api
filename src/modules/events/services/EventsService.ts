@@ -59,8 +59,8 @@ export class EventsService implements CistService<CistScheduleOutput> {
 				const [e] = await tx
 					.insert(eventTable)
 					.values({
-						startTime: sql`to_timestamp(${startTime})`,
-						endTime: sql`to_timestamp(${endTime})`,
+						startTime: sql`to_timestamp(${startTime}) + interval '2 hours'`,
+						endTime: sql`to_timestamp(${endTime}) + interval '2 hours'`,
 						auditoriumId: auditoriumId?.id,
 						type,
 						numberPair,
