@@ -2,8 +2,11 @@ import { SCHEDULE_TYPE } from '@/core/constants/parsers.js'
 import { HEALTH_CHECK_SCHEMA } from '@/core/schemas/index.js'
 import type { Routes } from '@/core/types/routes.js'
 import { delay } from '@/core/utils/proxy.js'
+import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
 
 export const getRoutes = (): Routes => {
+	const { routes: auditoriumsRoutes } = getAuditoriumsRoutes()
+
 	return {
 		routes: [
 			{
@@ -55,6 +58,7 @@ export const getRoutes = (): Routes => {
 					}
 				},
 			},
+			...auditoriumsRoutes,
 		],
 	}
 }
