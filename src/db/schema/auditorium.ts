@@ -9,7 +9,7 @@ export const auditoriumTable = pgTable('auditorium', (t) => ({
 	name: fullName,
 	floor: t.smallint(),
 	hasPower: t.boolean(),
-	buildingId: t.integer().references(() => buildingTable.id, {
+	buildingId: t.varchar().references(() => buildingTable.id, {
 		onDelete: 'cascade',
 		onUpdate: 'cascade',
 	}),

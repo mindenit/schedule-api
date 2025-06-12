@@ -1,11 +1,19 @@
-import type { BaseDiConfig } from '@/core/types/deps.js'
-import type { BaseParser } from '@/core/types/parsers.js'
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
+import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { CistGroupsOutput } from '@/core/types/proxy.js'
+import type { Group } from '@/db/types.js'
 
 interface GroupsModuleDependencies {
-	groupsParser: BaseParser<CistGroupsOutput>
+	groupsParser: CistParser<CistGroupsOutput>
+	groupsProcessor: CistProcessor<Group[]>
 }
 
+type GroupsInjectableDependencies =
+	InjectableDependencies<GroupsModuleDependencies>
 type GroupsDiConfig = BaseDiConfig<GroupsModuleDependencies>
 
-export type { GroupsModuleDependencies, GroupsDiConfig }
+export type {
+	GroupsDiConfig,
+	GroupsInjectableDependencies,
+	GroupsModuleDependencies,
+}

@@ -1,11 +1,20 @@
-import type { BaseDiConfig } from '@/core/types/deps.js'
-import type { BaseParser } from '@/core/types/parsers.js'
+import type { CistParser, CistProcessor } from '@/core/types/cist.js'
+import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { CistTeachersOutput } from '@/core/types/proxy.js'
+import type { Teacher } from '@/db/types.js'
 
 interface TeachersModuleDependencies {
-	teachersParser: BaseParser<CistTeachersOutput>
+	teachersParser: CistParser<CistTeachersOutput>
+	teachersProcessor: CistProcessor<Teacher[]>
 }
+
+type TeachersInjectableDependencies =
+	InjectableDependencies<TeachersModuleDependencies>
 
 type TeachersDiConfig = BaseDiConfig<TeachersModuleDependencies>
 
-export type { TeachersModuleDependencies, TeachersDiConfig }
+export type {
+	TeachersDiConfig,
+	TeachersInjectableDependencies,
+	TeachersModuleDependencies,
+}

@@ -16,6 +16,10 @@ import {
 } from 'fastify-type-provider-zod'
 import { getRoutes } from './modules/index.js'
 import scalarApiReference from '@scalar/fastify-api-reference'
+import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler'
+import { SCHEDULE_TYPE } from './core/constants/parsers.js'
+import { delay } from './core/utils/index.js'
+import fastifySchedule from '@fastify/schedule'
 
 export class App {
 	private readonly app: AppInstance
@@ -100,6 +104,8 @@ export class App {
 			allowList: ['127.0.0.1'],
 		})
 
+		this.app.register(fastifySchedule)
+
 		registerDependencies(diContainer, { app: this.app })
 	}
 
@@ -118,6 +124,35 @@ export class App {
 		)
 	}
 
+	private async registerPeriodicJob() {
+		const {
+			auditoriumsProcessor,
+			groupsProcessor,
+			eventsProcessor,
+			teachersProcessor,
+		} = this.app.diContainer.cradle
+
+		const task = new AsyncTask('cist-postman', async () => {
+			const [auditoriums, groups, teachers] = await Promise.all([
+				auditoriumsProcessor.process(),
+				groupsProcessor.process(),
+				teachersProcessor.process(),
+			])
+
+			if (!auditoriums || !groups || !teachers) {
+				return
+			}
+
+			for (const group of groups) {
+				await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
+
+				delay(3000)
+			}
+		})
+
+		return new SimpleIntervalJob({ hours: 12 }, task)
+	}
+
 	async initialize(): Promise<AppInstance> {
 		try {
 			await this.registerPlugins()
@@ -127,6 +162,10 @@ export class App {
 			})
 
 			await this.app.ready()
+
+			const job = await this.registerPeriodicJob()
+
+			this.app.scheduler.addSimpleIntervalJob(job)
 
 			return this.app
 		} catch (e: unknown) {

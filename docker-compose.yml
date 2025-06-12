@@ -90,8 +90,6 @@ services:
   cist-proxy:
     container_name: schedule-cist-proxy
     image: 'ghcr.io/mindenit/cistproxy:main'
-    ports:
-      - '5035:5035'
     networks:
       - dev
     environment:

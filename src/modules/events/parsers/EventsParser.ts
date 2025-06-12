@@ -1,9 +1,11 @@
 import type { ScheduleType } from '@/core/constants/parsers.js'
 import type { CommonDependencies, Maybe } from '@/core/types/index.js'
 import type {
+	CistScheduleOutput,
 	CistScheduleRawJson,
 	RawSubject,
 	RawTeacher,
+	SubjectHour,
 } from '@/core/types/proxy.js'
 import { fetchProxy } from '@/core/utils/index.js'
 import type {
@@ -25,18 +27,27 @@ export class EventsParserImpl implements EventsParser {
 		this.endpoint = `${baseUrl}/schedule`
 	}
 
-	async parse(id: number, type: ScheduleType): Promise<Maybe<Event[]>> {
+	async parse(
+		id: number,
+		type: ScheduleType,
+	): Promise<Maybe<CistScheduleOutput>> {
+		console.log(`${this.endpoint}/${id}?type=${type}`)
+
 		const raw = await fetchProxy<CistScheduleRawJson>(
 			`${this.endpoint}/${id}?type=${type}`,
 		)
 
-		console.log(raw.events.length)
+		if (Array.isArray(raw) && !raw.length) {
+			return null
+		}
 
 		if (!Object.hasOwn(raw, 'events')) {
 			return null
 		}
 
-		const events: Event[] = []
+		const events: Omit<Event, 'id'>[] = []
+		const subjects: Subject[] = []
+		const hours = EventsParserImpl.getSubjectHours(raw.subjects)
 
 		for (const e of raw.events) {
 			const pair = {
@@ -52,7 +63,7 @@ export class EventsParserImpl implements EventsParser {
 					name: '',
 					brief: '',
 				},
-			} satisfies Event
+			} satisfies Omit<Event, 'id'>
 
 			const subject = EventsParserImpl.findSubjectById(
 				raw.subjects,
@@ -64,6 +75,7 @@ export class EventsParserImpl implements EventsParser {
 			}
 
 			pair.subject = subject
+			subjects.push(subject)
 
 			if (!Object.hasOwn(e, 'groups')) {
 				continue
@@ -99,7 +111,11 @@ export class EventsParserImpl implements EventsParser {
 			events.push(pair)
 		}
 
-		return events.toSorted((a, b) => a.startTime - b.startTime)
+		return {
+			events: events.toSorted((a, b) => a.startTime - b.startTime),
+			subjects,
+			hours,
+		}
 	}
 
 	private static getType(id: number): EventType {
@@ -170,5 +186,24 @@ export class EventsParserImpl implements EventsParser {
 			...rest,
 			name: title,
 		}
+	}
+
+	private static getSubjectHours(subjects: RawSubject[]): SubjectHour[] {
+		const hours: SubjectHour[] = []
+
+		for (const subject of subjects) {
+			const mappedHours = subject.hours.map((h): SubjectHour => {
+				return {
+					hours: h.val,
+					type: EventsParserImpl.getType(h.type),
+					teacherId: h.teachers[0] ?? null,
+					subjectId: subject.id,
+				}
+			})
+
+			hours.push(...mappedHours)
+		}
+
+		return hours
 	}
 }

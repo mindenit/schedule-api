@@ -37,4 +37,5 @@ export type {
 	CommonDependencies,
 	InjectableDependencies,
 	ExternalDependencies,
+	DatabaseClient,
 }

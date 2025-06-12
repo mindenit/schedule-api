@@ -1,10 +1,10 @@
 import type { CommonDependencies, Maybe } from '@/core/types/index.js'
-import type { BaseParser } from '@/core/types/parsers.js'
+import type { CistParser } from '@/core/types/parsers.js'
 import type { CistGroupsOutput, CistGroupsRawJson } from '@/core/types/proxy.js'
 import { fetchProxy, hashObject } from '@/core/utils/index.js'
 import type { Direction, Faculty, Group, Speciality } from '@/db/types.js'
 
-export class GroupParserImpl implements BaseParser<CistGroupsOutput> {
+export class GroupsParserImpl implements CistParser<CistGroupsOutput> {
 	private readonly endpoint: string
 	private hashSet: Set<string>
 	private groups: Group[]
@@ -35,8 +35,8 @@ export class GroupParserImpl implements BaseParser<CistGroupsOutput> {
 		for (const faculty of raw.university.faculties) {
 			faculties.push({
 				id: faculty.id,
-				fullName: faculty.full_name,
-				shortName: faculty.short_name,
+				fullName: faculty.short_name,
+				shortName: faculty.full_name,
 			})
 
 			if (!Object.hasOwn(faculty, 'directions')) {
@@ -46,8 +46,8 @@ export class GroupParserImpl implements BaseParser<CistGroupsOutput> {
 			for (const direction of faculty.directions) {
 				directions.push({
 					id: direction.id,
-					fullName: direction.full_name,
-					shortName: direction.short_name,
+					fullName: direction.short_name,
+					shortName: direction.full_name,
 					facultyId: faculty.id,
 				})
 

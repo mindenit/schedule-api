@@ -91,7 +91,7 @@ export const relations = defineRelations(schema, (r) => ({
 			optional: false,
 		}),
 		subject: r.one.subjectTable({
-			from: r.eventTable.auditoriumId,
+			from: r.eventTable.subjectId,
 			to: r.subjectTable.id,
 			optional: false,
 		}),
