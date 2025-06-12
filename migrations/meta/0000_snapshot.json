@@ -1,5 +1,5 @@
 {
-	"id": "e168aca9-ab98-4629-b3eb-6cc3a1be869b",
+	"id": "4ffbce96-85a1-4762-a704-6287691f9b04",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -461,6 +461,12 @@
 					"type": "integer",
 					"primaryKey": false,
 					"notNull": false
+				},
+				"subject_id": {
+					"name": "subject_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
 				}
 			},
 			"indexes": {},
@@ -470,6 +476,15 @@
 					"tableFrom": "event",
 					"tableTo": "auditorium",
 					"columnsFrom": ["auditorium_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"event_subject_id_subject_id_fk": {
+					"name": "event_subject_id_subject_id_fk",
+					"tableFrom": "event",
+					"tableTo": "subject",
+					"columnsFrom": ["subject_id"],
 					"columnsTo": ["id"],
 					"onDelete": "cascade",
 					"onUpdate": "cascade"

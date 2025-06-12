@@ -77,6 +77,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 						auditoriumId: auditoriumId?.id,
 						type,
 						numberPair,
+						subjectId: event.subject.id,
 					})
 					.returning()
 

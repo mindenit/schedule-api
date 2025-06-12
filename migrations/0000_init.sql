@@ -64,6 +64,7 @@ CREATE TABLE "event" (
 	"number_pair" smallint,
 	"type" "event_type",
 	"auditorium_id" integer,
+	"subject_id" integer,
 	CONSTRAINT "start_before_end" CHECK ("event"."start_time" < "event"."end_time")
 );
 --> statement-breakpoint
@@ -113,6 +114,7 @@ ALTER TABLE "event_to_academic_group" ADD CONSTRAINT "event_to_academic_group_gr
 ALTER TABLE "event_to_teacher" ADD CONSTRAINT "event_to_teacher_event_id_event_id_fk" FOREIGN KEY ("event_id") REFERENCES "public"."event"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "event_to_teacher" ADD CONSTRAINT "event_to_teacher_teacher_id_teacher_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teacher"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "event" ADD CONSTRAINT "event_auditorium_id_auditorium_id_fk" FOREIGN KEY ("auditorium_id") REFERENCES "public"."auditorium"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
+ALTER TABLE "event" ADD CONSTRAINT "event_subject_id_subject_id_fk" FOREIGN KEY ("subject_id") REFERENCES "public"."subject"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "speciality" ADD CONSTRAINT "speciality_direction_id_direction_id_fk" FOREIGN KEY ("direction_id") REFERENCES "public"."direction"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_subject_id_subject_id_fk" FOREIGN KEY ("subject_id") REFERENCES "public"."subject"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
 ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_teacher_id_teacher_id_fk" FOREIGN KEY ("teacher_id") REFERENCES "public"."teacher"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint
