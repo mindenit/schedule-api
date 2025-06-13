@@ -4,6 +4,7 @@ import type { Routes } from '@/core/types/routes.js'
 import { delay } from '@/core/utils/proxy.js'
 import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
 import { getGroupsRoutes } from './groups/routes/index.js'
+import { getTeachersRoutes } from './teachers/routes/index.js'
 
 export const getRoutes = (): Routes => ({
 	routes: [
@@ -58,5 +59,6 @@ export const getRoutes = (): Routes => ({
 		},
 		...getAuditoriumsRoutes().routes,
 		...getGroupsRoutes().routes,
+		...getTeachersRoutes().routes,
 	],
 })
