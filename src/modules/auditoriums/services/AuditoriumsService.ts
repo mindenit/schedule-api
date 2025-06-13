@@ -1,4 +1,4 @@
-import type { GenericResponse } from '@/core/types/common.js'
+import type { BaseResponse } from '@/core/types/common.js'
 import type {
 	AuditoriumsInjectableDependencies,
 	AuditoriumsRepository,
@@ -13,7 +13,7 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		this.repository = auditoriumsRepository
 	}
 
-	async getAuditoriums(): Promise<GenericResponse<Auditorium[]>> {
+	async getAuditoriums(): Promise<BaseResponse<Auditorium[]>> {
 		const auditoriums = await this.repository.findAll()
 
 		return {

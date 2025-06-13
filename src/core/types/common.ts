@@ -14,7 +14,7 @@ interface HttpError {
 	message: string
 }
 
-type GenericResponse<T extends object> =
+type BaseResponse<T extends object> =
 	| {
 			success: true
 			data: T
@@ -28,4 +28,4 @@ type GenericResponse<T extends object> =
 			error: HttpError
 	  }
 
-export type { AppInstance, HttpError, Maybe, GenericResponse }
+export type { AppInstance, HttpError, Maybe, BaseResponse }
