@@ -6,6 +6,7 @@ import type {
 } from '../types/index.js'
 import type { Group, Schedule } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
+import { success } from '@/core/utils/index.js'
 
 export class GroupsServiceImpl implements GroupsService {
 	private readonly repository: GroupsRepository
@@ -17,12 +18,7 @@ export class GroupsServiceImpl implements GroupsService {
 	async getAll(): Promise<BaseResponse<Group[]>> {
 		const groups = await this.repository.findAll()
 
-		return {
-			success: true,
-			data: groups,
-			message: 'Groups fetched successfully',
-			error: null,
-		}
+		return success(groups, 'Groups fetched successfully')
 	}
 
 	async getSchedule(
@@ -30,11 +26,8 @@ export class GroupsServiceImpl implements GroupsService {
 	): Promise<BaseResponse<Schedule[]>> {
 		const schedule = await this.repository.getSchedule(options)
 
-		return {
-			success: true,
-			data: schedule,
-			message: `Schedule for group with id ${options.id} found successfully`,
-			error: null,
-		}
+		const message = `Schedule for group with id ${options.id} found successfully`
+
+		return success(schedule, message)
 	}
 }

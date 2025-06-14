@@ -6,6 +6,7 @@ import type {
 } from '../types/index.js'
 import type { Auditorium, Schedule } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
+import { success } from '@/core/utils/response.js'
 
 export class AuditoriumsServiceImpl implements AuditoriumsService {
 	repository: AuditoriumsRepository
@@ -17,12 +18,9 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 	async getAuditoriums(): Promise<BaseResponse<Auditorium[]>> {
 		const auditoriums = await this.repository.findAll()
 
-		return {
-			success: true,
-			data: auditoriums,
-			message: 'Auditoriums fetched successfully',
-			error: null,
-		}
+		const message = 'Auditoriums fetched successfully'
+
+		return success(auditoriums, message)
 	}
 
 	async getSchedule(
@@ -30,11 +28,8 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 	): Promise<BaseResponse<Schedule[]>> {
 		const schedule = await this.repository.getSchedule(options)
 
-		return {
-			success: true,
-			data: schedule,
-			message: `Schedule for auditorium with id ${options.id} found successfully`,
-			error: null,
-		}
+		const message = `Schedule for auditorium with id ${options.id} found successfully`
+
+		return success(schedule, message)
 	}
 }
