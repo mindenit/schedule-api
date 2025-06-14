@@ -5,6 +5,7 @@ import { AUDITORIUM_SCHEMA } from '../schemas/index.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
 	GET_SCHEDULE_QUERY_SCHEMA,
+	SCHEDULE_SCHEMA,
 } from '@/modules/schedule/schemas/index.js'
 
 export const getAuditoriumsRoutes = (): Routes => ({
@@ -35,6 +36,11 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				tags: ['Auditoriums'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				querystring: GET_SCHEDULE_QUERY_SCHEMA,
+				response: {
+					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+						'Successful response',
+					),
+				},
 			},
 		},
 	],
