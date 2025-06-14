@@ -9,8 +9,8 @@ export const eventTable = pgTable(
 	'event',
 	(t) => ({
 		id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-		startTime: t.timestamp(),
-		endTime: t.timestamp(),
+		startedAt: t.timestamp(),
+		endedAt: t.timestamp(),
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
 		auditoriumId: t.integer().references(() => auditoriumTable.id, {
@@ -21,5 +21,5 @@ export const eventTable = pgTable(
 			.integer()
 			.references(() => subjectTable.id, referencialIntegrityOptions),
 	}),
-	(t) => [check('start_before_end', sql`${t.startTime} < ${t.endTime}`)],
+	(t) => [check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`)],
 )

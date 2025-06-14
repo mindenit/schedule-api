@@ -72,8 +72,8 @@ export class EventsProcessorImpl implements EventsProcessor {
 				const [e] = await tx
 					.insert(eventTable)
 					.values({
-						startTime: sql`to_timestamp(${startTime}) + interval '2 hours'`,
-						endTime: sql`to_timestamp(${endTime}) + interval '2 hours'`,
+						startedAt: sql`to_timestamp(${startTime}) + interval '2 hours'`,
+						endedAt: sql`to_timestamp(${endTime}) + interval '2 hours'`,
 						auditoriumId: auditoriumId?.id,
 						type,
 						numberPair,
@@ -103,7 +103,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 							teacherId: teacher.id,
 						})
 
-						await this.cache.set(key, 'exists')
+						await this.cache.set(teacherEventKey, 'exists')
 					}
 
 					const teacherSubjectKey = RedisKeyBuilder.teacherSubjectKey(

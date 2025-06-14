@@ -1,0 +1,752 @@
+{
+	"id": "dc27d17b-a7d8-4868-80c1-bce679f8c7dc",
+	"prevId": "4ffbce96-85a1-4762-a704-6287691f9b04",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.academic_group": {
+			"name": "academic_group",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"direction_id": {
+					"name": "direction_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"speciality_id": {
+					"name": "speciality_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"academic_group_direction_id_direction_id_fk": {
+					"name": "academic_group_direction_id_direction_id_fk",
+					"tableFrom": "academic_group",
+					"tableTo": "direction",
+					"columnsFrom": ["direction_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"academic_group_speciality_id_speciality_id_fk": {
+					"name": "academic_group_speciality_id_speciality_id_fk",
+					"tableFrom": "academic_group",
+					"tableTo": "speciality",
+					"columnsFrom": ["speciality_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.auditorium_type_to_auditorium": {
+			"name": "auditorium_type_to_auditorium",
+			"schema": "",
+			"columns": {
+				"auditorium_id": {
+					"name": "auditorium_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"auditorium_type_id": {
+					"name": "auditorium_type_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"auditorium_type_to_auditorium_auditorium_id_auditorium_id_fk": {
+					"name": "auditorium_type_to_auditorium_auditorium_id_auditorium_id_fk",
+					"tableFrom": "auditorium_type_to_auditorium",
+					"tableTo": "auditorium",
+					"columnsFrom": ["auditorium_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"auditorium_type_to_auditorium_auditorium_type_id_auditorium_type_id_fk": {
+					"name": "auditorium_type_to_auditorium_auditorium_type_id_auditorium_type_id_fk",
+					"tableFrom": "auditorium_type_to_auditorium",
+					"tableTo": "auditorium_type",
+					"columnsFrom": ["auditorium_type_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"auditorium_type_to_auditorium_auditorium_id_auditorium_type_id_pk": {
+					"name": "auditorium_type_to_auditorium_auditorium_id_auditorium_type_id_pk",
+					"columns": ["auditorium_id", "auditorium_type_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.auditorium_type": {
+			"name": "auditorium_type",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.auditorium": {
+			"name": "auditorium",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"floor": {
+					"name": "floor",
+					"type": "smallint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"has_power": {
+					"name": "has_power",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"building_id": {
+					"name": "building_id",
+					"type": "varchar",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"auditorium_building_id_building_id_fk": {
+					"name": "auditorium_building_id_building_id_fk",
+					"tableFrom": "auditorium",
+					"tableTo": "building",
+					"columnsFrom": ["building_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.building": {
+			"name": "building",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.department": {
+			"name": "department",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"faculty_id": {
+					"name": "faculty_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"department_faculty_id_faculty_id_fk": {
+					"name": "department_faculty_id_faculty_id_fk",
+					"tableFrom": "department",
+					"tableTo": "faculty",
+					"columnsFrom": ["faculty_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.direction": {
+			"name": "direction",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"faculty_id": {
+					"name": "faculty_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"direction_faculty_id_faculty_id_fk": {
+					"name": "direction_faculty_id_faculty_id_fk",
+					"tableFrom": "direction",
+					"tableTo": "faculty",
+					"columnsFrom": ["faculty_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.event_to_academic_group": {
+			"name": "event_to_academic_group",
+			"schema": "",
+			"columns": {
+				"event_id": {
+					"name": "event_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"groud_id": {
+					"name": "groud_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"event_to_academic_group_event_id_event_id_fk": {
+					"name": "event_to_academic_group_event_id_event_id_fk",
+					"tableFrom": "event_to_academic_group",
+					"tableTo": "event",
+					"columnsFrom": ["event_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"event_to_academic_group_groud_id_academic_group_id_fk": {
+					"name": "event_to_academic_group_groud_id_academic_group_id_fk",
+					"tableFrom": "event_to_academic_group",
+					"tableTo": "academic_group",
+					"columnsFrom": ["groud_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"event_to_academic_group_event_id_groud_id_pk": {
+					"name": "event_to_academic_group_event_id_groud_id_pk",
+					"columns": ["event_id", "groud_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.event_to_teacher": {
+			"name": "event_to_teacher",
+			"schema": "",
+			"columns": {
+				"event_id": {
+					"name": "event_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"teacher_id": {
+					"name": "teacher_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"event_to_teacher_event_id_event_id_fk": {
+					"name": "event_to_teacher_event_id_event_id_fk",
+					"tableFrom": "event_to_teacher",
+					"tableTo": "event",
+					"columnsFrom": ["event_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"event_to_teacher_teacher_id_teacher_id_fk": {
+					"name": "event_to_teacher_teacher_id_teacher_id_fk",
+					"tableFrom": "event_to_teacher",
+					"tableTo": "teacher",
+					"columnsFrom": ["teacher_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"event_to_teacher_event_id_teacher_id_pk": {
+					"name": "event_to_teacher_event_id_teacher_id_pk",
+					"columns": ["event_id", "teacher_id"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.event": {
+			"name": "event",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": true,
+					"notNull": true,
+					"identity": {
+						"type": "always",
+						"name": "event_id_seq",
+						"schema": "public",
+						"increment": "1",
+						"startWith": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"cache": "1",
+						"cycle": false
+					}
+				},
+				"started_at": {
+					"name": "started_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"ended_at": {
+					"name": "ended_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"number_pair": {
+					"name": "number_pair",
+					"type": "smallint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"type": {
+					"name": "type",
+					"type": "event_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"auditorium_id": {
+					"name": "auditorium_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"subject_id": {
+					"name": "subject_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"event_auditorium_id_auditorium_id_fk": {
+					"name": "event_auditorium_id_auditorium_id_fk",
+					"tableFrom": "event",
+					"tableTo": "auditorium",
+					"columnsFrom": ["auditorium_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"event_subject_id_subject_id_fk": {
+					"name": "event_subject_id_subject_id_fk",
+					"tableFrom": "event",
+					"tableTo": "subject",
+					"columnsFrom": ["subject_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {
+				"start_before_end": {
+					"name": "start_before_end",
+					"value": "\"event\".\"started_at\" < \"event\".\"ended_at\""
+				}
+			},
+			"isRLSEnabled": false
+		},
+		"public.faculty": {
+			"name": "faculty",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.speciality": {
+			"name": "speciality",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"direction_id": {
+					"name": "direction_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"speciality_direction_id_direction_id_fk": {
+					"name": "speciality_direction_id_direction_id_fk",
+					"tableFrom": "speciality",
+					"tableTo": "direction",
+					"columnsFrom": ["direction_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.subject_to_teacher": {
+			"name": "subject_to_teacher",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "bigint",
+					"primaryKey": true,
+					"notNull": true,
+					"identity": {
+						"type": "always",
+						"name": "subject_to_teacher_id_seq",
+						"schema": "public",
+						"increment": "1",
+						"startWith": "1",
+						"minValue": "1",
+						"maxValue": "9223372036854775807",
+						"cache": "1",
+						"cycle": false
+					}
+				},
+				"hours": {
+					"name": "hours",
+					"type": "smallint",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"type": {
+					"name": "type",
+					"type": "event_type",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"subject_id": {
+					"name": "subject_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"teacher_id": {
+					"name": "teacher_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"subject_to_teacher_subject_id_subject_id_fk": {
+					"name": "subject_to_teacher_subject_id_subject_id_fk",
+					"tableFrom": "subject_to_teacher",
+					"tableTo": "subject",
+					"columnsFrom": ["subject_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"subject_to_teacher_teacher_id_teacher_id_fk": {
+					"name": "subject_to_teacher_teacher_id_teacher_id_fk",
+					"tableFrom": "subject_to_teacher",
+					"tableTo": "teacher",
+					"columnsFrom": ["teacher_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.subject": {
+			"name": "subject",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"brief": {
+					"name": "brief",
+					"type": "varchar(100)",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.teacher": {
+			"name": "teacher",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"short_name": {
+					"name": "short_name",
+					"type": "varchar(40)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"department_id": {
+					"name": "department_id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"teacher_department_id_department_id_fk": {
+					"name": "teacher_department_id_department_id_fk",
+					"tableFrom": "teacher",
+					"tableTo": "department",
+					"columnsFrom": ["department_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {
+		"public.event_type": {
+			"name": "event_type",
+			"schema": "public",
+			"values": ["Лк", "Пз", "Лб", "Конс", "Зал", "Екз", "КП/КР"]
+		}
+	},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}

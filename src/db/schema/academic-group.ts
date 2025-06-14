@@ -3,11 +3,9 @@ import { baseTableAttrs } from '../utils.js'
 import { directionTable } from './direction.js'
 import { specialityTable } from './speciality.js'
 
-const { id, fullName } = baseTableAttrs
-
 export const academicGroupTable = pgTable('academic_group', (t) => ({
-	id,
-	name: fullName,
+	id: baseTableAttrs.id,
+	name: t.varchar({ length: 255 }).notNull(),
 	directionId: t.integer().references(() => directionTable.id, {
 		onDelete: 'cascade',
 		onUpdate: 'cascade',
