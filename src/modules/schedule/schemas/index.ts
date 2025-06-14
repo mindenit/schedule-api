@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 const GET_SCHEDULE_PARAMS_SCHEMA = z.object({
-	id: z.coerce.number().int().min(1).describe('Identifier of an entity'),
+	id: z.coerce.number().int().describe('Identifier of an entity'),
 })
 
 type GET_SCHEDULE_PARAMS = z.infer<typeof GET_SCHEDULE_PARAMS_SCHEMA>

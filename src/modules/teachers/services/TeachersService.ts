@@ -4,7 +4,8 @@ import type {
 	TeachersRepository,
 	TeachersService,
 } from '../types/index.js'
-import type { Teacher } from '@/db/types.js'
+import type { Schedule, Teacher } from '@/db/types.js'
+import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 
 export class TeachersServiceImpl implements TeachersService {
 	private readonly repository: TeachersRepository
@@ -20,6 +21,19 @@ export class TeachersServiceImpl implements TeachersService {
 			success: true,
 			data: teachers,
 			message: 'Teachers successfuly fetched',
+			error: null,
+		}
+	}
+
+	async getSchedule(
+		options: GET_SCHEDULE_OPTIONS,
+	): Promise<BaseResponse<Schedule[]>> {
+		const schedule = await this.repository.getSchedule(options)
+
+		return {
+			success: true,
+			data: schedule,
+			message: `Schedule for teacher with id ${options.id} found successfully`,
 			error: null,
 		}
 	}
