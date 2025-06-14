@@ -2,13 +2,14 @@ import type { CistParser, CistProcessor } from '@/core/types/cist.js'
 import type { BaseResponse } from '@/core/types/common.js'
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { CistAuditoriumsOutput } from '@/core/types/proxy.js'
-import type { Auditorium } from '@/db/types.js'
+import type { Schedulable } from '@/core/types/services.js'
+import type { Auditorium, Schedule } from '@/db/types.js'
 
-interface AuditoriumsRepository {
+interface AuditoriumsRepository extends Schedulable {
 	findAll: () => Promise<Auditorium[]>
 }
 
-interface AuditoriumsService {
+interface AuditoriumsService extends Schedulable<BaseResponse<Schedule[]>> {
 	getAuditoriums: () => Promise<BaseResponse<Auditorium[]>>
 }
 

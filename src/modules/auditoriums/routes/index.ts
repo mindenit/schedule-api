@@ -1,7 +1,11 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getAuditoriums } from '../handlers/index.js'
+import { getAuditoriumSchedule, getAuditoriums } from '../handlers/index.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { AUDITORIUM_SCHEMA } from '../schemas/index.js'
+import {
+	GET_SCHEDULE_PARAMS_SCHEMA,
+	GET_SCHEDULE_QUERY_SCHEMA,
+} from '@/modules/schedule/schemas/index.js'
 
 export const getAuditoriumsRoutes = (): Routes => ({
 	routes: [
@@ -18,6 +22,19 @@ export const getAuditoriumsRoutes = (): Routes => ({
 						'Successful response',
 					),
 				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/auditoriums/:id/schedule',
+			handler: getAuditoriumSchedule,
+			schema: {
+				summary: 'Get auditorium schedule',
+				description:
+					'Get schedule for an auditorium in particular time interval',
+				tags: ['Auditoriums'],
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				querystring: GET_SCHEDULE_QUERY_SCHEMA,
 			},
 		},
 	],
