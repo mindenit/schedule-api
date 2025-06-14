@@ -1,7 +1,11 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getGroups } from '../handlers/index.js'
+import { getGroupSchedule, getGroups } from '../handlers/index.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { GROUP_SCHEMA } from '../schemas/index.js'
+import {
+	GET_SCHEDULE_PARAMS_SCHEMA,
+	GET_SCHEDULE_QUERY_SCHEMA,
+} from '@/modules/schedule/schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -18,6 +22,18 @@ export const getGroupsRoutes = (): Routes => ({
 						'Successful response',
 					),
 				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/groups/:id/schedule',
+			handler: getGroupSchedule,
+			schema: {
+				summary: 'Get group schedule',
+				description: 'Get schedule for a group in particular time interval',
+				tags: ['Groups'],
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				querystring: GET_SCHEDULE_QUERY_SCHEMA,
 			},
 		},
 	],

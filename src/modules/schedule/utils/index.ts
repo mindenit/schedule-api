@@ -1,5 +1,5 @@
-import type { GET_SCHEDULE_QUERY } from '@/core/schemas/index.js'
 import { sql, type SQL } from 'drizzle-orm'
+import type { GET_SCHEDULE_QUERY } from '../schemas/index.js'
 
 export const getTimeIntervalQuery = ({
 	startedAt,
