@@ -1,28 +1,28 @@
 CREATE TYPE "public"."event_type" AS ENUM('Лк', 'Пз', 'Лб', 'Конс', 'Зал', 'Екз', 'КП/КР');--> statement-breakpoint
 CREATE TABLE "academic_group" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255) NOT NULL,
+	"name" varchar(255) NOT NULL,
 	"direction_id" integer,
 	"speciality_id" integer
 );
 --> statement-breakpoint
 CREATE TABLE "auditorium_type_to_auditorium" (
-	"auditorium_id" integer,
-	"auditorium_type_id" integer,
+	"auditorium_id" integer NOT NULL,
+	"auditorium_type_id" integer NOT NULL,
 	CONSTRAINT "auditorium_type_to_auditorium_auditorium_id_auditorium_type_id_pk" PRIMARY KEY("auditorium_id","auditorium_type_id")
 );
 --> statement-breakpoint
 CREATE TABLE "auditorium_type" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255) NOT NULL
+	"name" varchar(255) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "auditorium" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255) NOT NULL,
-	"floor" smallint,
-	"has_power" boolean,
-	"building_id" varchar
+	"name" varchar(255) NOT NULL,
+	"floor" smallint NOT NULL,
+	"has_power" boolean NOT NULL,
+	"building_id" varchar NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "building" (
@@ -35,37 +35,37 @@ CREATE TABLE "department" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
 	"short_name" varchar(40) NOT NULL,
-	"faculty_id" integer
+	"faculty_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "direction" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
 	"short_name" varchar(40) NOT NULL,
-	"faculty_id" integer
+	"faculty_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "event_to_academic_group" (
-	"event_id" integer,
-	"groud_id" integer,
+	"event_id" integer NOT NULL,
+	"groud_id" integer NOT NULL,
 	CONSTRAINT "event_to_academic_group_event_id_groud_id_pk" PRIMARY KEY("event_id","groud_id")
 );
 --> statement-breakpoint
 CREATE TABLE "event_to_teacher" (
-	"event_id" integer,
-	"teacher_id" integer,
+	"event_id" integer NOT NULL,
+	"teacher_id" integer NOT NULL,
 	CONSTRAINT "event_to_teacher_event_id_teacher_id_pk" PRIMARY KEY("event_id","teacher_id")
 );
 --> statement-breakpoint
 CREATE TABLE "event" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "event_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"start_time" timestamp,
-	"end_time" timestamp,
+	"started_at" timestamp,
+	"ended_at" timestamp,
 	"number_pair" smallint,
 	"type" "event_type",
-	"auditorium_id" integer,
-	"subject_id" integer,
-	CONSTRAINT "start_before_end" CHECK ("event"."start_time" < "event"."end_time")
+	"auditorium_id" integer NOT NULL,
+	"subject_id" integer NOT NULL,
+	CONSTRAINT "start_before_end" CHECK ("event"."started_at" < "event"."ended_at")
 );
 --> statement-breakpoint
 CREATE TABLE "faculty" (
@@ -78,20 +78,20 @@ CREATE TABLE "speciality" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
 	"short_name" varchar(40) NOT NULL,
-	"direction_id" integer
+	"direction_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "subject_to_teacher" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "subject_to_teacher_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"hours" smallint,
 	"type" "event_type",
-	"subject_id" integer,
-	"teacher_id" integer
+	"subject_id" integer NOT NULL,
+	"teacher_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "subject" (
 	"id" integer PRIMARY KEY NOT NULL,
-	"full_name" varchar(255) NOT NULL,
+	"name" varchar(255) NOT NULL,
 	"brief" varchar(100) NOT NULL
 );
 --> statement-breakpoint
@@ -99,7 +99,7 @@ CREATE TABLE "teacher" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
 	"short_name" varchar(40) NOT NULL,
-	"department_id" integer
+	"department_id" integer NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "academic_group" ADD CONSTRAINT "academic_group_direction_id_direction_id_fk" FOREIGN KEY ("direction_id") REFERENCES "public"."direction"("id") ON DELETE cascade ON UPDATE cascade;--> statement-breakpoint

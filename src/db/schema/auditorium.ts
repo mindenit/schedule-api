@@ -1,5 +1,5 @@
 import { pgTable } from 'drizzle-orm/pg-core'
-import { baseTableAttrs } from '../utils.js'
+import { baseTableAttrs, referencialIntegrityOptions } from '../utils.js'
 import { buildingTable } from './building.js'
 
 export const auditoriumTable = pgTable('auditorium', (t) => ({
@@ -7,8 +7,8 @@ export const auditoriumTable = pgTable('auditorium', (t) => ({
 	name: t.varchar({ length: 255 }).notNull(),
 	floor: t.smallint(),
 	hasPower: t.boolean(),
-	buildingId: t.varchar().references(() => buildingTable.id, {
-		onDelete: 'cascade',
-		onUpdate: 'cascade',
-	}),
+	buildingId: t
+		.varchar()
+		.notNull()
+		.references(() => buildingTable.id, referencialIntegrityOptions),
 }))

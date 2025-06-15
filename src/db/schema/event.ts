@@ -13,12 +13,13 @@ export const eventTable = pgTable(
 		endedAt: t.timestamp(),
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
-		auditoriumId: t.integer().references(() => auditoriumTable.id, {
-			onDelete: 'cascade',
-			onUpdate: 'cascade',
-		}),
+		auditoriumId: t
+			.integer()
+			.notNull()
+			.references(() => auditoriumTable.id, referencialIntegrityOptions),
 		subjectId: t
 			.integer()
+			.notNull()
 			.references(() => subjectTable.id, referencialIntegrityOptions),
 	}),
 	(t) => [check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`)],
