@@ -40,6 +40,11 @@ type Event = {
 
 type EventType = (typeof eventTypeEnum.enumValues)[number]
 
+type Schedule = Omit<Event, 'startTime' | 'endTime'> & {
+	startedAt: string
+	endedAt: string
+}
+
 export type {
 	Auditorium,
 	AuditoriumType,
@@ -55,4 +60,5 @@ export type {
 	Subject,
 	Teacher,
 	TeacherData,
+	Schedule,
 }
