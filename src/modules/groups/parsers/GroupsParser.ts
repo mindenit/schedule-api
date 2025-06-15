@@ -1,5 +1,5 @@
+import type { CistParser } from '@/core/types/cist.js'
 import type { CommonDependencies, Maybe } from '@/core/types/index.js'
-import type { CistParser } from '@/core/types/parsers.js'
 import type { CistGroupsOutput, CistGroupsRawJson } from '@/core/types/proxy.js'
 import { fetchProxy, hashObject } from '@/core/utils/index.js'
 import type { Direction, Faculty, Group, Speciality } from '@/db/types.js'

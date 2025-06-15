@@ -74,7 +74,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 					.values({
 						startedAt: sql`to_timestamp(${startTime}) + interval '2 hours'`,
 						endedAt: sql`to_timestamp(${endTime}) + interval '2 hours'`,
-						auditoriumId: auditoriumId?.id,
+						auditoriumId: auditoriumId?.id as number,
 						type,
 						numberPair,
 						subjectId: event.subject.id,
@@ -99,7 +99,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 
 					if (!isEventExist) {
 						await tx.insert(eventToTeacherTable).values({
-							eventId: e?.id,
+							eventId: e?.id as number,
 							teacherId: teacher.id,
 						})
 
@@ -123,6 +123,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 							continue
 						}
 
+						// @ts-expect-error will be fixed soon
 						await tx.insert(subjectToTeacherTable).values({
 							...hour,
 						})
