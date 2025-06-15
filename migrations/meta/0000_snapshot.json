@@ -1,5 +1,5 @@
 {
-	"id": "4ffbce96-85a1-4762-a704-6287691f9b04",
+	"id": "a7551d38-3403-4969-bb3f-0baafff14013",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -14,8 +14,8 @@
 					"primaryKey": true,
 					"notNull": true
 				},
-				"full_name": {
-					"name": "full_name",
+				"name": {
+					"name": "name",
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
@@ -68,13 +68,13 @@
 					"name": "auditorium_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"auditorium_type_id": {
 					"name": "auditorium_type_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -119,8 +119,8 @@
 					"primaryKey": true,
 					"notNull": true
 				},
-				"full_name": {
-					"name": "full_name",
+				"name": {
+					"name": "name",
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
@@ -144,8 +144,8 @@
 					"primaryKey": true,
 					"notNull": true
 				},
-				"full_name": {
-					"name": "full_name",
+				"name": {
+					"name": "name",
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
@@ -154,19 +154,19 @@
 					"name": "floor",
 					"type": "smallint",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"has_power": {
 					"name": "has_power",
 					"type": "boolean",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"building_id": {
 					"name": "building_id",
 					"type": "varchar",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -244,7 +244,7 @@
 					"name": "faculty_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -291,7 +291,7 @@
 					"name": "faculty_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -320,13 +320,13 @@
 					"name": "event_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"groud_id": {
 					"name": "groud_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -369,13 +369,13 @@
 					"name": "event_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"teacher_id": {
 					"name": "teacher_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -431,14 +431,14 @@
 						"cycle": false
 					}
 				},
-				"start_time": {
-					"name": "start_time",
+				"started_at": {
+					"name": "started_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": false
 				},
-				"end_time": {
-					"name": "end_time",
+				"ended_at": {
+					"name": "ended_at",
 					"type": "timestamp",
 					"primaryKey": false,
 					"notNull": false
@@ -460,13 +460,13 @@
 					"name": "auditorium_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"subject_id": {
 					"name": "subject_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -496,7 +496,7 @@
 			"checkConstraints": {
 				"start_before_end": {
 					"name": "start_before_end",
-					"value": "\"event\".\"start_time\" < \"event\".\"end_time\""
+					"value": "\"event\".\"started_at\" < \"event\".\"ended_at\""
 				}
 			},
 			"isRLSEnabled": false
@@ -558,7 +558,7 @@
 					"name": "direction_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -617,13 +617,13 @@
 					"name": "subject_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				},
 				"teacher_id": {
 					"name": "teacher_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},
@@ -663,8 +663,8 @@
 					"primaryKey": true,
 					"notNull": true
 				},
-				"full_name": {
-					"name": "full_name",
+				"name": {
+					"name": "name",
 					"type": "varchar(255)",
 					"primaryKey": false,
 					"notNull": true
@@ -710,7 +710,7 @@
 					"name": "department_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": false
+					"notNull": true
 				}
 			},
 			"indexes": {},

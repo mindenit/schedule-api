@@ -10,5 +10,6 @@ export const directionTable = pgTable('direction', (t) => ({
 	shortName,
 	facultyId: t
 		.integer()
+		.notNull()
 		.references(() => facultyTable.id, referencialIntegrityOptions),
 }))

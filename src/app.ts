@@ -16,9 +16,9 @@ import {
 } from 'fastify-type-provider-zod'
 import { getRoutes } from './modules/index.js'
 import scalarApiReference from '@scalar/fastify-api-reference'
-import { AsyncTask, SimpleIntervalJob } from 'toad-scheduler'
+import { AsyncTask, CronJob } from 'toad-scheduler'
 import { SCHEDULE_TYPE } from './core/constants/parsers.js'
-import { delay } from './core/utils/index.js'
+import { delay, isDbEmpty } from './core/utils/index.js'
 import fastifySchedule from '@fastify/schedule'
 
 export class App {
@@ -130,9 +130,12 @@ export class App {
 			groupsProcessor,
 			eventsProcessor,
 			teachersProcessor,
+			logger,
 		} = this.app.diContainer.cradle
 
 		const task = new AsyncTask('cist-postman', async () => {
+			logger.info('Start CIST Postman')
+
 			const [auditoriums, groups, teachers] = await Promise.all([
 				auditoriumsProcessor.process(),
 				groupsProcessor.process(),
@@ -143,14 +146,24 @@ export class App {
 				return
 			}
 
+			logger.info('Start filling events')
+
 			for (const group of groups) {
 				await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
 
 				delay(3000)
 			}
+
+			logger.info('Job completed sucessfully')
 		})
 
-		return new SimpleIntervalJob({ hours: 12 }, task)
+		return {
+			job: new CronJob({ cronExpression: '0 */12 * * *' }, task, {
+				id: 'cist-postman',
+				preventOverrun: true,
+			}),
+			task,
+		}
 	}
 
 	async initialize(): Promise<AppInstance> {
@@ -161,11 +174,15 @@ export class App {
 				this.registerRoutes()
 			})
 
-			await this.app.ready()
+			const { job, task } = await this.registerPeriodicJob()
 
-			const job = await this.registerPeriodicJob()
+			await this.app.ready().then(() => {
+				this.app.scheduler.addCronJob(job)
+			})
 
-			this.app.scheduler.addSimpleIntervalJob(job)
+			if (await isDbEmpty(this.app.diContainer.cradle.db.client)) {
+				await task.executeAsync()
+			}
 
 			return this.app
 		} catch (e: unknown) {

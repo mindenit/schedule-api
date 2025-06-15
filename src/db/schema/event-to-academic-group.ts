@@ -8,9 +8,11 @@ export const eventToAcademicGroupTable = pgTable(
 	(t) => ({
 		eventId: t
 			.integer()
+			.notNull()
 			.references(() => eventTable.id, referencialIntegrityOptions),
 		groudId: t
 			.integer()
+			.notNull()
 			.references(() => academicGroupTable.id, referencialIntegrityOptions),
 	}),
 	(t) => [primaryKey({ columns: [t.eventId, t.groudId] })],

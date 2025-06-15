@@ -117,7 +117,11 @@ export class EventsProcessorImpl implements EventsProcessor {
 						const hour = hours.find(
 							(h) =>
 								h.subjectId === event.subject.id && h.teacherId === teacher.id,
-						)!
+						)
+
+						if (!hour) {
+							continue
+						}
 
 						await tx.insert(subjectToTeacherTable).values({
 							...hour,
@@ -137,7 +141,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 					}
 
 					await tx.insert(eventToAcademicGroupTable).values({
-						eventId: e?.id,
+						eventId: e?.id as number,
 						groudId: group.id,
 					})
 
