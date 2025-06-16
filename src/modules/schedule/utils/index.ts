@@ -21,10 +21,10 @@ export const getTimeIntervalQuery = ({
 export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
 	return sql`
     select
-      e.id as id,
+      e.id::int as id,
       e.number_pair as "numberPair",
       e.type as type,
-      a.name as auditorium,
+      json_build_object('id', a.id, 'name', a.name) as auditorium,
       e.started_at as "startedAt",
       e.ended_at as "endedAt",
       jsonb_build_object('id', s.id, 'title', s.name, 'brief', s.brief) as subject,
@@ -44,7 +44,7 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
     join teacher t2 on t2.id = ett2.teacher_id
     where ${sql.join(whereClause, sql.raw(' '))}
     group by
-      e.id, a.name, s.id
+      e.id, a.name, s.id, a.id
     order by
       e.started_at;
   `
