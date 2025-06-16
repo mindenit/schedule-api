@@ -1,9 +1,18 @@
 # Mindenit Schedule API
 
-> [!WARNING]  
-> The project is work in progress still, I'm building it in public
+Mindenit Schedule API is a drop-in replacement for NURE CIST API, that a list of features such as:
+
+- **100% Valid JSON**, no more pain with fixing NURE CIST's JSON;
+- **Better performance**, get data with 2x performance boost;
+- **Revolutionary response format**, you don't need to make requests to additional routes to get particular information, everything you need could be get in one request;
+- **Awesome REST endpoints**, no more headaches while trying to understand CIST endpoints;
+- **Documentation for developers written with care**, everything you need to know about API endpoints is in one place, with playground for testing.
 
 ## Getting started
+
+Documentation with playground for testing could be found via [link](https://sh.mindenit.org/api/)
+
+## Development
 
 1. Application is working with Node.js 22 and larger. First of all make sure that your Node.js version is capatible with requirements.
 
