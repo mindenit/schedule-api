@@ -5,24 +5,25 @@ import { z } from 'zod'
 
 const SCHEDULE_SCHEMA = z.object({
 	id: z.number().int().describe('Identifier of double period'),
-	startedAt: z
-		.string()
-		.datetime()
-		.describe('Timestamp when double period is starting'),
-	endedAt: z
-		.string()
-		.datetime()
-		.describe('Timestamp when double period is ending'),
+	startedAt: z.string().describe('Timestamp when double period is starting'),
+	endedAt: z.string().describe('Timestamp when double period is ending'),
 	type: z.enum(eventTypeEnum.enumValues).describe('Type of an event'),
 	auditorium: z
-		.string()
-		.describe('Name of an auditorium where double period is hold'),
+		.object({
+			id: z.number().describe('Auditorium identifier'),
+			name: z
+				.string()
+				.describe('Name of an auditorium where double period is held'),
+		})
+		.describe('Auditorium where double period is held'),
 	numberPair: z.number().int().describe('Number of pair'),
-	subject: z.object({
-		id: z.number().int().describe('Subject identifier'),
-		title: z.string().describe('Title of subject'),
-		brief: z.string().describe('Brief of subject'),
-	}),
+	subject: z
+		.object({
+			id: z.number().int().describe('Subject identifier'),
+			title: z.string().describe('Title of subject'),
+			brief: z.string().describe('Brief of subject'),
+		})
+		.describe('Subject from which there will be a double period'),
 	groups: GROUP_SCHEMA.omit({ directionId: true, specialityId: true })
 		.array()
 		.describe('List of groups which attend the class'),
