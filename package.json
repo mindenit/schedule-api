@@ -75,6 +75,7 @@
 		"fastify": "^5.2.1",
 		"fastify-type-provider-zod": "^4.0.2",
 		"ioredis": "^5.6.1",
+		"node-object-hash": "^3.1.1",
 		"postgres": "^3.4.5",
 		"toad-scheduler": "^3.1.0",
 		"zod": "^3.24.2"

@@ -1,7 +1,6 @@
 import { RedisKeyBuilder } from '@/core/builders/RedisKeyBulder.js'
 import type { ScheduleType } from '@/core/constants/parsers.js'
 import type { DatabaseClient } from '@/core/types/deps.js'
-import { hashObject } from '@/core/utils/index.js'
 import {
 	auditoriumTable,
 	eventTable,
@@ -11,6 +10,7 @@ import {
 	subjectToTeacherTable,
 } from '@/db/schema/index.js'
 import { eq, sql } from 'drizzle-orm'
+import type { FastifyBaseLogger } from 'fastify'
 import type { Redis } from 'ioredis'
 import type {
 	EventsInjectableDependencies,
@@ -22,17 +22,25 @@ export class EventsProcessorImpl implements EventsProcessor {
 	private readonly db: DatabaseClient
 	private readonly cache: Redis
 	private readonly parser: EventsParser
+	private readonly logger: FastifyBaseLogger
 
-	constructor({ db, cache, eventsParser }: EventsInjectableDependencies) {
+	constructor({
+		db,
+		cache,
+		eventsParser,
+		logger,
+	}: EventsInjectableDependencies) {
 		this.db = db.client
 		this.cache = cache
 		this.parser = eventsParser
+		this.logger = logger
 	}
 
 	async process(id: number, type: ScheduleType): Promise<void> {
 		const data = await this.parser.parse(id, type)
 
 		if (!data) {
+			this.logger.info(`No events parsed for group with id: ${id}`)
 			return
 		}
 
@@ -44,6 +52,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 			const isExist = await this.cache.get(key)
 
 			if (isExist) {
+				this.logger.info('Skipping subject duplicate')
 				continue
 			}
 
@@ -52,12 +61,12 @@ export class EventsProcessorImpl implements EventsProcessor {
 		}
 
 		for (const event of events) {
-			const eventHash = hashObject(event)
-			const key = RedisKeyBuilder.eventKey(eventHash)
+			const key = RedisKeyBuilder.eventKey(event)
 
 			const isExist = await this.cache.exists(key)
 
 			if (isExist) {
+				this.logger.info('Skipping event duplicate')
 				continue
 			}
 
@@ -87,6 +96,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 					)
 
 					if (!isTeacherExist) {
+						this.logger.info(`Skipping event's teacher duplicate`)
 						continue
 					}
 
@@ -133,11 +143,15 @@ export class EventsProcessorImpl implements EventsProcessor {
 				}
 
 				for (const group of event.groups) {
-					const key = RedisKeyBuilder.groupEventKey(group.id, e?.id as number)
+					const eventGroupKey = RedisKeyBuilder.groupEventKey(
+						group.id,
+						e?.id as number,
+					)
 
-					const isExist = await this.cache.get(key)
+					const isExist = await this.cache.get(eventGroupKey)
 
 					if (isExist) {
+						this.logger.info(`Skipping event's group duplicate`)
 						continue
 					}
 
@@ -146,11 +160,12 @@ export class EventsProcessorImpl implements EventsProcessor {
 						groudId: group.id,
 					})
 
-					await this.cache.set(key, 'exists')
+					await this.cache.set(eventGroupKey, 'exists')
 				}
 			})
 
 			this.cache.set(key, 'exists')
+			this.logger.info(`Events processing for group with id ${id} ended`)
 		}
 	}
 }

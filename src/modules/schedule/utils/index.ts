@@ -12,6 +12,8 @@ export const getTimeIntervalQuery = ({
 	}
 
 	if (endedAt) {
+		endedAt.setUTCHours(endedAt.getUTCHours() + 23)
+
 		clause.push(sql`and`, sql`e.ended_at <= ${endedAt.toISOString()}`)
 	}
 
