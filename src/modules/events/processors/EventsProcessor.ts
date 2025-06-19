@@ -56,7 +56,6 @@ export class EventsProcessorImpl implements EventsProcessor {
 			const isExist = await this.cache.exists(key)
 
 			if (isExist) {
-				console.log(key)
 				continue
 			}
 
