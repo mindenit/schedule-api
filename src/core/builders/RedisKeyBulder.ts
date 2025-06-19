@@ -1,3 +1,6 @@
+import type { Event } from '@/db/types.js'
+import { hasher } from 'node-object-hash'
+
 export class RedisKeyBuilder {
 	static auditoriumKey(auditoriumId: number): string {
 		return `auditoriums:${auditoriumId}`
@@ -19,8 +22,12 @@ export class RedisKeyBuilder {
 		return `directions:${directionId}`
 	}
 
-	static eventKey(hash: string): string {
-		return `events:${hash}`
+	static eventKey(event: Omit<Event, 'id'>): string {
+		const hashFn = hasher({ coerce: true, sort: true })
+
+		const key = hashFn.hash(event)
+
+		return `events:${key}`
 	}
 
 	static facultyKey(facultyId: number): string {

@@ -149,7 +149,14 @@ export class App {
 			logger.info('Start filling events')
 
 			for (const group of groups) {
-				await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
+				const result = await eventsProcessor.process(
+					group.id,
+					SCHEDULE_TYPE.GROUP,
+				)
+
+				if (result === 0) {
+					break
+				}
 
 				delay(3000)
 			}
