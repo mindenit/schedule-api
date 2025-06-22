@@ -9,7 +9,7 @@ import {
 	subjectTable,
 	subjectToTeacherTable,
 } from '@/db/schema/index.js'
-import { eq, sql } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import type { FastifyBaseLogger } from 'fastify'
 import type { Redis } from 'ioredis'
 import type {
@@ -67,6 +67,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 
 			if (isExist) {
 				this.logger.info('Skipping event duplicate')
+
 				continue
 			}
 
@@ -81,8 +82,8 @@ export class EventsProcessorImpl implements EventsProcessor {
 				const [e] = await tx
 					.insert(eventTable)
 					.values({
-						startedAt: sql`to_timestamp(${startTime}) + interval '2 hours'`,
-						endedAt: sql`to_timestamp(${endTime}) + interval '2 hours'`,
+						startedAt: startTime,
+						endedAt: endTime,
 						auditoriumId: auditoriumId?.id as number,
 						type,
 						numberPair,

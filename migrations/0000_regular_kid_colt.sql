@@ -7,8 +7,8 @@ CREATE TABLE "academic_group" (
 );
 --> statement-breakpoint
 CREATE TABLE "auditorium_type_to_auditorium" (
-	"auditorium_id" integer NOT NULL,
-	"auditorium_type_id" integer NOT NULL,
+	"auditorium_id" integer,
+	"auditorium_type_id" integer,
 	CONSTRAINT "auditorium_type_to_auditorium_auditorium_id_auditorium_type_id_pk" PRIMARY KEY("auditorium_id","auditorium_type_id")
 );
 --> statement-breakpoint
@@ -20,8 +20,8 @@ CREATE TABLE "auditorium_type" (
 CREATE TABLE "auditorium" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"name" varchar(255) NOT NULL,
-	"floor" smallint NOT NULL,
-	"has_power" boolean NOT NULL,
+	"floor" smallint,
+	"has_power" boolean,
 	"building_id" varchar NOT NULL
 );
 --> statement-breakpoint
@@ -59,8 +59,8 @@ CREATE TABLE "event_to_teacher" (
 --> statement-breakpoint
 CREATE TABLE "event" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "event_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"started_at" timestamp,
-	"ended_at" timestamp,
+	"started_at" integer,
+	"ended_at" integer,
 	"number_pair" smallint,
 	"type" "event_type",
 	"auditorium_id" integer NOT NULL,

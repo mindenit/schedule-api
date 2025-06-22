@@ -1,5 +1,5 @@
 {
-	"id": "a7551d38-3403-4969-bb3f-0baafff14013",
+	"id": "32763d1f-610e-4f22-bd57-e5680a7fe984",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -68,13 +68,13 @@
 					"name": "auditorium_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true
+					"notNull": false
 				},
 				"auditorium_type_id": {
 					"name": "auditorium_type_id",
 					"type": "integer",
 					"primaryKey": false,
-					"notNull": true
+					"notNull": false
 				}
 			},
 			"indexes": {},
@@ -154,13 +154,13 @@
 					"name": "floor",
 					"type": "smallint",
 					"primaryKey": false,
-					"notNull": true
+					"notNull": false
 				},
 				"has_power": {
 					"name": "has_power",
 					"type": "boolean",
 					"primaryKey": false,
-					"notNull": true
+					"notNull": false
 				},
 				"building_id": {
 					"name": "building_id",
@@ -433,13 +433,13 @@
 				},
 				"started_at": {
 					"name": "started_at",
-					"type": "timestamp",
+					"type": "integer",
 					"primaryKey": false,
 					"notNull": false
 				},
 				"ended_at": {
 					"name": "ended_at",
-					"type": "timestamp",
+					"type": "integer",
 					"primaryKey": false,
 					"notNull": false
 				},
