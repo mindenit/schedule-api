@@ -9,8 +9,8 @@ export const eventTable = pgTable(
 	'event',
 	(t) => ({
 		id: bigint({ mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
-		startedAt: t.timestamp(),
-		endedAt: t.timestamp(),
+		startedAt: t.integer(),
+		endedAt: t.integer(),
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
 		auditoriumId: t
