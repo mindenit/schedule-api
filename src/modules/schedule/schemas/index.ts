@@ -40,12 +40,20 @@ type GET_SCHEDULE_PARAMS = z.infer<typeof GET_SCHEDULE_PARAMS_SCHEMA>
 
 const GET_SCHEDULE_QUERY_SCHEMA = z.object({
 	startedAt: z.coerce
-		.date()
+		.number()
+		.min(0)
+		.refine((ts) => ts < 1e10, {
+			message: 'Should be a Unix timestamp in seconds',
+		})
 		.nullable()
 		.default(null)
 		.describe('Start time of the schedule range'),
 	endedAt: z.coerce
-		.date()
+		.number()
+		.min(0)
+		.refine((ts) => ts < 1e10, {
+			message: 'Should be a Unix timestamp in seconds',
+		})
 		.nullable()
 		.default(null)
 		.describe('End time of the schedule range'),
