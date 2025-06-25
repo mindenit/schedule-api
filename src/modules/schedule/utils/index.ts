@@ -8,13 +8,11 @@ export const getTimeIntervalQuery = ({
 	const clause: SQL[] = []
 
 	if (startedAt) {
-		clause.push(sql`and`, sql`e.started_at >= ${startedAt.toISOString()}`)
+		clause.push(sql`and`, sql`e.started_at >= ${startedAt}`)
 	}
 
 	if (endedAt) {
-		endedAt.setUTCHours(endedAt.getUTCHours() + 23)
-
-		clause.push(sql`and`, sql`e.ended_at <= ${endedAt.toISOString()}`)
+		clause.push(sql`and`, sql`e.ended_at <= ${endedAt}`)
 	}
 
 	return clause
