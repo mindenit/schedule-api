@@ -5,8 +5,10 @@ import { z } from 'zod'
 
 const SCHEDULE_SCHEMA = z.object({
 	id: z.number().int().describe('Identifier of double period'),
-	startedAt: z.string().describe('Timestamp when double period is starting'),
-	endedAt: z.string().describe('Timestamp when double period is ending'),
+	startedAt: z
+		.number()
+		.describe('Unix timestamp when double period is starting'),
+	endedAt: z.number().describe('Unix timestamp when double period is ending'),
 	type: z.enum(eventTypeEnum.enumValues).describe('Type of an event'),
 	auditorium: z
 		.object({
