@@ -29,7 +29,7 @@ export class TeachersRepositoryImpl implements TeachersRepository {
 	async getSchedule(options: GET_SCHEDULE_OPTIONS): Promise<Schedule[]> {
 		const { id } = options
 
-		const whereClause: SQL[] = [sql`e.auditorium_id = ${id}`]
+		const whereClause: SQL[] = [sql`ett1.teacher_id = ${id}`]
 
 		const timeInterval = getTimeIntervalQuery(options)
 
