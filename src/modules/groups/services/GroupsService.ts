@@ -4,7 +4,7 @@ import type {
 	GroupsRepository,
 	GroupsService,
 } from '../types/index.js'
-import type { Group, Schedule } from '@/db/types.js'
+import type { Group, Schedule, Subject } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { success } from '@/core/utils/index.js'
 
@@ -19,6 +19,15 @@ export class GroupsServiceImpl implements GroupsService {
 		const groups = await this.repository.findAll()
 
 		return success(groups, 'Groups fetched successfully')
+	}
+
+	async getSubjects(groupId: number): Promise<BaseResponse<Subject[]>> {
+		const subjects = await this.repository.getSubjects(groupId)
+
+		return success(
+			subjects,
+			`Subjects for group ${groupId} fetched successfully`,
+		)
 	}
 
 	async getSchedule(

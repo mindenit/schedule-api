@@ -11,7 +11,7 @@
 		"start:dev:watch": "NODE_ENV=development tsx --watch src/index.ts",
 		"docker:start:dev": "docker compose up",
 		"docker:stop:dev": "docker compose down",
-		"infrastructure:start:dev": "docker compose up db cache",
+		"infrastructure:start:dev": "docker compose -f ./docker-compose.dev.yml up db cache",
 		"infrastructure:stop:dev": "docker compose down",
 		"db:start:dev": "docker compose -f docker-compose.dev.yml up db",
 		"db:stop:dev": "docker compose down",

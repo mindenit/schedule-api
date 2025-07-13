@@ -1,12 +1,17 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getGroupSchedule, getGroups } from '../handlers/index.js'
+import {
+	getGroupSchedule,
+	getGroupSubjects,
+	getGroups,
+} from '../handlers/index.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
-import { GROUP_SCHEMA } from '../schemas/index.js'
+import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '../schemas/index.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
 	GET_SCHEDULE_QUERY_SCHEMA,
 	SCHEDULE_SCHEMA,
 } from '@/modules/schedule/schemas/index.js'
+import { GET_ENTITY_BY_ID_SCHEMA } from '@/core/schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -37,6 +42,23 @@ export const getGroupsRoutes = (): Routes => ({
 				querystring: GET_SCHEDULE_QUERY_SCHEMA,
 				response: {
 					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+						'Successful response',
+					),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/groups/:id/subjects',
+			handler: getGroupSubjects,
+			schema: {
+				summary: 'Get group subjects',
+				description:
+					'Get list of subjects for an appropriate group that is thought this academic year',
+				tags: ['Groups'],
+				params: GET_ENTITY_BY_ID_SCHEMA,
+				response: {
+					200: generateResponseSchema(SUBJECT_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

@@ -15,4 +15,10 @@ const GROUP_SCHEMA = z.object({
 		.describe('Identifier of speciality group belongs to'),
 })
 
-export { GROUP_SCHEMA }
+const SUBJECT_SCHEMA = z.object({
+	id: z.number().int().describe('Subject identifier'),
+	brief: z.string().describe('Subject brief name'),
+	name: z.string().describe('Subject name'),
+})
+
+export { GROUP_SCHEMA, SUBJECT_SCHEMA }
