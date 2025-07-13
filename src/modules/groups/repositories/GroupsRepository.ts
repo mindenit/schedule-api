@@ -45,6 +45,7 @@ export class GroupsRepositoryImpl implements GroupsRepository {
 			)
 			.innerJoin(subjectTable, eq(eventTable.subjectId, subjectTable.id))
 			.where(eq(eventToAcademicGroupTable.groudId, groupId))
+			.orderBy(subjectTable.brief)
 	}
 
 	async getTeachers(groupId: number): Promise<Omit<Teacher, 'departmentId'>[]> {
