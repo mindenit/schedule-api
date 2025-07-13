@@ -42,3 +42,15 @@ export const getGroupSubjects = async (
 
 	return reply.status(200).send(data)
 }
+
+export const getGroupTeachers = async (
+	request: FastifyRequest<{ Params: GET_ENTITY_BY_ID }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { groupsService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await groupsService.getTeachers(id)
+
+	return reply.status(200).send(data)
+}
