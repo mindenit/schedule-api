@@ -52,6 +52,7 @@ const GET_SCHEDULE_FILTERS_SCHEMA = z.object({
 		.transform(transformEventTypesParam),
 	teachers: z.string().nullable().default(null).transform(transformIdsParam),
 	auditoriums: z.string().nullable().default(null).transform(transformIdsParam),
+	subjects: z.string().nullable().default(null).transform(transformIdsParam),
 })
 
 type GET_SCHEDULE_FILTERS = z.infer<typeof GET_SCHEDULE_FILTERS_SCHEMA>

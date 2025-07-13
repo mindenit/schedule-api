@@ -23,7 +23,7 @@ export const getTimeIntervalQuery = ({
 
 export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
 	const clause: SQL[] = []
-	const { auditoriums, lessonTypes, teachers } = filters
+	const { auditoriums, lessonTypes, teachers, subjects } = filters
 
 	if (auditoriums.length) {
 		clause.push(sql`and`, sql`a.id not in (${auditoriums.join('j')})`)
@@ -35,6 +35,10 @@ export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
 
 	if (teachers.length) {
 		clause.push(sql`and`, sql`t2.id not in (${teachers.join(',')})`)
+	}
+
+	if (subjects.length) {
+		clause.push(sql`and`, sql`s.id not in (${subjects.join(',')})`)
 	}
 
 	return clause
