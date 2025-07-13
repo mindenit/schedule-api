@@ -2,6 +2,10 @@ import { eventTypeEnum } from '@/db/schema/event-type-enum.js'
 import { GROUP_SCHEMA } from '@/modules/groups/schemas/index.js'
 import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
 import { z } from 'zod'
+import {
+	transformEventTypesParam,
+	transformIdsParam,
+} from '../utils/query-string.js'
 
 const SCHEDULE_SCHEMA = z.object({
 	id: z.number().int().describe('Identifier of double period'),
@@ -40,7 +44,19 @@ const GET_SCHEDULE_PARAMS_SCHEMA = z.object({
 
 type GET_SCHEDULE_PARAMS = z.infer<typeof GET_SCHEDULE_PARAMS_SCHEMA>
 
-const GET_SCHEDULE_QUERY_SCHEMA = z.object({
+const GET_SCHEDULE_FILTERS_SCHEMA = z.object({
+	lessonTypes: z
+		.string()
+		.nullable()
+		.default(null)
+		.transform(transformEventTypesParam),
+	teachers: z.string().nullable().default(null).transform(transformIdsParam),
+	auditoriums: z.string().nullable().default(null).transform(transformIdsParam),
+})
+
+type GET_SCHEDULE_FILTERS = z.infer<typeof GET_SCHEDULE_FILTERS_SCHEMA>
+
+const GET_SCHEDULE_TIME_INTERVAL_SCHEMA = z.object({
 	startedAt: z.coerce
 		.number()
 		.min(0)
@@ -61,13 +77,33 @@ const GET_SCHEDULE_QUERY_SCHEMA = z.object({
 		.describe('End time of the schedule range'),
 })
 
+type GET_SCHEDULE_TIME_INTERVAL = z.infer<
+	typeof GET_SCHEDULE_TIME_INTERVAL_SCHEMA
+>
+
+const GET_SCHEDULE_QUERY_SCHEMA = GET_SCHEDULE_TIME_INTERVAL_SCHEMA.extend({
+	filters: GET_SCHEDULE_FILTERS_SCHEMA.default({
+		auditoriums: null,
+		lessonTypes: null,
+		teachers: null,
+	}),
+})
+
 type GET_SCHEDULE_QUERY = z.infer<typeof GET_SCHEDULE_QUERY_SCHEMA>
 
 type GET_SCHEDULE_OPTIONS = GET_SCHEDULE_PARAMS & GET_SCHEDULE_QUERY
 
 export {
+	GET_SCHEDULE_FILTERS_SCHEMA,
 	GET_SCHEDULE_PARAMS_SCHEMA,
 	GET_SCHEDULE_QUERY_SCHEMA,
+	GET_SCHEDULE_TIME_INTERVAL_SCHEMA,
 	SCHEDULE_SCHEMA,
 }
-export type { GET_SCHEDULE_PARAMS, GET_SCHEDULE_QUERY, GET_SCHEDULE_OPTIONS }
+export type {
+	GET_SCHEDULE_FILTERS,
+	GET_SCHEDULE_OPTIONS,
+	GET_SCHEDULE_PARAMS,
+	GET_SCHEDULE_QUERY,
+	GET_SCHEDULE_TIME_INTERVAL,
+}
