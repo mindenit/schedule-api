@@ -6,7 +6,9 @@ import fastifyCookie from '@fastify/cookie'
 import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyRateLimit from '@fastify/rate-limit'
+import fastifySchedule from '@fastify/schedule'
 import fastifySwagger from '@fastify/swagger'
+import scalarApiReference from '@scalar/fastify-api-reference'
 import fastify from 'fastify'
 import {
 	createJsonSchemaTransform,
@@ -14,20 +16,16 @@ import {
 	validatorCompiler,
 	type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { getRoutes } from './modules/index.js'
-import scalarApiReference from '@scalar/fastify-api-reference'
 import { AsyncTask, CronJob } from 'toad-scheduler'
 import { SCHEDULE_TYPE } from './core/constants/parsers.js'
 import { delay, isDbEmpty } from './core/utils/index.js'
-import fastifySchedule from '@fastify/schedule'
-import qs from 'qs'
+import { getRoutes } from './modules/index.js'
 
 export class App {
 	private readonly app: AppInstance
 
 	constructor() {
 		this.app = fastify({
-			querystringParser: qs.parse,
 			logger: {
 				transport: {
 					target: 'pino-pretty',
