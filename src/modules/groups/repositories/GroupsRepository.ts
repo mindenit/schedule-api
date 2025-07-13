@@ -9,6 +9,7 @@ import type { Group, Schedule, Subject, Teacher } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import {
 	buildScheduleQuery,
+	getFiltersQuery,
 	getTimeIntervalQuery,
 } from '@/modules/schedule/utils/index.js'
 import { SQL, asc, eq, sql } from 'drizzle-orm'
@@ -80,6 +81,10 @@ export class GroupsRepositoryImpl implements GroupsRepository {
 		const timeInterval = getTimeIntervalQuery(options)
 
 		whereClause.push(...timeInterval)
+
+		const filters = getFiltersQuery(options.filters)
+
+		whereClause.push(...filters)
 
 		const query = buildScheduleQuery(whereClause)
 

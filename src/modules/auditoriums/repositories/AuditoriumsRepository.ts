@@ -10,6 +10,7 @@ import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 
 import {
 	buildScheduleQuery,
+	getFiltersQuery,
 	getTimeIntervalQuery,
 } from '@/modules/schedule/utils/index.js'
 
@@ -35,6 +36,10 @@ export class AuditoriumsRepositoryImpl implements AuditoriumsRepository {
 		const timeInterval = getTimeIntervalQuery(options)
 
 		whereClause.push(...timeInterval)
+
+		const filters = getFiltersQuery(options.filters)
+
+		whereClause.push(...filters)
 
 		const query = buildScheduleQuery(whereClause)
 

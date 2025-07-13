@@ -1,10 +1,13 @@
 import { sql, type SQL } from 'drizzle-orm'
-import type { GET_SCHEDULE_QUERY } from '../schemas/index.js'
+import type {
+	GET_SCHEDULE_FILTERS,
+	GET_SCHEDULE_TIME_INTERVAL,
+} from '../schemas/index.js'
 
 export const getTimeIntervalQuery = ({
 	startedAt,
 	endedAt,
-}: GET_SCHEDULE_QUERY): SQL[] => {
+}: GET_SCHEDULE_TIME_INTERVAL): SQL[] => {
 	const clause: SQL[] = []
 
 	if (startedAt) {
@@ -13,6 +16,25 @@ export const getTimeIntervalQuery = ({
 
 	if (endedAt) {
 		clause.push(sql`and`, sql`e.ended_at <= ${endedAt}`)
+	}
+
+	return clause
+}
+
+export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
+	const clause: SQL[] = []
+	const { auditoriums, lessonTypes, teachers } = filters
+
+	if (auditoriums.length) {
+		clause.push(sql`and`, sql`a.id not in (${auditoriums.join('j')})`)
+	}
+
+	if (lessonTypes.length) {
+		clause.push(sql`and`, sql`e.type not in (${lessonTypes.join(',')})`)
+	}
+
+	if (teachers.length) {
+		clause.push(sql`and`, sql`t2.id not in (${teachers.join(',')})`)
 	}
 
 	return clause
@@ -36,7 +58,7 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
             'shortName', t2.short_name,
             'fullName', t2.full_name
           )
-        ) FILTER (WHERE t2.id IS NOT NULL),
+        ) filter (where t2.id is not null),
         '[]'::json
       ) as teachers
     from
