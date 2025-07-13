@@ -1,3 +1,4 @@
+import type { GET_ENTITY_BY_ID } from '@/core/schemas/index.js'
 import type {
 	GET_SCHEDULE_PARAMS,
 	GET_SCHEDULE_QUERY,
@@ -26,6 +27,18 @@ export const getGroupSchedule = async (
 	const { id } = request.params
 
 	const data = await groupsService.getSchedule({ id, ...request.query })
+
+	return reply.status(200).send(data)
+}
+
+export const getGroupSubjects = async (
+	request: FastifyRequest<{ Params: GET_ENTITY_BY_ID }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { groupsService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await groupsService.getSubjects(id)
 
 	return reply.status(200).send(data)
 }

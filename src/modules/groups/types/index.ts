@@ -3,14 +3,16 @@ import type { BaseResponse } from '@/core/types/common.js'
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { CistGroupsOutput } from '@/core/types/proxy.js'
 import type { Schedulable } from '@/core/types/services.js'
-import type { Group, Schedule } from '@/db/types.js'
+import type { Group, Schedule, Subject } from '@/db/types.js'
 
 interface GroupsRepository extends Schedulable<Schedule[]> {
 	findAll: () => Promise<Group[]>
+	getSubjects: (groupId: number) => Promise<Subject[]>
 }
 
 interface GroupsService extends Schedulable<BaseResponse<Schedule[]>> {
 	getAll: () => Promise<BaseResponse<Group[]>>
+	getSubjects: (groupId: number) => Promise<BaseResponse<Subject[]>>
 }
 
 interface GroupsModuleDependencies {
