@@ -54,10 +54,10 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
       e.started_at as "startedAt",
       e.ended_at as "endedAt",
       jsonb_build_object('id', s.id, 'title', s.name, 'brief', s.brief) as subject,
-      array_agg(jsonb_build_object('id', ag2.id, 'name', ag2.name)) as groups,
+      array_agg(distinct jsonb_build_object('id', ag2.id, 'name', ag2.name)) as groups,
       coalesce(
         json_agg(
-          jsonb_build_object(
+          distinct jsonb_build_object(
             'id', t2.id,
             'shortName', t2.short_name,
             'fullName', t2.full_name
