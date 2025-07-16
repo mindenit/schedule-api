@@ -3,6 +3,7 @@ import type { Routes } from '@/core/types/routes.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
+	GET_SCHEDULE_QUERY_SCHEMA,
 	SCHEDULE_SCHEMA,
 } from '@/modules/schedule/schemas/index.js'
 import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
@@ -40,6 +41,7 @@ export const getGroupsRoutes = (): Routes => ({
 				description: 'Get schedule for a group in particular time interval',
 				tags: ['Groups'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				querystring: GET_SCHEDULE_QUERY_SCHEMA,
 				response: {
 					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
 						'Successful response',

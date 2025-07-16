@@ -1,5 +1,4 @@
 import {
-	GET_SCHEDULE_QUERY_SCHEMA,
 	type GET_SCHEDULE_PARAMS,
 	type GET_SCHEDULE_QUERY,
 } from '@/modules/schedule/schemas/index.js'
@@ -26,9 +25,7 @@ export const getAuditoriumSchedule = async (
 	const { auditoriumsService } = request.diScope.cradle
 	const { id } = request.params
 
-	const query = GET_SCHEDULE_QUERY_SCHEMA.safeParse(request.query)
-
-	const data = await auditoriumsService.getSchedule({ id, ...query.data! })
+	const data = await auditoriumsService.getSchedule({ id, ...request.query })
 
 	return reply.status(200).send(data)
 }

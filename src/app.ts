@@ -20,12 +20,14 @@ import { AsyncTask, CronJob } from 'toad-scheduler'
 import { SCHEDULE_TYPE } from './core/constants/parsers.js'
 import { delay, isDbEmpty } from './core/utils/index.js'
 import { getRoutes } from './modules/index.js'
+import qs from 'qs'
 
 export class App {
 	private readonly app: AppInstance
 
 	constructor() {
 		this.app = fastify({
+			querystringParser: qs.parse,
 			logger: {
 				transport: {
 					target: 'pino-pretty',

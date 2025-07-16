@@ -1,6 +1,5 @@
 import type { GET_ENTITY_BY_ID } from '@/core/schemas/index.js'
 import {
-	GET_SCHEDULE_QUERY_SCHEMA,
 	type GET_SCHEDULE_PARAMS,
 	type GET_SCHEDULE_QUERY,
 } from '@/modules/schedule/schemas/index.js'
@@ -27,9 +26,7 @@ export const getGroupSchedule = async (
 	const { groupsService } = request.diScope.cradle
 	const { id } = request.params
 
-	const query = GET_SCHEDULE_QUERY_SCHEMA.safeParse(request.query)
-
-	const data = await groupsService.getSchedule({ id, ...query.data! })
+	const data = await groupsService.getSchedule({ id, ...request.query })
 
 	return reply.status(200).send(data)
 }

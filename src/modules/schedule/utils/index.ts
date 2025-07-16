@@ -26,11 +26,11 @@ export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
 	const { auditoriums, lessonTypes, teachers, subjects } = filters
 
 	if (auditoriums.length) {
-		clause.push(sql`and`, sql`a.id not in (${auditoriums.join('j')})`)
+		clause.push(sql`and`, sql`a.id not in (${auditoriums.join(',')})`)
 	}
 
 	if (lessonTypes.length) {
-		clause.push(sql`and`, sql`e.type not in (${lessonTypes.join(',')})`)
+		clause.push(sql`and`, sql`e.type not in (${sql.join(lessonTypes, sql`,`)})`)
 	}
 
 	if (teachers.length) {
