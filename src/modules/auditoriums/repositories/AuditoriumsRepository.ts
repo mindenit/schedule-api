@@ -5,7 +5,7 @@ import type {
 } from '../types/index.js'
 import type { Auditorium, Schedule } from '@/db/types.js'
 import { auditoriumTable } from '@/db/schema/auditorium.js'
-import { SQL, asc, sql } from 'drizzle-orm'
+import { SQL, asc, sql, notLike } from 'drizzle-orm'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 
 import {
@@ -25,6 +25,7 @@ export class AuditoriumsRepositoryImpl implements AuditoriumsRepository {
 		return this.db
 			.select()
 			.from(auditoriumTable)
+			.where(notLike(auditoriumTable.name, 'DL%'))
 			.orderBy(asc(auditoriumTable.name))
 	}
 
