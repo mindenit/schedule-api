@@ -1,6 +1,7 @@
 import type { InjectableDependencies } from '@/core/types/deps.js'
 import type { CREATE_LINK, Link, UPDATE_LINK } from '../schemas/index.js'
 import type { Creatable, FindableById } from '@/core/types/services.js'
+import type { Maybe } from '@/core/types/common.js'
 
 interface LinksRepository
 	extends FindableById<Link, string, string>,
@@ -10,7 +11,7 @@ interface LinksRepository
 	deleteOne: (id: string, userId: string) => Promise<void>
 }
 
-interface SharableLinksRepository {
+interface SharableLinksRepository extends FindableById<Maybe<string>, string> {
 	createOne: (userId: string, data: string[]) => Promise<string>
 }
 

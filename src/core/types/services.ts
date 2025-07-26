@@ -2,11 +2,7 @@ import type { Schedule } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import type { Maybe } from './index.js'
 
-interface FindableById<
-	TResult extends object,
-	TIdentifier = number,
-	TParams = never,
-> {
+interface FindableById<TResult, TIdentifier = number, TParams = never> {
 	findOne: (id: TIdentifier, params: TParams) => Promise<Maybe<TResult>>
 }
 

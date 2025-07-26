@@ -50,7 +50,7 @@ export class LinksRepositoryImpl implements LinksRepository {
 				label,
 				url,
 				type,
-				subjectId,
+				subjectId: Number(subjectId),
 				userId,
 			}
 
@@ -81,7 +81,7 @@ export class LinksRepositoryImpl implements LinksRepository {
 			label,
 			url,
 			type,
-			subjectId,
+			subjectId: Number(subjectId),
 			id,
 			userId,
 		}
