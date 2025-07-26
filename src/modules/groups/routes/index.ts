@@ -1,11 +1,12 @@
 import { GET_ENTITY_BY_ID_SCHEMA } from '@/core/schemas/index.js'
 import type { Routes } from '@/core/types/routes.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
+import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
-	GET_SCHEDULE_QUERY_SCHEMA,
 	SCHEDULE_SCHEMA,
 } from '@/modules/schedule/schemas/index.js'
+import { getScheduleQuerySchema } from '@/modules/schedule/utils/index.js'
 import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
 import {
 	getGroupAuditoriums,
@@ -14,8 +15,11 @@ import {
 	getGroupTeachers,
 	getGroups,
 } from '../handlers/index.js'
-import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '../schemas/index.js'
-import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
+import {
+	GET_GROUP_SCHEDULE_FILTERS_SCHEMA,
+	GROUP_SCHEMA,
+	SUBJECT_SCHEMA,
+} from '../schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -93,7 +97,7 @@ export const getGroupsRoutes = (): Routes => ({
 				description: 'Get schedule for a group in particular time interval',
 				tags: ['Groups'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
-				querystring: GET_SCHEDULE_QUERY_SCHEMA,
+				querystring: getScheduleQuerySchema(GET_GROUP_SCHEDULE_FILTERS_SCHEMA),
 				response: {
 					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
 						'Successful response',

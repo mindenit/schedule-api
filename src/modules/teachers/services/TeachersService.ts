@@ -13,6 +13,7 @@ import type {
 } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { success } from '@/core/utils/response.js'
+import type { GET_TEACHER_SCHEDULE_FILTERS } from '../schemas/index.js'
 
 export class TeachersServiceImpl implements TeachersService {
 	private readonly repository: TeachersRepository
@@ -56,7 +57,7 @@ export class TeachersServiceImpl implements TeachersService {
 	}
 
 	async getSchedule(
-		options: GET_SCHEDULE_OPTIONS,
+		options: GET_SCHEDULE_OPTIONS<GET_TEACHER_SCHEDULE_FILTERS>,
 	): Promise<BaseResponse<Schedule[]>> {
 		const schedule = await this.repository.getSchedule(options)
 

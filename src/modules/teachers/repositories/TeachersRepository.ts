@@ -1,17 +1,4 @@
 import type { DatabaseClient } from '@/core/types/deps.js'
-import type {
-	TeachersInjectableDependencies,
-	TeachersRepository,
-} from '../types/index.js'
-import type { Group, Schedule, Teacher, Subject } from '@/db/types.js'
-import { teacherTable } from '@/db/schema/teacher.js'
-import { SQL, asc, sql, eq } from 'drizzle-orm'
-import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
-import {
-	buildScheduleQuery,
-	getFiltersQuery,
-	getTimeIntervalQuery,
-} from '@/modules/schedule/utils/index.js'
 import {
 	academicGroupTable,
 	auditoriumTable,
@@ -20,6 +7,20 @@ import {
 	eventToTeacherTable,
 	subjectTable,
 } from '@/db/schema/index.js'
+import { teacherTable } from '@/db/schema/teacher.js'
+import type { Group, Schedule, Subject, Teacher } from '@/db/types.js'
+import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
+import {
+	buildScheduleQuery,
+	getTimeIntervalQuery,
+} from '@/modules/schedule/utils/index.js'
+import { SQL, asc, eq, sql } from 'drizzle-orm'
+import type { GET_TEACHER_SCHEDULE_FILTERS } from '../schemas/index.js'
+import type {
+	TeachersInjectableDependencies,
+	TeachersRepository,
+} from '../types/index.js'
+import { getTeacherFiltersQuery } from '../utils/index.js'
 
 export class TeachersRepositoryImpl implements TeachersRepository {
 	private readonly db: DatabaseClient
@@ -96,7 +97,9 @@ export class TeachersRepositoryImpl implements TeachersRepository {
 			.orderBy(subjectTable.brief)
 	}
 
-	async getSchedule(options: GET_SCHEDULE_OPTIONS): Promise<Schedule[]> {
+	async getSchedule(
+		options: GET_SCHEDULE_OPTIONS<GET_TEACHER_SCHEDULE_FILTERS>,
+	): Promise<Schedule[]> {
 		const { id } = options
 
 		const whereClause: SQL[] = [sql`ett1.teacher_id = ${id}`]
@@ -105,7 +108,7 @@ export class TeachersRepositoryImpl implements TeachersRepository {
 
 		whereClause.push(...timeInterval)
 
-		const filters = getFiltersQuery(options.filters)
+		const filters = getTeacherFiltersQuery(options.filters)
 
 		whereClause.push(...filters)
 

@@ -10,8 +10,9 @@ import type {
 	Subject,
 	Teacher,
 } from '@/db/types.js'
+import type { GET_TEACHER_SCHEDULE_FILTERS } from '../schemas/index.js'
 
-interface TeachersRepository extends Schedulable<Schedule[]> {
+interface TeachersRepository extends Schedulable<GET_TEACHER_SCHEDULE_FILTERS> {
 	findAll: () => Promise<Teacher[]>
 	getSubjects: (teacherId: number) => Promise<Subject[]>
 	getGroups: (teacherId: number) => Promise<Pick<Group, 'id' | 'name'>[]>
@@ -20,7 +21,8 @@ interface TeachersRepository extends Schedulable<Schedule[]> {
 	) => Promise<Pick<Auditorium, 'id' | 'name'>[]>
 }
 
-interface TeachersService extends Schedulable<BaseResponse<Schedule[]>> {
+interface TeachersService
+	extends Schedulable<GET_TEACHER_SCHEDULE_FILTERS, BaseResponse<Schedule[]>> {
 	getAll: () => Promise<BaseResponse<Teacher[]>>
 	getAuditoriums: (
 		teacherId: number,

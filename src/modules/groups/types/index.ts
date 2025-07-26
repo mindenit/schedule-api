@@ -10,8 +10,9 @@ import type {
 	Subject,
 	Teacher,
 } from '@/db/types.js'
+import type { GET_GROUP_SCHEDULE_FILTERS } from '../schemas/index.js'
 
-interface GroupsRepository extends Schedulable<Schedule[]> {
+interface GroupsRepository extends Schedulable<GET_GROUP_SCHEDULE_FILTERS> {
 	findAll: () => Promise<Group[]>
 	getAuditoriums: (
 		groupId: number,
@@ -20,7 +21,8 @@ interface GroupsRepository extends Schedulable<Schedule[]> {
 	getTeachers: (groupId: number) => Promise<Omit<Teacher, 'departmentId'>[]>
 }
 
-interface GroupsService extends Schedulable<BaseResponse<Schedule[]>> {
+interface GroupsService
+	extends Schedulable<GET_GROUP_SCHEDULE_FILTERS, BaseResponse<Schedule[]>> {
 	getAll: () => Promise<BaseResponse<Group[]>>
 	getAuditoriums: (
 		groupId: number,

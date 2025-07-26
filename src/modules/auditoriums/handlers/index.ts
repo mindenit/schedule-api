@@ -3,6 +3,7 @@ import {
 	type GET_SCHEDULE_QUERY,
 } from '@/modules/schedule/schemas/index.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { GET_AUDITORIUM_SCHEDULE_FILTERS } from '../schemas/index.js'
 
 export const getAuditoriums = async (
 	request: FastifyRequest,
@@ -60,7 +61,7 @@ export const getAuditoriumSubjects = async (
 export const getAuditoriumSchedule = async (
 	request: FastifyRequest<{
 		Params: GET_SCHEDULE_PARAMS
-		Querystring: GET_SCHEDULE_QUERY
+		Querystring: GET_SCHEDULE_QUERY<GET_AUDITORIUM_SCHEDULE_FILTERS>
 	}>,
 	reply: FastifyReply,
 ): Promise<void> => {

@@ -10,8 +10,11 @@ import type {
 	Subject,
 	Teacher,
 } from '@/db/types.js'
+import type { GET_AUDITORIUM_SCHEDULE_FILTERS } from '../schemas/index.js'
 
-interface AuditoriumsRepository extends Schedulable, FindableById<Auditorium> {
+interface AuditoriumsRepository
+	extends Schedulable<GET_AUDITORIUM_SCHEDULE_FILTERS>,
+		FindableById<Auditorium> {
 	findAll: () => Promise<Auditorium[]>
 	getGroups: (auditoriumId: number) => Promise<Pick<Group, 'id' | 'name'>[]>
 	getTeachers: (
@@ -20,7 +23,11 @@ interface AuditoriumsRepository extends Schedulable, FindableById<Auditorium> {
 	getSubjects: (auditoriumId: number) => Promise<Subject[]>
 }
 
-interface AuditoriumsService extends Schedulable<BaseResponse<Schedule[]>> {
+interface AuditoriumsService
+	extends Schedulable<
+		GET_AUDITORIUM_SCHEDULE_FILTERS,
+		BaseResponse<Schedule[]>
+	> {
 	getAuditoriums: () => Promise<BaseResponse<Auditorium[]>>
 	getGroups: (
 		auditoriumId: number,

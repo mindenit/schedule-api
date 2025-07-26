@@ -1,5 +1,6 @@
 import type { DatabaseClient } from '@/core/types/deps.js'
 import { academicGroupTable } from '@/db/schema/academic-group.js'
+import { auditoriumTable } from '@/db/schema/auditorium.js'
 import { eventToAcademicGroupTable } from '@/db/schema/event-to-academic-group.js'
 import { eventToTeacherTable } from '@/db/schema/event-to-teacher.js'
 import { eventTable } from '@/db/schema/event.js'
@@ -15,15 +16,15 @@ import type {
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import {
 	buildScheduleQuery,
-	getFiltersQuery,
 	getTimeIntervalQuery,
 } from '@/modules/schedule/utils/index.js'
 import { SQL, asc, eq, sql } from 'drizzle-orm'
+import type { GET_GROUP_SCHEDULE_FILTERS } from '../schemas/index.js'
 import type {
 	GroupsInjectableDependencies,
 	GroupsRepository,
 } from '../types/index.js'
-import { auditoriumTable } from '@/db/schema/auditorium.js'
+import { getGroupFiltersQuery } from '../utils/index.js'
 
 export class GroupsRepositoryImpl implements GroupsRepository {
 	private readonly db: DatabaseClient
@@ -101,7 +102,9 @@ export class GroupsRepositoryImpl implements GroupsRepository {
 			.orderBy(teacherTable.shortName)
 	}
 
-	async getSchedule(options: GET_SCHEDULE_OPTIONS): Promise<Schedule[]> {
+	async getSchedule(
+		options: GET_SCHEDULE_OPTIONS<GET_GROUP_SCHEDULE_FILTERS>,
+	): Promise<Schedule[]> {
 		const { id } = options
 
 		const whereClause: SQL[] = [sql`ag1.id = ${id}`]
@@ -110,7 +113,7 @@ export class GroupsRepositoryImpl implements GroupsRepository {
 
 		whereClause.push(...timeInterval)
 
-		const filters = getFiltersQuery(options.filters)
+		const filters = getGroupFiltersQuery(options.filters)
 
 		whereClause.push(...filters)
 

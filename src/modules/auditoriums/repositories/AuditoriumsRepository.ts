@@ -1,8 +1,5 @@
 import type { DatabaseClient } from '@/core/types/deps.js'
-import type {
-	AuditoriumsInjectableDependencies,
-	AuditoriumsRepository,
-} from '../types/index.js'
+import { auditoriumTable } from '@/db/schema/auditorium.js'
 import type {
 	Auditorium,
 	Group,
@@ -10,22 +7,26 @@ import type {
 	Subject,
 	Teacher,
 } from '@/db/types.js'
-import { auditoriumTable } from '@/db/schema/auditorium.js'
-import { SQL, asc, sql, notLike, eq } from 'drizzle-orm'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
+import { SQL, asc, eq, notLike, sql } from 'drizzle-orm'
+import type {
+	AuditoriumsInjectableDependencies,
+	AuditoriumsRepository,
+} from '../types/index.js'
 
-import {
-	buildScheduleQuery,
-	getFiltersQuery,
-	getTimeIntervalQuery,
-} from '@/modules/schedule/utils/index.js'
 import type { Maybe } from '@/core/types/index.js'
 import { academicGroupTable } from '@/db/schema/academic-group.js'
-import { eventTable } from '@/db/schema/event.js'
 import { eventToAcademicGroupTable } from '@/db/schema/event-to-academic-group.js'
-import { teacherTable } from '@/db/schema/teacher.js'
 import { eventToTeacherTable } from '@/db/schema/event-to-teacher.js'
+import { eventTable } from '@/db/schema/event.js'
 import { subjectTable } from '@/db/schema/subject.js'
+import { teacherTable } from '@/db/schema/teacher.js'
+import {
+	buildScheduleQuery,
+	getTimeIntervalQuery,
+} from '@/modules/schedule/utils/index.js'
+import type { GET_AUDITORIUM_SCHEDULE_FILTERS } from '../schemas/index.js'
+import { getAuditoriumFiltersQuery } from '../utils/index.js'
 
 export class AuditoriumsRepositoryImpl implements AuditoriumsRepository {
 	private readonly db: DatabaseClient
@@ -105,7 +106,9 @@ export class AuditoriumsRepositoryImpl implements AuditoriumsRepository {
 			.orderBy(asc(subjectTable.brief))
 	}
 
-	async getSchedule(options: GET_SCHEDULE_OPTIONS): Promise<Schedule[]> {
+	async getSchedule(
+		options: GET_SCHEDULE_OPTIONS<GET_AUDITORIUM_SCHEDULE_FILTERS>,
+	): Promise<Schedule[]> {
 		const { id } = options
 
 		const whereClause: SQL[] = [sql`e.auditorium_id = ${id}`]
@@ -114,7 +117,7 @@ export class AuditoriumsRepositoryImpl implements AuditoriumsRepository {
 
 		whereClause.push(...timeInterval)
 
-		const filters = getFiltersQuery(options.filters)
+		const filters = getAuditoriumFiltersQuery(options.filters)
 
 		whereClause.push(...filters)
 

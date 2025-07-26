@@ -14,6 +14,7 @@ import type {
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { success } from '@/core/utils/response.js'
 import { isDLAuditorium } from '../utils/index.js'
+import type { GET_AUDITORIUM_SCHEDULE_FILTERS } from '../schemas/index.js'
 
 export class AuditoriumsServiceImpl implements AuditoriumsService {
 	repository: AuditoriumsRepository
@@ -73,7 +74,7 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 	}
 
 	async getSchedule(
-		options: GET_SCHEDULE_OPTIONS,
+		options: GET_SCHEDULE_OPTIONS<GET_AUDITORIUM_SCHEDULE_FILTERS>,
 	): Promise<BaseResponse<Schedule[]>> {
 		const auditorium = await this.repository.findOne(options.id)
 		const message = `Schedule for auditorium with id ${options.id} found successfully`

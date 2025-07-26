@@ -1,3 +1,7 @@
+import {
+	transformEventTypesParam,
+	transformIdsParam,
+} from '@/modules/schedule/utils/query-string.js'
 import { z } from 'zod'
 
 const GROUP_SCHEMA = z.object({
@@ -21,4 +25,20 @@ const SUBJECT_SCHEMA = z.object({
 	name: z.string().describe('Subject name'),
 })
 
-export { GROUP_SCHEMA, SUBJECT_SCHEMA }
+const GET_GROUP_SCHEDULE_FILTERS_SCHEMA = z.object({
+	lessonTypes: z
+		.string()
+		.nullable()
+		.default(null)
+		.transform(transformEventTypesParam),
+	teachers: z.string().nullable().default(null).transform(transformIdsParam),
+	auditoriums: z.string().nullable().default(null).transform(transformIdsParam),
+	subjects: z.string().nullable().default(null).transform(transformIdsParam),
+})
+
+type GET_GROUP_SCHEDULE_FILTERS = z.infer<
+	typeof GET_GROUP_SCHEDULE_FILTERS_SCHEMA
+>
+
+export { GROUP_SCHEMA, SUBJECT_SCHEMA, GET_GROUP_SCHEDULE_FILTERS_SCHEMA }
+export type { GET_GROUP_SCHEDULE_FILTERS }
