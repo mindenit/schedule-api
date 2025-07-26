@@ -11,13 +11,13 @@ const bootstrap = async () => {
 
 		server.listen({ port, host: '0.0.0.0' })
 
+		console.log(`Server is running on port ${port}`)
+
 		const isEmpty = await isDbEmpty(server.diContainer.cradle.db.client)
 
 		if (isEmpty) {
 			await cistPostmanJob(server)
 		}
-
-		console.log(`Server is running on port ${port}`)
 	} catch (e: unknown) {
 		console.warn(e)
 		process.exit(1)
