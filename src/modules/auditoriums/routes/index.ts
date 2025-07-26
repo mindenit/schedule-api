@@ -1,5 +1,11 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getAuditoriumSchedule, getAuditoriums } from '../handlers/index.js'
+import {
+	getAuditoriumGroups,
+	getAuditoriumSchedule,
+	getAuditoriumSubjects,
+	getAuditoriumTeachers,
+	getAuditoriums,
+} from '../handlers/index.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { AUDITORIUM_SCHEMA } from '../schemas/index.js'
 import {
@@ -7,6 +13,8 @@ import {
 	GET_SCHEDULE_QUERY_SCHEMA,
 	SCHEDULE_SCHEMA,
 } from '@/modules/schedule/schemas/index.js'
+import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '@/modules/groups/schemas/index.js'
+import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
 
 export const getAuditoriumsRoutes = (): Routes => ({
 	routes: [
@@ -20,6 +28,54 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				tags: ['Auditoriums'],
 				response: {
 					200: generateResponseSchema(AUDITORIUM_SCHEMA.array()).describe(
+						'Successful response',
+					),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/auditoriums/:id/groups',
+			handler: getAuditoriumGroups,
+			schema: {
+				summary: 'Get auditorium groups',
+				description: 'Get groups for a specific auditorium',
+				tags: ['Auditoriums'],
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				response: {
+					200: generateResponseSchema(
+						GROUP_SCHEMA.pick({ id: true, name: true }).array(),
+					).describe('Successful response'),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/auditoriums/:id/teachers',
+			handler: getAuditoriumTeachers,
+			schema: {
+				summary: 'Get auditorium teachers',
+				description: 'Get teachers for a specific auditorium',
+				tags: ['Auditoriums'],
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				response: {
+					200: generateResponseSchema(
+						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
+					).describe('Successful response'),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/auditoriums/:id/subjects',
+			handler: getAuditoriumSubjects,
+			schema: {
+				summary: 'Get auditorium subjects',
+				description: 'Get subjects for a specific auditorium',
+				tags: ['Auditoriums'],
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				response: {
+					200: generateResponseSchema(SUBJECT_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

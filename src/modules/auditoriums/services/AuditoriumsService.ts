@@ -4,7 +4,13 @@ import type {
 	AuditoriumsRepository,
 	AuditoriumsService,
 } from '../types/index.js'
-import type { Auditorium, Schedule } from '@/db/types.js'
+import type {
+	Auditorium,
+	Group,
+	Schedule,
+	Subject,
+	Teacher,
+} from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { success } from '@/core/utils/response.js'
 import { isDLAuditorium } from '../utils/index.js'
@@ -18,10 +24,52 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 
 	async getAuditoriums(): Promise<BaseResponse<Auditorium[]>> {
 		const auditoriums = await this.repository.findAll()
-
 		const message = 'Auditoriums fetched successfully'
 
 		return success(auditoriums, message)
+	}
+
+	async getGroups(
+		auditoriumId: number,
+	): Promise<BaseResponse<Pick<Group, 'id' | 'name'>[]>> {
+		const auditorium = await this.repository.findOne(auditoriumId)
+		const message = `Groups for auditorium with id ${auditoriumId} found successfully`
+
+		if (isDLAuditorium(auditorium)) {
+			return success([], message)
+		}
+
+		const groups = await this.repository.getGroups(auditoriumId)
+
+		return success(groups, message)
+	}
+
+	async getTeachers(
+		auditoriumId: number,
+	): Promise<BaseResponse<Omit<Teacher, 'departmentId'>[]>> {
+		const auditorium = await this.repository.findOne(auditoriumId)
+		const message = `Teachers for auditorium with id ${auditoriumId} found successfully`
+
+		if (isDLAuditorium(auditorium)) {
+			return success([], message)
+		}
+
+		const teachers = await this.repository.getTeachers(auditoriumId)
+
+		return success(teachers, message)
+	}
+
+	async getSubjects(auditoriumId: number): Promise<BaseResponse<Subject[]>> {
+		const auditorium = await this.repository.findOne(auditoriumId)
+		const message = `Subjects for auditorium with id ${auditoriumId} found successfully`
+
+		if (isDLAuditorium(auditorium)) {
+			return success([], message)
+		}
+
+		const subjects = await this.repository.getSubjects(auditoriumId)
+
+		return success(subjects, message)
 	}
 
 	async getSchedule(

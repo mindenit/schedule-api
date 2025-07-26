@@ -8,12 +8,14 @@ import {
 } from '@/modules/schedule/schemas/index.js'
 import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
 import {
+	getGroupAuditoriums,
 	getGroupSchedule,
 	getGroupSubjects,
 	getGroupTeachers,
 	getGroups,
 } from '../handlers/index.js'
 import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '../schemas/index.js'
+import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -34,18 +36,34 @@ export const getGroupsRoutes = (): Routes => ({
 		},
 		{
 			method: 'GET',
-			url: '/groups/:id/schedule',
-			handler: getGroupSchedule,
+			url: '/groups/:id/auditoriums',
+			handler: getGroupAuditoriums,
 			schema: {
-				summary: 'Get group schedule',
-				description: 'Get schedule for a group in particular time interval',
+				summary: 'Get group auditoriums',
+				description:
+					'Get list of auditoriums for an appropriate group that are used during this academic year',
 				tags: ['Groups'],
-				params: GET_SCHEDULE_PARAMS_SCHEMA,
-				querystring: GET_SCHEDULE_QUERY_SCHEMA,
+				params: GET_ENTITY_BY_ID_SCHEMA,
 				response: {
-					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
-						'Successful response',
-					),
+					200: generateResponseSchema(
+						AUDITORIUM_SCHEMA.pick({ id: true, name: true }).array(),
+					).describe('Successful response'),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/groups/:id/teachers',
+			handler: getGroupTeachers,
+			schema: {
+				summary: 'Get group teachers',
+				description: `Get list of teachers for an appropeiate group that teach during this academic year`,
+				tags: ['Groups'],
+				params: GET_ENTITY_BY_ID_SCHEMA,
+				response: {
+					200: generateResponseSchema(
+						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
+					).describe('Successful response'),
 				},
 			},
 		},
@@ -68,17 +86,18 @@ export const getGroupsRoutes = (): Routes => ({
 		},
 		{
 			method: 'GET',
-			url: '/groups/:id/teachers',
-			handler: getGroupTeachers,
+			url: '/groups/:id/schedule',
+			handler: getGroupSchedule,
 			schema: {
-				summary: 'Get group teachers',
-				description: `Get list of teachers for an appropeiate group that teach during this academic year`,
+				summary: 'Get group schedule',
+				description: 'Get schedule for a group in particular time interval',
 				tags: ['Groups'],
-				params: GET_ENTITY_BY_ID_SCHEMA,
+				params: GET_SCHEDULE_PARAMS_SCHEMA,
+				querystring: GET_SCHEDULE_QUERY_SCHEMA,
 				response: {
-					200: generateResponseSchema(
-						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
-					).describe('Successful response'),
+					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+						'Successful response',
+					),
 				},
 			},
 		},

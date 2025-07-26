@@ -4,7 +4,13 @@ import type {
 	TeachersRepository,
 	TeachersService,
 } from '../types/index.js'
-import type { Schedule, Teacher } from '@/db/types.js'
+import type {
+	Auditorium,
+	Group,
+	Schedule,
+	Subject,
+	Teacher,
+} from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { success } from '@/core/utils/response.js'
 
@@ -19,6 +25,34 @@ export class TeachersServiceImpl implements TeachersService {
 		const teachers = await this.repository.findAll()
 
 		return success(teachers, 'Teachers successfuly fetched')
+	}
+
+	async getAuditoriums(
+		teacherId: number,
+	): Promise<BaseResponse<Pick<Auditorium, 'id' | 'name'>[]>> {
+		const auditoriums = await this.repository.getAuditoriums(teacherId)
+
+		const message = `Auditoriums for teacher with id ${teacherId} found successfully`
+
+		return success(auditoriums, message)
+	}
+
+	async getGroups(
+		teacherId: number,
+	): Promise<BaseResponse<Pick<Group, 'id' | 'name'>[]>> {
+		const groups = await this.repository.getGroups(teacherId)
+
+		const message = `Groups for teacher with id ${teacherId} found successfully`
+
+		return success(groups, message)
+	}
+
+	async getSubjects(teacherId: number): Promise<BaseResponse<Subject[]>> {
+		const subjects = await this.repository.getSubjects(teacherId)
+
+		const message = `Subjects for teacher with id ${teacherId} found successfully`
+
+		return success(subjects, message)
 	}
 
 	async getSchedule(

@@ -5,7 +5,13 @@ import { eventToTeacherTable } from '@/db/schema/event-to-teacher.js'
 import { eventTable } from '@/db/schema/event.js'
 import { subjectTable } from '@/db/schema/subject.js'
 import { teacherTable } from '@/db/schema/teacher.js'
-import type { Group, Schedule, Subject, Teacher } from '@/db/types.js'
+import type {
+	Auditorium,
+	Group,
+	Schedule,
+	Subject,
+	Teacher,
+} from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import {
 	buildScheduleQuery,
@@ -17,6 +23,7 @@ import type {
 	GroupsInjectableDependencies,
 	GroupsRepository,
 } from '../types/index.js'
+import { auditoriumTable } from '@/db/schema/auditorium.js'
 
 export class GroupsRepositoryImpl implements GroupsRepository {
 	private readonly db: DatabaseClient
@@ -30,6 +37,27 @@ export class GroupsRepositoryImpl implements GroupsRepository {
 			.select()
 			.from(academicGroupTable)
 			.orderBy(asc(academicGroupTable.name))
+	}
+
+	async getAuditoriums(
+		groupId: number,
+	): Promise<Pick<Auditorium, 'id' | 'name'>[]> {
+		return this.db
+			.selectDistinct({
+				id: auditoriumTable.id,
+				name: auditoriumTable.name,
+			})
+			.from(eventTable)
+			.innerJoin(
+				eventToAcademicGroupTable,
+				eq(eventTable.id, eventToAcademicGroupTable.eventId),
+			)
+			.innerJoin(
+				auditoriumTable,
+				eq(eventTable.auditoriumId, auditoriumTable.id),
+			)
+			.where(eq(eventToAcademicGroupTable.groudId, groupId))
+			.orderBy(auditoriumTable.name)
 	}
 
 	async getSubjects(groupId: number): Promise<Subject[]> {

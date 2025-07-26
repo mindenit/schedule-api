@@ -15,6 +15,48 @@ export const getTeachers = async (
 	return reply.status(200).send(data)
 }
 
+export const getTeacherAuditoriums = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await teachersService.getAuditoriums(id)
+
+	return reply.status(200).send(data)
+}
+
+export const getTeacherGroups = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await teachersService.getGroups(id)
+
+	return reply.status(200).send(data)
+}
+
+export const getTeacherSubjects = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await teachersService.getSubjects(id)
+
+	return reply.status(200).send(data)
+}
+
 export const getTeacherSchedule = async (
 	request: FastifyRequest<{
 		Params: GET_SCHEDULE_PARAMS
@@ -24,8 +66,6 @@ export const getTeacherSchedule = async (
 ): Promise<void> => {
 	const { teachersService } = request.diScope.cradle
 	const { id } = request.params
-
-	console.log(request.query)
 
 	const data = await teachersService.getSchedule({ id, ...request.query })
 
