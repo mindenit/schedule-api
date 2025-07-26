@@ -25,40 +25,47 @@ const SUBJECT_SCHEMA = z.object({
 	name: z.string().describe('Subject name'),
 })
 
-const GET_GROUP_SCHEDULE_FILTERS_SCHEMA = z.object({
-	lessonTypes: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformEventTypesParam)
-		.describe(
-			'Comma-separated list of lesson types to filter by. Example: "Лк,Пз"',
-		),
-	teachers: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe(
-			'Comma-separated list of teacher IDs to filter by. Example: "1,2,3"',
-		),
-	auditoriums: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe(
-			'Comma-separated list of auditorium IDs to filter by. Example: "1,2,3"',
-		),
-	subjects: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe(
-			'Comma-separated list of subject IDs to filter by. Example: "1,2,3"',
-		),
-})
+const GET_GROUP_SCHEDULE_FILTERS_SCHEMA = z
+	.object({
+		lessonTypes: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformEventTypesParam)
+			.describe(
+				'Comma-separated list of lesson types to filter by. Example: "Лк,Пз"',
+			),
+		teachers: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of teacher IDs to filter by. Example: "1,2,3"',
+			),
+		auditoriums: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of auditorium IDs to filter by. Example: "1,2,3"',
+			),
+		subjects: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of subject IDs to filter by. Example: "1,2,3"',
+			),
+	})
+	.default({
+		lessonTypes: null,
+		teachers: null,
+		auditoriums: null,
+		subjects: null,
+	})
 
 type GET_GROUP_SCHEDULE_FILTERS = z.infer<
 	typeof GET_GROUP_SCHEDULE_FILTERS_SCHEMA

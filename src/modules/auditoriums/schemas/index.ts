@@ -14,32 +14,45 @@ const AUDITORIUM_SCHEMA = z.object({
 		.describe('Identifier of building where auditorium is located'),
 })
 
-const GET_AUDITORIUM_SCHEDULE_FILTERS_SCHEMA = z.object({
-	lessonTypes: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformEventTypesParam)
-		.describe('Comma-separated list of lesson types. Example: "Лк,Пз"'),
-	teachers: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe('Comma-separated list of teacher identifiers. Example: "1,2,3"'),
-	groups: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe('Comma-separated list of group identifiers. Example: "101,102"'),
-	subjects: z
-		.string()
-		.nullable()
-		.default(null)
-		.transform(transformIdsParam)
-		.describe('Comma-separated list of subject identifiers. Example: "1,2,3"'),
-})
+const GET_AUDITORIUM_SCHEDULE_FILTERS_SCHEMA = z
+	.object({
+		lessonTypes: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformEventTypesParam)
+			.describe('Comma-separated list of lesson types. Example: "Лк,Пз"'),
+		teachers: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of teacher identifiers. Example: "1,2,3"',
+			),
+		groups: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of group identifiers. Example: "101,102"',
+			),
+		subjects: z
+			.string()
+			.nullable()
+			.default(null)
+			.transform(transformIdsParam)
+			.describe(
+				'Comma-separated list of subject identifiers. Example: "1,2,3"',
+			),
+	})
+	.default({
+		lessonTypes: null,
+		teachers: null,
+		groups: null,
+		subjects: null,
+	})
 
 type GET_AUDITORIUM_SCHEDULE_FILTERS = z.infer<
 	typeof GET_AUDITORIUM_SCHEDULE_FILTERS_SCHEMA
