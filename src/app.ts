@@ -16,11 +16,10 @@ import {
 	validatorCompiler,
 	type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import { AsyncTask, CronJob } from 'toad-scheduler'
-import { SCHEDULE_TYPE } from './core/constants/parsers.js'
-import { delay, isDbEmpty } from './core/utils/index.js'
-import { getRoutes } from './modules/index.js'
 import qs from 'qs'
+import { AsyncTask, CronJob } from 'toad-scheduler'
+import { getRoutes } from './modules/index.js'
+import { cistPostmanJob } from './modules/schedule/jobs/postman.js'
 
 export class App {
 	private readonly app: AppInstance
@@ -127,36 +126,8 @@ export class App {
 	}
 
 	private async registerPeriodicJob() {
-		const {
-			auditoriumsProcessor,
-			groupsProcessor,
-			eventsProcessor,
-			teachersProcessor,
-			logger,
-		} = this.app.diContainer.cradle
-
 		const task = new AsyncTask('cist-postman', async () => {
-			logger.info('Start CIST Postman')
-
-			const [auditoriums, groups, teachers] = await Promise.all([
-				auditoriumsProcessor.process(),
-				groupsProcessor.process(),
-				teachersProcessor.process(),
-			])
-
-			if (!auditoriums || !groups || !teachers) {
-				return
-			}
-
-			logger.info('Start filling events')
-
-			for (const group of groups) {
-				await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
-
-				delay(3000)
-			}
-
-			logger.info('Job completed sucessfully')
+			await cistPostmanJob(this.app)
 		})
 
 		return {
@@ -176,15 +147,11 @@ export class App {
 				this.registerRoutes()
 			})
 
-			const { job, task } = await this.registerPeriodicJob()
+			const { job } = await this.registerPeriodicJob()
 
 			await this.app.ready().then(() => {
 				this.app.scheduler.addCronJob(job)
 			})
-
-			if (await isDbEmpty(this.app.diContainer.cradle.db.client)) {
-				await task.executeAsync()
-			}
 
 			return this.app
 		} catch (e: unknown) {
