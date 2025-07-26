@@ -21,10 +21,28 @@ const GET_TEACHER_SCHEDULE_FILTERS_SCHEMA = z.object({
 		.string()
 		.nullable()
 		.default(null)
-		.transform(transformEventTypesParam),
-	groups: z.string().nullable().default(null).transform(transformIdsParam),
-	auditoriums: z.string().nullable().default(null).transform(transformIdsParam),
-	subjects: z.string().nullable().default(null).transform(transformIdsParam),
+		.transform(transformEventTypesParam)
+		.describe('Comma-separated list of lesson types. Example: "Лк,Пз"'),
+	groups: z
+		.string()
+		.nullable()
+		.default(null)
+		.transform(transformIdsParam)
+		.describe('Comma-separated list of group identifiers. Example: "1,2,3"'),
+	auditoriums: z
+		.string()
+		.nullable()
+		.default(null)
+		.transform(transformIdsParam)
+		.describe(
+			'Comma-separated list of auditorium identifiers. Example: "101,102"',
+		),
+	subjects: z
+		.string()
+		.nullable()
+		.default(null)
+		.transform(transformIdsParam)
+		.describe('Comma-separated list of subject identifiers. Example: "1,2,3"'),
 })
 
 type GET_TEACHER_SCHEDULE_FILTERS = z.infer<
