@@ -33,7 +33,7 @@ export class GroupsServiceImpl implements GroupsService {
 	): Promise<BaseResponse<Pick<Auditorium, 'id' | 'name'>[]>> {
 		const auditoriums = await this.repository.getAuditoriums(groupId)
 
-		return success(
+		return successResponse(
 			auditoriums,
 			`Auditoriums for group ${groupId} fetched successfully`,
 		)

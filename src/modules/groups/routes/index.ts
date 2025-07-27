@@ -1,8 +1,6 @@
 import { GET_ENTITY_BY_ID_SCHEMA } from '@/core/schemas/index.js'
 import type { Routes } from '@/core/types/routes.js'
 import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
-import { generateResponseSchema } from '@/core/utils/schemas.js'
-import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
 	SCHEDULE_SCHEMA,

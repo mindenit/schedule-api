@@ -16,7 +16,6 @@ import {
 	validatorCompiler,
 	type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
-import qs from 'qs'
 import { AsyncTask, CronJob } from 'toad-scheduler'
 import { getRoutes } from './modules/index.js'
 import qs from 'qs'

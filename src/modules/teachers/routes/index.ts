@@ -1,7 +1,5 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getTeacherSchedule, getTeachers } from '../handlers/index.js'
 import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
-import { TEACHER_SCHEMA } from '../schemas/index.js'
 import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '@/modules/groups/schemas/index.js'
 import {
@@ -80,7 +78,7 @@ export const getTeachersRoutes = (): Routes => ({
 				tags: ['Teachers'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(SUBJECT_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(SUBJECT_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

@@ -1,8 +1,5 @@
 import type { Routes } from '@/core/types/routes.js'
-import { getAuditoriumSchedule, getAuditoriums } from '../handlers/index.js'
 import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
-import { AUDITORIUM_SCHEMA } from '../schemas/index.js'
-import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '@/modules/groups/schemas/index.js'
 import {
 	GET_SCHEDULE_PARAMS_SCHEMA,
@@ -49,7 +46,7 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				tags: ['Auditoriums'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(
+					200: generateSuccessResponseSchema(
 						GROUP_SCHEMA.pick({ id: true, name: true }).array(),
 					).describe('Successful response'),
 				},
@@ -65,7 +62,7 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				tags: ['Auditoriums'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(
+					200: generateSuccessResponseSchema(
 						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
 					).describe('Successful response'),
 				},
@@ -81,7 +78,7 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				tags: ['Auditoriums'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(SUBJECT_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(SUBJECT_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

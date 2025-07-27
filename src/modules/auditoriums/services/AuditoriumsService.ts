@@ -37,12 +37,12 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		const message = `Groups for auditorium with id ${auditoriumId} found successfully`
 
 		if (isDLAuditorium(auditorium)) {
-			return success([], message)
+			return successResponse([], message)
 		}
 
 		const groups = await this.repository.getGroups(auditoriumId)
 
-		return success(groups, message)
+		return successResponse(groups, message)
 	}
 
 	async getTeachers(
@@ -52,12 +52,12 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		const message = `Teachers for auditorium with id ${auditoriumId} found successfully`
 
 		if (isDLAuditorium(auditorium)) {
-			return success([], message)
+			return successResponse([], message)
 		}
 
 		const teachers = await this.repository.getTeachers(auditoriumId)
 
-		return success(teachers, message)
+		return successResponse(teachers, message)
 	}
 
 	async getSubjects(auditoriumId: number): Promise<BaseResponse<Subject[]>> {
@@ -65,12 +65,12 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		const message = `Subjects for auditorium with id ${auditoriumId} found successfully`
 
 		if (isDLAuditorium(auditorium)) {
-			return success([], message)
+			return successResponse([], message)
 		}
 
 		const subjects = await this.repository.getSubjects(auditoriumId)
 
-		return success(subjects, message)
+		return successResponse(subjects, message)
 	}
 
 	async getSchedule(

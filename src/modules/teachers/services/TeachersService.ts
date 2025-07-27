@@ -35,7 +35,7 @@ export class TeachersServiceImpl implements TeachersService {
 
 		const message = `Auditoriums for teacher with id ${teacherId} found successfully`
 
-		return success(auditoriums, message)
+		return successResponse(auditoriums, message)
 	}
 
 	async getGroups(
@@ -45,7 +45,7 @@ export class TeachersServiceImpl implements TeachersService {
 
 		const message = `Groups for teacher with id ${teacherId} found successfully`
 
-		return success(groups, message)
+		return successResponse(groups, message)
 	}
 
 	async getSubjects(teacherId: number): Promise<BaseResponse<Subject[]>> {
@@ -53,7 +53,7 @@ export class TeachersServiceImpl implements TeachersService {
 
 		const message = `Subjects for teacher with id ${teacherId} found successfully`
 
-		return success(subjects, message)
+		return successResponse(subjects, message)
 	}
 
 	async getSchedule(
