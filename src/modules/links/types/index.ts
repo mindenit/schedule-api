@@ -38,12 +38,23 @@ interface LinksService {
 interface SharableLinksRepository {
 	findOne: (id: string) => Promise<Maybe<SharableLink>>
 	createOne: (userId: string, data: string[]) => Promise<string>
+	acceptOne: (id: string, userId: string) => Promise<void>
+	isAccepted: (id: string, userId: string) => Promise<boolean>
+	setAccepted: (id: string, userId: string) => Promise<void>
 }
 
 interface SharableLinksService {
 	findOne: (
 		id: string,
 	) => Promise<Result<SuccessResponse<SharableLink>, FailureResponse>>
+	createOne: (
+		userId: string,
+		data: string[],
+	) => Promise<SuccessResponse<{ id: string }>>
+	acceptOne: (
+		id: string,
+		userId: string,
+	) => Promise<Result<void, FailureResponse>>
 }
 
 interface LinksModuleDependencies {

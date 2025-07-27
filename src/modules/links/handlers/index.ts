@@ -83,3 +83,32 @@ export const getSharableLink = async (
 
 	return reply.status(200).send(result.value)
 }
+
+export const createSharableLink = async (
+	request: FastifyRequest<{ Body: string[] }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const userId = request.cookies[CLIENT_COOKIE_NAME] as string
+	const { sharableLinksService } = request.diScope.cradle
+
+	const data = await sharableLinksService.createOne(userId, request.body)
+
+	return reply.status(201).send(data)
+}
+
+export const acceptSharableLink = async (
+	request: FastifyRequest<{ Params: GET_LINK_BY_ID }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const userId = request.cookies[CLIENT_COOKIE_NAME] as string
+	const { id } = request.params
+	const { sharableLinksService } = request.diScope.cradle
+
+	const result = await sharableLinksService.acceptOne(id, userId)
+
+	if (result.isErr()) {
+		return reply.status(result.error.error.status).send(result.error)
+	}
+
+	return reply.status(204).send()
+}

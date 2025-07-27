@@ -4,7 +4,9 @@ import {
 	generateSuccessResponseSchema,
 } from '@/core/utils/schemas.js'
 import {
+	acceptSharableLink,
 	createLink,
+	createSharableLink,
 	deleteLink,
 	getSharableLink,
 	getUserLinks,
@@ -13,10 +15,12 @@ import {
 import { sessionMiddleware } from '../middlewares/session.js'
 import {
 	CREATE_LINK_SCHEMA,
+	CREATE_SHARABLE_LINK_SCHEMA,
 	GET_LINK_BY_ID_SCHEMA,
 	LINK_SCHEMA,
 	UPDATE_LINK_SCHEMA,
 } from '../schemas/index.js'
+import { z } from 'zod'
 
 export const getLinksRoutes = (): Routes => ({
 	routes: [
@@ -81,6 +85,29 @@ export const getLinksRoutes = (): Routes => ({
 			},
 		},
 		{
+			method: 'POST',
+			url: '/sharable-links',
+			handler: createSharableLink,
+			preHandler: [sessionMiddleware],
+			schema: {
+				summary: 'Create a sharable link',
+				description: 'Create a sharable link with multiple links',
+				tags: ['Sharable Links'],
+				body: CREATE_SHARABLE_LINK_SCHEMA,
+				security: [{ CookieAuth: [] }],
+				response: {
+					201: generateSuccessResponseSchema(
+						z.object({
+							id: z.string().uuid(),
+						}),
+					).describe('Sharable link successfully created'),
+					401: generateFailureResponseSchema(401).describe(
+						'Unauthorized, session cookie is missing',
+					),
+				},
+			},
+		},
+		{
 			method: 'PUT',
 			url: '/links/:id',
 			handler: updateLink,
@@ -100,6 +127,27 @@ export const getLinksRoutes = (): Routes => ({
 						'Unauthorized, session cookie is missing',
 					),
 					404: generateFailureResponseSchema(404).describe('Link not found'),
+				},
+			},
+		},
+		{
+			method: 'PUT',
+			url: '/sharable-links/:id/accept',
+			handler: acceptSharableLink,
+			preHandler: [sessionMiddleware],
+			schema: {
+				summary: 'Accept a sharable link',
+				description: 'Accept a sharable link by its ID',
+				tags: ['Sharable Links'],
+				params: GET_LINK_BY_ID_SCHEMA,
+				security: [{ CookieAuth: [] }],
+				response: {
+					400: generateFailureResponseSchema(400).describe(
+						'You have already accepted this sharable link',
+					),
+					404: generateFailureResponseSchema(404).describe(
+						'Sharable link not found',
+					),
 				},
 			},
 		},

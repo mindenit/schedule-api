@@ -31,4 +31,45 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 
 		return ok(successResponse(sharableLink, 'Sharable link found successfully'))
 	}
+
+	async createOne(
+		userId: string,
+		data: string[],
+	): Promise<SuccessResponse<{ id: string }>> {
+		const id = await this.repository.createOne(userId, data)
+
+		return successResponse({ id }, 'Sharable link created successfully')
+	}
+
+	async acceptOne(
+		id: string,
+		userId: string,
+	): Promise<Result<void, FailureResponse>> {
+		const sharableLink = await this.repository.findOne(id)
+
+		if (!sharableLink) {
+			return err(
+				failureResponse({
+					status: 404,
+					message: 'Sharable link not found',
+				}),
+			)
+		}
+
+		if (await this.repository.isAccepted(id, userId)) {
+			return err(
+				failureResponse({
+					status: 400,
+					message: 'You have already accepted this sharable link',
+				}),
+			)
+		}
+
+		await Promise.all([
+			this.repository.setAccepted(id, userId),
+			this.repository.setAccepted(id, userId),
+		])
+
+		return ok(undefined)
+	}
 }

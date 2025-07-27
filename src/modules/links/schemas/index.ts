@@ -37,11 +37,25 @@ const UPDATE_LINK_SCHEMA = LINK_SCHEMA.partial().pick({
 
 type UPDATE_LINK = z.infer<typeof UPDATE_LINK_SCHEMA>
 
+const CREATE_SHARABLE_LINK_SCHEMA = z.object({
+	linkIds: z.string().uuid().array().describe('Array of link IDs to be shared'),
+})
+
+type CREATE_SHARABLE_LINK = z.infer<typeof CREATE_SHARABLE_LINK_SCHEMA>
+
 export {
 	CREATE_LINK_SCHEMA,
 	GET_LINK_BY_ID_SCHEMA,
 	LINK_SCHEMA,
 	SHARABLE_LINK_SCHEMA,
 	UPDATE_LINK_SCHEMA,
+	CREATE_SHARABLE_LINK_SCHEMA,
 }
-export type { CREATE_LINK, GET_LINK_BY_ID, Link, SharableLink, UPDATE_LINK }
+export type {
+	CREATE_LINK,
+	GET_LINK_BY_ID,
+	Link,
+	SharableLink,
+	UPDATE_LINK,
+	CREATE_SHARABLE_LINK,
+}
