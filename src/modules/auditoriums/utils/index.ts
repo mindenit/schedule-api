@@ -14,15 +14,15 @@ export const getAuditoriumFiltersQuery = (
 	}
 
 	if (teachers.length) {
-		clause.push(sql`and`, sql`t2.id in (${teachers.join(',')})`)
+		clause.push(sql`and`, sql`t2.id in (${sql.join(teachers, sql`,`)})`)
 	}
 
 	if (groups.length) {
-		clause.push(sql`and`, sql`ag2.id in (${groups.join(',')})`)
+		clause.push(sql`and`, sql`ag2.id in (${sql.join(groups, sql`,`)})`)
 	}
 
 	if (subjects.length) {
-		clause.push(sql`and`, sql`s.id in (${subjects.join(',')})`)
+		clause.push(sql`and`, sql`s.id in (${sql.join(subjects, sql`,`)})`)
 	}
 
 	return clause

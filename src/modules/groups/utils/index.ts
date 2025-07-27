@@ -8,7 +8,7 @@ export const getGroupFiltersQuery = (
 	const { auditoriums, lessonTypes, teachers, subjects } = filters
 
 	if (auditoriums.length) {
-		clause.push(sql`and`, sql`a.id in (${auditoriums.join(',')})`)
+		clause.push(sql`and`, sql`a.id in (${sql.join(auditoriums, sql`,`)})`)
 	}
 
 	if (lessonTypes.length) {
@@ -16,11 +16,11 @@ export const getGroupFiltersQuery = (
 	}
 
 	if (teachers.length) {
-		clause.push(sql`and`, sql`t2.id in (${teachers.join(',')})`)
+		clause.push(sql`and`, sql`t2.id in (${sql.join(teachers, sql`,`)})`)
 	}
 
 	if (subjects.length) {
-		clause.push(sql`and`, sql`s.id in (${subjects.join(',')})`)
+		clause.push(sql`and`, sql`s.id in (${sql.join(subjects, sql`,`)})`)
 	}
 
 	return clause
