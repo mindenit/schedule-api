@@ -98,9 +98,9 @@ export const getGroupsRoutes = (): Routes => ({
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				querystring: getScheduleQuerySchema(GET_GROUP_SCHEDULE_FILTERS_SCHEMA),
 				response: {
-					200: generateSuccessResponseSchema(
-						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
-					).describe('Successful response'),
+					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+						'Successful response',
+					),
 				},
 			},
 		},
