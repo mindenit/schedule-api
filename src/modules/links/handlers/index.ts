@@ -67,3 +67,19 @@ export const deleteLink = async (
 
 	return reply.status(200).send(result.value)
 }
+
+export const getSharableLink = async (
+	request: FastifyRequest<{ Params: GET_LINK_BY_ID }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { id } = request.params
+	const { sharableLinksService } = request.diScope.cradle
+
+	const result = await sharableLinksService.findOne(id)
+
+	if (result.isErr()) {
+		return reply.status(result.error.error.status).send(result.error)
+	}
+
+	return reply.status(200).send(result.value)
+}

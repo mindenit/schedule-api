@@ -6,6 +6,7 @@ import {
 import {
 	createLink,
 	deleteLink,
+	getSharableLink,
 	getUserLinks,
 	updateLink,
 } from '../handlers/index.js'
@@ -35,6 +36,25 @@ export const getLinksRoutes = (): Routes => ({
 					),
 					401: generateFailureResponseSchema(401).describe(
 						'Unauthorized, session cookie is missing',
+					),
+				},
+			},
+		},
+		{
+			method: 'GET',
+			url: '/sharable-links/:id',
+			handler: getSharableLink,
+			schema: {
+				summary: 'Get sharable link',
+				description: 'Retrieve a sharable link by its ID',
+				tags: ['Sharable Links'],
+				params: GET_LINK_BY_ID_SCHEMA,
+				response: {
+					200: generateSuccessResponseSchema(LINK_SCHEMA).describe(
+						'Sharable link details',
+					),
+					404: generateFailureResponseSchema(404).describe(
+						'Sharable link not found',
 					),
 				},
 			},

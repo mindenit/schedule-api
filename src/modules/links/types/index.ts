@@ -6,8 +6,13 @@ import type {
 } from '@/core/types/common.js'
 import type { InjectableDependencies } from '@/core/types/deps.js'
 import type { FindableById } from '@/core/types/services.js'
-import type { CREATE_LINK, Link, UPDATE_LINK } from '../schemas/index.js'
 import type { Result } from 'neverthrow'
+import type {
+	CREATE_LINK,
+	Link,
+	SharableLink,
+	UPDATE_LINK,
+} from '../schemas/index.js'
 
 interface LinksRepository extends FindableById<Link, string, string> {
 	findMany: (pattern: string) => Promise<Link[]>
@@ -30,14 +35,22 @@ interface LinksService {
 	) => Promise<Result<SuccessResponse<Link>, FailureResponse>>
 }
 
-interface SharableLinksRepository extends FindableById<Maybe<string>, string> {
+interface SharableLinksRepository {
+	findOne: (id: string) => Promise<Maybe<SharableLink>>
 	createOne: (userId: string, data: string[]) => Promise<string>
+}
+
+interface SharableLinksService {
+	findOne: (
+		id: string,
+	) => Promise<Result<SuccessResponse<SharableLink>, FailureResponse>>
 }
 
 interface LinksModuleDependencies {
 	linksRepository: LinksRepository
 	linksService: LinksService
 	sharableLinksRepository: SharableLinksRepository
+	sharableLinksService: SharableLinksService
 }
 
 type LinksInjectableDependencies =
@@ -45,8 +58,9 @@ type LinksInjectableDependencies =
 
 export type {
 	LinksInjectableDependencies,
-	LinksRepository,
-	SharableLinksRepository,
 	LinksModuleDependencies,
+	LinksRepository,
 	LinksService,
+	SharableLinksRepository,
+	SharableLinksService,
 }
