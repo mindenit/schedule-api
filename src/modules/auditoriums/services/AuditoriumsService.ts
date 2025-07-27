@@ -12,7 +12,7 @@ import type {
 	Teacher,
 } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
-import { success } from '@/core/utils/response.js'
+import { successResponse } from '@/core/utils/response.js'
 import { isDLAuditorium } from '../utils/index.js'
 import type { GET_AUDITORIUM_SCHEDULE_FILTERS } from '../schemas/index.js'
 
@@ -27,7 +27,7 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		const auditoriums = await this.repository.findAll()
 		const message = 'Auditoriums fetched successfully'
 
-		return success(auditoriums, message)
+		return successResponse(auditoriums, message)
 	}
 
 	async getGroups(
@@ -80,11 +80,11 @@ export class AuditoriumsServiceImpl implements AuditoriumsService {
 		const message = `Schedule for auditorium with id ${options.id} found successfully`
 
 		if (isDLAuditorium(auditorium)) {
-			return success([], message)
+			return successResponse([], message)
 		}
 
 		const schedule = await this.repository.getSchedule(options)
 
-		return success(schedule, message)
+		return successResponse(schedule, message)
 	}
 }

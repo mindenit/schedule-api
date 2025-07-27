@@ -22,6 +22,28 @@ export const getTimeIntervalQuery = ({
 	return clause
 }
 
+export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
+	const clause: SQL[] = []
+	const { auditoriums, lessonTypes, teachers, subjects } = filters
+
+	if (auditoriums.length) {
+		clause.push(sql`and`, sql`a.id not in (${sql.join(auditoriums, sql`,`)} )`)
+	}
+
+	if (lessonTypes.length) {
+		clause.push(sql`and`, sql`e.type not in (${sql.join(lessonTypes, sql`,`)})`)
+	}
+
+	if (teachers.length) {
+		clause.push(sql`and`, sql`t2.id not in (${sql.join(teachers, sql`,`)})`)
+	}
+
+	if (subjects.length) {
+		clause.push(sql`and`, sql`s.id not in (${sql.join(subjects, sql`,`)})`)
+	}
+
+	return clause
+  
 export const getScheduleQuerySchema = (filtersSchema: ZodSchema) => {
 	return GET_SCHEDULE_TIME_INTERVAL_SCHEMA.extend({
 		filters: filtersSchema,

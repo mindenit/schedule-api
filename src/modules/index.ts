@@ -3,6 +3,7 @@ import type { Routes } from '@/core/types/routes.js'
 import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
 import { getGroupsRoutes } from './groups/routes/index.js'
 import { getTeachersRoutes } from './teachers/routes/index.js'
+import { getLinksRoutes } from './links/routes/index.js'
 import { HEALTH_CHECK_KEY, HEALTH_STATUS } from '@/core/constants/index.js'
 
 export const getRoutes = (): Routes => ({
@@ -41,5 +42,6 @@ export const getRoutes = (): Routes => ({
 		...getAuditoriumsRoutes().routes,
 		...getGroupsRoutes().routes,
 		...getTeachersRoutes().routes,
+		...getLinksRoutes().routes,
 	],
 })

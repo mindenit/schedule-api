@@ -14,18 +14,27 @@ interface HttpError {
 	message: string
 }
 
-type BaseResponse<T extends object> =
-	| {
-			success: true
-			data: T
-			message: string
-			error: null
-	  }
-	| {
-			success: false
-			data: null
-			message: string
-			error: HttpError
-	  }
+type SuccessResponse<T extends object> = {
+	success: true
+	data: T
+	message?: string
+	error: null
+}
 
-export type { AppInstance, HttpError, Maybe, BaseResponse }
+type FailureResponse = {
+	success: false
+	data: null
+	message?: string
+	error: HttpError
+}
+
+type BaseResponse<T extends object> = SuccessResponse<T> | FailureResponse
+
+export type {
+	AppInstance,
+	HttpError,
+	Maybe,
+	BaseResponse,
+	SuccessResponse,
+	FailureResponse,
+}

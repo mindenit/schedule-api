@@ -1,5 +1,6 @@
 import { GET_ENTITY_BY_ID_SCHEMA } from '@/core/schemas/index.js'
 import type { Routes } from '@/core/types/routes.js'
+import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 import {
@@ -32,7 +33,7 @@ export const getGroupsRoutes = (): Routes => ({
 				description: 'Get list of groups',
 				tags: ['Groups'],
 				response: {
-					200: generateResponseSchema(GROUP_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(GROUP_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},
@@ -49,9 +50,9 @@ export const getGroupsRoutes = (): Routes => ({
 				tags: ['Groups'],
 				params: GET_ENTITY_BY_ID_SCHEMA,
 				response: {
-					200: generateResponseSchema(
-						AUDITORIUM_SCHEMA.pick({ id: true, name: true }).array(),
-					).describe('Successful response'),
+					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+						'Successful response',
+					),
 				},
 			},
 		},
@@ -65,7 +66,7 @@ export const getGroupsRoutes = (): Routes => ({
 				tags: ['Groups'],
 				params: GET_ENTITY_BY_ID_SCHEMA,
 				response: {
-					200: generateResponseSchema(
+					200: generateSuccessResponseSchema(
 						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
 					).describe('Successful response'),
 				},
@@ -82,7 +83,7 @@ export const getGroupsRoutes = (): Routes => ({
 				tags: ['Groups'],
 				params: GET_ENTITY_BY_ID_SCHEMA,
 				response: {
-					200: generateResponseSchema(SUBJECT_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(SUBJECT_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},
@@ -99,9 +100,9 @@ export const getGroupsRoutes = (): Routes => ({
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				querystring: getScheduleQuerySchema(GET_GROUP_SCHEDULE_FILTERS_SCHEMA),
 				response: {
-					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
-						'Successful response',
-					),
+					200: generateSuccessResponseSchema(
+						TEACHER_SCHEMA.omit({ departmentId: true }).array(),
+					).describe('Successful response'),
 				},
 			},
 		},

@@ -1,5 +1,7 @@
 import type { Routes } from '@/core/types/routes.js'
-import { generateResponseSchema } from '@/core/utils/schemas.js'
+import { getTeacherSchedule, getTeachers } from '../handlers/index.js'
+import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
+import { TEACHER_SCHEMA } from '../schemas/index.js'
 import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '@/modules/groups/schemas/index.js'
 import {
@@ -30,7 +32,7 @@ export const getTeachersRoutes = (): Routes => ({
 				description: 'Get list of teachers',
 				tags: ['Teachers'],
 				response: {
-					200: generateResponseSchema(TEACHER_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(TEACHER_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},
@@ -46,7 +48,7 @@ export const getTeachersRoutes = (): Routes => ({
 				tags: ['Teachers'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(
+					200: generateSuccessResponseSchema(
 						AUDITORIUM_SCHEMA.pick({ id: true, name: true }).array(),
 					).describe('Successful response'),
 				},
@@ -62,7 +64,7 @@ export const getTeachersRoutes = (): Routes => ({
 				tags: ['Teachers'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				response: {
-					200: generateResponseSchema(
+					200: generateSuccessResponseSchema(
 						GROUP_SCHEMA.pick({ id: true, name: true }).array(),
 					).describe('Successful response'),
 				},
@@ -97,7 +99,7 @@ export const getTeachersRoutes = (): Routes => ({
 					GET_TEACHER_SCHEDULE_FILTERS_SCHEMA,
 				),
 				response: {
-					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

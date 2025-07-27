@@ -12,12 +12,14 @@ import type { TeachersModuleDependencies } from '@/modules/teachers/types/index.
 import { resolveTeachersModule } from '@/modules/teachers/index.js'
 import type { EventModuleDependencies } from '@/modules/events/types/index.js'
 import { resolveEventsModule } from '@/modules/events/index.js'
+import type { LinksModuleDependencies } from '@/modules/links/types/index.js'
 
 type Dependencies = CommonDependencies &
 	AuditoriumsModuleDependencies &
 	GroupsModuleDependencies &
 	EventModuleDependencies &
-	TeachersModuleDependencies
+	TeachersModuleDependencies &
+	LinksModuleDependencies
 
 type DiConfig = NameAndRegistrationPair<Dependencies>
 

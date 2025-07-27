@@ -1,4 +1,7 @@
 import type { Routes } from '@/core/types/routes.js'
+import { getAuditoriumSchedule, getAuditoriums } from '../handlers/index.js'
+import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
+import { AUDITORIUM_SCHEMA } from '../schemas/index.js'
 import { generateResponseSchema } from '@/core/utils/schemas.js'
 import { GROUP_SCHEMA, SUBJECT_SCHEMA } from '@/modules/groups/schemas/index.js'
 import {
@@ -30,9 +33,9 @@ export const getAuditoriumsRoutes = (): Routes => ({
 				description: 'Get list of auditoriums',
 				tags: ['Auditoriums'],
 				response: {
-					200: generateResponseSchema(AUDITORIUM_SCHEMA.array()).describe(
-						'Successful response',
-					),
+					200: generateSuccessResponseSchema(
+						AUDITORIUM_SCHEMA.array(),
+					).describe('Successful response'),
 				},
 			},
 		},
@@ -98,7 +101,7 @@ export const getAuditoriumsRoutes = (): Routes => ({
 					GET_AUDITORIUM_SCHEDULE_FILTERS_SCHEMA,
 				),
 				response: {
-					200: generateResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
 						'Successful response',
 					),
 				},

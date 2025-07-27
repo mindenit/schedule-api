@@ -19,6 +19,8 @@ import {
 import qs from 'qs'
 import { AsyncTask, CronJob } from 'toad-scheduler'
 import { getRoutes } from './modules/index.js'
+import qs from 'qs'
+import { CLIENT_COOKIE_NAME } from './modules/links/constants/index.js'
 import { cistPostmanJob } from './modules/schedule/jobs/postman.js'
 
 export class App {
@@ -77,6 +79,15 @@ export class App {
 					title: 'Mindenit Schedule API',
 					description: 'API for Mindenit Schedule application',
 					version: '0.0.0',
+				},
+				components: {
+					securitySchemes: {
+						CookieAuth: {
+							type: 'apiKey',
+							in: 'cookie',
+							name: CLIENT_COOKIE_NAME,
+						},
+					},
 				},
 			},
 		})
