@@ -1,8 +1,9 @@
 import { sql, type SQL } from 'drizzle-orm'
-import type {
-	GET_SCHEDULE_FILTERS,
-	GET_SCHEDULE_TIME_INTERVAL,
+import {
+	GET_SCHEDULE_TIME_INTERVAL_SCHEMA,
+	type GET_SCHEDULE_TIME_INTERVAL,
 } from '../schemas/index.js'
+import type { ZodSchema } from 'zod'
 
 export const getTimeIntervalQuery = ({
 	startedAt,
@@ -42,6 +43,11 @@ export const getFiltersQuery = (filters: GET_SCHEDULE_FILTERS): SQL[] => {
 	}
 
 	return clause
+  
+export const getScheduleQuerySchema = (filtersSchema: ZodSchema) => {
+	return GET_SCHEDULE_TIME_INTERVAL_SCHEMA.extend({
+		filters: filtersSchema,
+	})
 }
 
 export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {

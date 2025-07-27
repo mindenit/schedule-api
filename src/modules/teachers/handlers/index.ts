@@ -3,6 +3,7 @@ import {
 	type GET_SCHEDULE_QUERY,
 } from '@/modules/schedule/schemas/index.js'
 import type { FastifyReply, FastifyRequest } from 'fastify'
+import type { GET_TEACHER_SCHEDULE_FILTERS } from '../schemas/index.js'
 
 export const getTeachers = async (
 	request: FastifyRequest,
@@ -15,17 +16,57 @@ export const getTeachers = async (
 	return reply.status(200).send(data)
 }
 
-export const getTeacherSchedule = async (
+export const getTeacherAuditoriums = async (
 	request: FastifyRequest<{
 		Params: GET_SCHEDULE_PARAMS
-		Querystring: GET_SCHEDULE_QUERY
 	}>,
 	reply: FastifyReply,
 ): Promise<void> => {
 	const { teachersService } = request.diScope.cradle
 	const { id } = request.params
 
-	console.log(request.query)
+	const data = await teachersService.getAuditoriums(id)
+
+	return reply.status(200).send(data)
+}
+
+export const getTeacherGroups = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await teachersService.getGroups(id)
+
+	return reply.status(200).send(data)
+}
+
+export const getTeacherSubjects = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
+
+	const data = await teachersService.getSubjects(id)
+
+	return reply.status(200).send(data)
+}
+
+export const getTeacherSchedule = async (
+	request: FastifyRequest<{
+		Params: GET_SCHEDULE_PARAMS
+		Querystring: GET_SCHEDULE_QUERY<GET_TEACHER_SCHEDULE_FILTERS>
+	}>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { teachersService } = request.diScope.cradle
+	const { id } = request.params
 
 	const data = await teachersService.getSchedule({ id, ...request.query })
 

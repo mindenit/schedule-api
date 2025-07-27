@@ -6,8 +6,8 @@ interface FindableById<TResult, TIdentifier = number, TParams = never> {
 	findOne: (id: TIdentifier, params: TParams) => Promise<Maybe<TResult>>
 }
 
-interface Schedulable<TResult = Schedule[]> {
-	getSchedule: (options: GET_SCHEDULE_OPTIONS) => Promise<TResult>
+interface Schedulable<TFilters extends object, TResult = Schedule[]> {
+	getSchedule: (options: GET_SCHEDULE_OPTIONS<TFilters>) => Promise<TResult>
 }
 
 export type { Schedulable, FindableById }

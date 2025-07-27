@@ -1,4 +1,6 @@
 import { App } from './app.js'
+import { isDbEmpty } from './core/utils/index.js'
+import { cistPostmanJob } from './modules/schedule/jobs/postman.js'
 
 const bootstrap = async () => {
 	const port = 8080 as const
@@ -10,6 +12,12 @@ const bootstrap = async () => {
 		server.listen({ port, host: '0.0.0.0' })
 
 		console.log(`Server is running on port ${port}`)
+
+		const isEmpty = await isDbEmpty(server.diContainer.cradle.db.client)
+
+		if (isEmpty) {
+			await cistPostmanJob(server)
+		}
 	} catch (e: unknown) {
 		console.warn(e)
 		process.exit(1)

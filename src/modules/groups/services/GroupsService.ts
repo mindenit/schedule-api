@@ -4,9 +4,16 @@ import type {
 	GroupsRepository,
 	GroupsService,
 } from '../types/index.js'
-import type { Group, Schedule, Subject, Teacher } from '@/db/types.js'
+import type {
+	Auditorium,
+	Group,
+	Schedule,
+	Subject,
+	Teacher,
+} from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
 import { successResponse } from '@/core/utils/index.js'
+import type { GET_GROUP_SCHEDULE_FILTERS } from '../schemas/index.js'
 
 export class GroupsServiceImpl implements GroupsService {
 	private readonly repository: GroupsRepository
@@ -19,6 +26,17 @@ export class GroupsServiceImpl implements GroupsService {
 		const groups = await this.repository.findAll()
 
 		return successResponse(groups, 'Groups fetched successfully')
+	}
+
+	async getAuditoriums(
+		groupId: number,
+	): Promise<BaseResponse<Pick<Auditorium, 'id' | 'name'>[]>> {
+		const auditoriums = await this.repository.getAuditoriums(groupId)
+
+		return success(
+			auditoriums,
+			`Auditoriums for group ${groupId} fetched successfully`,
+		)
 	}
 
 	async getSubjects(groupId: number): Promise<BaseResponse<Subject[]>> {
@@ -42,7 +60,7 @@ export class GroupsServiceImpl implements GroupsService {
 	}
 
 	async getSchedule(
-		options: GET_SCHEDULE_OPTIONS,
+		options: GET_SCHEDULE_OPTIONS<GET_GROUP_SCHEDULE_FILTERS>,
 	): Promise<BaseResponse<Schedule[]>> {
 		const schedule = await this.repository.getSchedule(options)
 
