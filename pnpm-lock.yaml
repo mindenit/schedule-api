@@ -53,6 +53,9 @@ importers:
       ioredis:
         specifier: ^5.6.1
         version: 5.6.1
+      neverthrow:
+        specifier: ^8.2.0
+        version: 8.2.0
       node-object-hash:
         specifier: ^3.1.1
         version: 3.1.1
@@ -620,6 +623,11 @@ packages:
   '@pkgr/core@0.2.7':
     resolution: {integrity: sha512-YLT9Zo3oNPJoBjBc4q8G2mjU4tqIbf5CEOORbUUr48dCD9q3umJ3IPlVqOqDakPfd2HuwccBaqlGhN4Gmr5OWg==}
     engines: {node: ^12.20.0 || ^14.18.0 || >=16.0.0}
+
+  '@rollup/rollup-linux-x64-gnu@4.46.0':
+    resolution: {integrity: sha512-Cv+moII5C8RM6gZbR3cb21o6rquVDZrN2o81maROg1LFzBz2dZUwIQSxFA8GtGZ/F2KtsqQ2z3eFPBb6akvQNg==}
+    cpu: [x64]
+    os: [linux]
 
   '@scalar/core@0.3.1':
     resolution: {integrity: sha512-k5TsihZcSdVnqE6JrRFdsvePDTe2RxjE+1wHdcnyFdIPief+ZdPn2fxCTlN0ozLoe08xlY3N9DHzDaneMpX58Q==}
@@ -1654,6 +1662,10 @@ packages:
   nested-error-stacks@2.1.1:
     resolution: {integrity: sha512-9iN1ka/9zmX1ZvLV9ewJYEk9h7RyRRtqdK0woXcqohu8EWIerfPUjYJPg0ULy0UqP7cslmdGc8xKDJcojlKiaw==}
 
+  neverthrow@8.2.0:
+    resolution: {integrity: sha512-kOCT/1MCPAxY5iUV3wytNFUMUolzuwd/VF/1KCx7kf6CutrOsTie+84zTGTpgQycjvfLdBBdvBvFLqFD2c0wkQ==}
+    engines: {node: '>=18'}
+
   no-case@3.0.4:
     resolution: {integrity: sha512-fgAN3jGAh+RoxUGZHTSOLJIqUc2wmoBwGR4tbpNAKmmovFoWq0OdRkb0VkldReO2a2iBT/OEulG9XSUc10r3zg==}
 
@@ -2526,6 +2538,9 @@ snapshots:
       fastq: 1.19.1
 
   '@pkgr/core@0.2.7': {}
+
+  '@rollup/rollup-linux-x64-gnu@4.46.0':
+    optional: true
 
   '@scalar/core@0.3.1':
     dependencies:
@@ -3535,6 +3550,10 @@ snapshots:
   natural-compare@1.4.0: {}
 
   nested-error-stacks@2.1.1: {}
+
+  neverthrow@8.2.0:
+    optionalDependencies:
+      '@rollup/rollup-linux-x64-gnu': 4.46.0
 
   no-case@3.0.4:
     dependencies:

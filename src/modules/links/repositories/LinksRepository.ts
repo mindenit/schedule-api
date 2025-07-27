@@ -20,15 +20,44 @@ export class LinksRepositoryImpl implements LinksRepository {
 		this.cache = cache
 	}
 
+	async findOne(id: string, userId: string): Promise<Maybe<Link>> {
+		const key = LinksRepositoryImpl.getKey(userId, id)
+
+		const [label, url, type, subjectId] = await this.cache.hmget(
+			key,
+			'label',
+			'url',
+			'type',
+			'subjectId',
+		)
+
+		const link = {
+			label,
+			url,
+			type,
+			subjectId: Number(subjectId),
+			id,
+			userId,
+		}
+
+		const { success, data } = LINK_SCHEMA.safeParse(link)
+
+		if (!success) {
+			return null
+		}
+
+		return data
+	}
+
 	async findMany(pattern: string): Promise<Link[]> {
 		const links: Link[] = []
 		const keys = await scanKeys(this.cache, pattern)
 
 		const pipeline = this.cache.pipeline()
 
-		keys.forEach((key) => {
+		for (const key of keys) {
 			pipeline.hmget(key, 'id', 'label', 'url', 'type', 'subjectId', 'userId')
-		})
+		}
 
 		const results = await pipeline.exec()
 
@@ -66,43 +95,13 @@ export class LinksRepositoryImpl implements LinksRepository {
 		return links
 	}
 
-	async findOne(id: string, userId: string): Promise<Maybe<Link>> {
-		const key = LinksRepositoryImpl.getKey(userId, id)
-
-		const [label, url, type, subjectId] = await this.cache.hmget(
-			key,
-			'label',
-			'url',
-			'type',
-			'subjectId',
-		)
-
-		const link = {
-			label,
-			url,
-			type,
-			subjectId: Number(subjectId),
-			id,
-			userId,
-		}
-
-		const { success, data } = LINK_SCHEMA.safeParse(link)
-
-		if (!success) {
-			return null
-		}
-
-		return data
-	}
-
-	async createOne(data: CREATE_LINK): Promise<Link> {
-		const { userId } = data
-
+	async createOne(userId: string, data: CREATE_LINK): Promise<Link> {
 		const id = randomUUID()
 		const key = LinksRepositoryImpl.getKey(userId, id)
 
 		const link = {
 			id,
+			userId,
 			...data,
 		} satisfies Link
 
@@ -111,8 +110,12 @@ export class LinksRepositoryImpl implements LinksRepository {
 		return link
 	}
 
-	async updateOne(id: string, data: UPDATE_LINK): Promise<void> {
-		const key = LinksRepositoryImpl.getKey(data.userId!, id)
+	async updateOne(
+		id: string,
+		userId: string,
+		data: UPDATE_LINK,
+	): Promise<void> {
+		const key = LinksRepositoryImpl.getKey(userId, id)
 
 		await this.cache.hmset(key, data)
 	}

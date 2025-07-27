@@ -1,22 +1,22 @@
 interface ISuccess<T> {
-	success: true
+	successResponse: true
 	value: T
 }
 
 interface IFailure<E> {
-	success: false
+	successResponse: false
 	error: E
 }
 
 type Result<T, E> = ISuccess<T> | IFailure<E>
 
 const Success = <T>(value: T): ISuccess<T> => ({
-	success: true,
+	suc: true,
 	value,
 })
 
 const Failure = <E>(error: E): IFailure<E> => ({
-	success: false,
+	successResponse: false,
 	error,
 })
 

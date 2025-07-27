@@ -6,7 +6,7 @@ import type {
 } from '../types/index.js'
 import type { Schedule, Teacher } from '@/db/types.js'
 import type { GET_SCHEDULE_OPTIONS } from '@/modules/schedule/schemas/index.js'
-import { success } from '@/core/utils/response.js'
+import { successResponse } from '@/core/utils/response.js'
 
 export class TeachersServiceImpl implements TeachersService {
 	private readonly repository: TeachersRepository
@@ -18,7 +18,7 @@ export class TeachersServiceImpl implements TeachersService {
 	async getAll(): Promise<BaseResponse<Teacher[]>> {
 		const teachers = await this.repository.findAll()
 
-		return success(teachers, 'Teachers successfuly fetched')
+		return successResponse(teachers, 'Teachers successfuly fetched')
 	}
 
 	async getSchedule(
@@ -28,6 +28,6 @@ export class TeachersServiceImpl implements TeachersService {
 
 		const message = `Schedule for teacher with id ${options.id} found successfully`
 
-		return success(schedule, message)
+		return successResponse(schedule, message)
 	}
 }

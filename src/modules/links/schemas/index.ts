@@ -20,14 +20,17 @@ const SHARABLE_LINK_SCHEMA = z.object({
 	links: LINK_SCHEMA.array().describe('Array of URLs to be shared'),
 })
 
-const CREATE_LINK_SCHEMA = LINK_SCHEMA.omit({ id: true })
+const CREATE_LINK_SCHEMA = LINK_SCHEMA.omit({ id: true, userId: true })
 
 type CREATE_LINK = z.infer<typeof CREATE_LINK_SCHEMA>
+
+const GET_LINK_BY_ID_SCHEMA = LINK_SCHEMA.pick({ id: true })
+
+type GET_LINK_BY_ID = z.infer<typeof GET_LINK_BY_ID_SCHEMA>
 
 const UPDATE_LINK_SCHEMA = LINK_SCHEMA.partial().pick({
 	label: true,
 	url: true,
-	userId: true,
 })
 
 type UPDATE_LINK = z.infer<typeof UPDATE_LINK_SCHEMA>
@@ -37,5 +40,6 @@ export {
 	SHARABLE_LINK_SCHEMA,
 	CREATE_LINK_SCHEMA,
 	UPDATE_LINK_SCHEMA,
+	GET_LINK_BY_ID_SCHEMA,
 }
-export type { Link, CREATE_LINK, UPDATE_LINK }
+export type { Link, CREATE_LINK, UPDATE_LINK, GET_LINK_BY_ID }

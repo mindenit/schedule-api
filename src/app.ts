@@ -21,6 +21,7 @@ import { SCHEDULE_TYPE } from './core/constants/parsers.js'
 import { delay, isDbEmpty } from './core/utils/index.js'
 import { getRoutes } from './modules/index.js'
 import qs from 'qs'
+import { CLIENT_COOKIE_NAME } from './modules/links/constants/index.js'
 
 export class App {
 	private readonly app: AppInstance
@@ -78,6 +79,15 @@ export class App {
 					title: 'Mindenit Schedule API',
 					description: 'API for Mindenit Schedule application',
 					version: '0.0.0',
+				},
+				components: {
+					securitySchemes: {
+						CookieAuth: {
+							type: 'apiKey',
+							in: 'cookie',
+							name: CLIENT_COOKIE_NAME,
+						},
+					},
 				},
 			},
 		})
