@@ -61,10 +61,10 @@ const GET_GROUP_SCHEDULE_FILTERS_SCHEMA = z
 			),
 	})
 	.default({
-		lessonTypes: null,
-		teachers: null,
-		auditoriums: null,
-		subjects: null,
+		lessonTypes: [],
+		teachers: [],
+		auditoriums: [],
+		subjects: [],
 	})
 
 type GET_GROUP_SCHEDULE_FILTERS = z.infer<

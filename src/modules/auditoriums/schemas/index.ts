@@ -48,10 +48,10 @@ const GET_AUDITORIUM_SCHEDULE_FILTERS_SCHEMA = z
 			),
 	})
 	.default({
-		lessonTypes: null,
-		teachers: null,
-		groups: null,
-		subjects: null,
+		lessonTypes: [],
+		teachers: [],
+		groups: [],
+		subjects: [],
 	})
 
 type GET_AUDITORIUM_SCHEDULE_FILTERS = z.infer<
