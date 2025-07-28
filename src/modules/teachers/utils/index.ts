@@ -16,7 +16,7 @@ export const getTeacherFiltersQuery = (
 	}
 
 	if (groups.length) {
-		clause.push(sql`and`, sql`ag2.id in (${sql.join(groups, sql`,`)})`)
+		clause.push(sql`and`, sql`ag1.id in (${sql.join(groups, sql`,`)})`)
 	}
 
 	if (subjects.length) {
