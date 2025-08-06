@@ -19,6 +19,7 @@ import {
 	GROUP_SCHEMA,
 	SUBJECT_SCHEMA,
 } from '../schemas/index.js'
+import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -48,9 +49,9 @@ export const getGroupsRoutes = (): Routes => ({
 				tags: ['Groups'],
 				params: GET_ENTITY_BY_ID_SCHEMA,
 				response: {
-					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
-						'Successful response',
-					),
+					200: generateSuccessResponseSchema(
+						AUDITORIUM_SCHEMA.pick({ id: true, name: true }).array(),
+					).describe('Successful response'),
 				},
 			},
 		},
