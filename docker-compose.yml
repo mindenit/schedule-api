@@ -89,7 +89,7 @@ services:
         max-file: '3'
   cist-proxy:
     container_name: schedule-cist-proxy
-    image: 'ghcr.io/mindenit/cistproxy:sha256-27706414d5ea8cf765b1d63bd70416e3ded0ab9199a02ab99fa709d23792e302'
+    image: ghcr.io/mindenit/cistproxy:sha256-27706414d5ea8cf765b1d63bd70416e3ded0ab9199a02ab99fa709d23792e302
     networks:
       - dev
     environment:
