@@ -4,7 +4,11 @@ import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
 import { getGroupsRoutes } from './groups/routes/index.js'
 import { getTeachersRoutes } from './teachers/routes/index.js'
 import { getLinksRoutes } from './links/routes/index.js'
-import { HEALTH_CHECK_KEY, HEALTH_STATUS } from '@/core/constants/index.js'
+import {
+	HEALTH_CHECK_KEY,
+	HEALTH_STATUS,
+	LAST_UPDATE_KEY,
+} from '@/core/constants/index.js'
 
 export const getRoutes = (): Routes => ({
 	routes: [
@@ -15,21 +19,33 @@ export const getRoutes = (): Routes => ({
 				const { cache } = request.diScope.cradle
 
 				const health = await cache.get(HEALTH_CHECK_KEY)
+				const lastUpdated = await cache.get(LAST_UPDATE_KEY)
 
 				const data = {
 					uptime: process.uptime(),
-					date: new Date(),
 				}
 
-				if (!health) {
-					await cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.HEALTHY)
+				if (!health || !lastUpdated) {
+					if (!health) {
+						await cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.HEALTHY)
+					}
 
-					return reply
-						.status(200)
-						.send({ ...data, message: HEALTH_STATUS.HEALTHY })
+					if (!lastUpdated) {
+						await cache.set(LAST_UPDATE_KEY, new Date().toISOString())
+					}
+
+					return reply.status(200).send({
+						...data,
+						message: health ? health : HEALTH_STATUS.HEALTHY,
+						lastUpdated: lastUpdated ? new Date(lastUpdated) : new Date(),
+					})
 				}
 
-				return reply.status(200).send({ ...data, message: health })
+				return reply.status(200).send({
+					...data,
+					message: health,
+					lastUpdated: new Date(lastUpdated),
+				})
 			},
 			schema: {
 				tags: ['System Check'],
