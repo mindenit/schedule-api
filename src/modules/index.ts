@@ -9,8 +9,10 @@ import {
 	HEALTH_STATUS,
 	LAST_UPDATE_KEY,
 } from '@/core/constants/index.js'
+import { getFiltersRoutes } from './filters/routes/index.js'
+import type { AppInstance } from '@/core/types/common.js'
 
-export const getRoutes = (): Routes => ({
+export const getRoutes = (app: AppInstance): Routes => ({
 	routes: [
 		{
 			method: 'GET',
@@ -59,5 +61,6 @@ export const getRoutes = (): Routes => ({
 		...getGroupsRoutes().routes,
 		...getTeachersRoutes().routes,
 		...getLinksRoutes().routes,
+		...getFiltersRoutes(app).routes,
 	],
 })

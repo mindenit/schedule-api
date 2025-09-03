@@ -7,6 +7,7 @@ import fastifyCors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import fastifyRateLimit from '@fastify/rate-limit'
 import fastifySchedule from '@fastify/schedule'
+import fastifySession from '@fastify/session'
 import fastifySwagger from '@fastify/swagger'
 import scalarApiReference from '@scalar/fastify-api-reference'
 import fastify from 'fastify'
@@ -16,11 +17,12 @@ import {
 	validatorCompiler,
 	type ZodTypeProvider,
 } from 'fastify-type-provider-zod'
+import qs from 'qs'
 import { AsyncTask, CronJob } from 'toad-scheduler'
 import { getRoutes } from './modules/index.js'
-import qs from 'qs'
 import { CLIENT_COOKIE_NAME } from './modules/links/constants/index.js'
 import { cistPostmanJob } from './modules/schedule/jobs/postman.js'
+import { customLogtoAdapter } from './plugins/auth/index.js'
 
 export class App {
 	private readonly app: AppInstance
@@ -44,8 +46,9 @@ export class App {
 		this.app.setSerializerCompiler(serializerCompiler)
 
 		await this.app.register(fastifyCors, {
-			origin: '*', // TODO: Change to your origin(s)
-			// credentials: true, // remember origin shouldn't be *, otherwise it won't work
+			// origin: '*', // TODO: Change to your origin(s)
+			// origin: ['https://id.mindenit.org/', 'https://sh.mindenit.org/'],
+			// credentials: true,
 			methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
 		})
 
@@ -103,9 +106,31 @@ export class App {
 			disposeOnResponse: true,
 		})
 
+		// this.app.register(fastifyLogto, {
+		// 	appId: env.LOGTO_APP_ID,
+		// 	appSecret: env.LOGTO_APP_SECRET,
+		// 	endpoint: env.LOGTO_ENDPOINT,
+		// 	baseUrl: 'http://127.0.0.1:8080',
+		// 	// @ts-expect-error missing types
+		// 	cookieSecret: 'your-cookie-secret',
+		// 	createAuthRoutes: true,
+		// 	authRoutesPrefix: 'api/auth',
+		// })
+
 		await this.app.register(fastifyCookie, {
 			secret: env.COOKIE_SECRET,
 			hook: 'preHandler',
+		})
+
+		await this.app.register(fastifySession, {
+			secret: 'a secret with minimum length of 32 characters',
+		})
+
+		await this.app.register(customLogtoAdapter, {
+			appId: env.LOGTO_APP_ID,
+			appSecret: env.LOGTO_APP_SECRET,
+			endpoint: env.LOGTO_ENDPOINT,
+			baseUrl: 'http://127.0.0.1:8080',
 		})
 
 		await this.app.register(fastifyRateLimit, {
@@ -121,7 +146,7 @@ export class App {
 	}
 
 	private registerRoutes(): void {
-		const { routes } = getRoutes()
+		const { routes } = getRoutes(this.app)
 
 		this.app.register(
 			(instance, _, done) => {

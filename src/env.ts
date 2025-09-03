@@ -14,6 +14,9 @@ const envSchema = z.object({
 	CACHE_PASSWORD: z.string(),
 	CACHE_PORT: z.coerce.number().default(6379),
 	PROXY_BASE_URL: z.string(),
+	LOGTO_APP_ID: z.string(),
+	LOGTO_APP_SECRET: z.string(),
+	LOGTO_ENDPOINT: z.string(),
 })
 
 const env = envSchema.parse(process.env)
