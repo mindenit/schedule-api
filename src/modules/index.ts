@@ -1,14 +1,13 @@
-import { HEALTH_CHECK_SCHEMA } from '@/core/schemas/index.js'
-import type { Routes } from '@/core/types/routes.js'
-import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
-import { getGroupsRoutes } from './groups/routes/index.js'
-import { getTeachersRoutes } from './teachers/routes/index.js'
-import { getLinksRoutes } from './links/routes/index.js'
 import {
 	HEALTH_CHECK_KEY,
 	HEALTH_STATUS,
 	LAST_UPDATE_KEY,
 } from '@/core/constants/index.js'
+import type { Routes } from '@/core/types/routes.js'
+import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
+import { getGroupsRoutes } from './groups/routes/index.js'
+import { getLinksRoutes } from './links/routes/index.js'
+import { getTeachersRoutes } from './teachers/routes/index.js'
 
 export const getRoutes = (): Routes => ({
 	routes: [
@@ -50,9 +49,9 @@ export const getRoutes = (): Routes => ({
 			schema: {
 				tags: ['System Check'],
 				summary: 'Get system status',
-				response: {
-					200: HEALTH_CHECK_SCHEMA,
-				},
+				// response: {
+				// 	200: HEALTH_CHECK_SCHEMA,
+				// },
 			},
 		},
 		...getAuditoriumsRoutes().routes,
