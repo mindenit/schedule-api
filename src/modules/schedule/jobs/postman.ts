@@ -51,6 +51,6 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 
 		logger.error('Job failed')
 	} finally {
-		await cache.set(LAST_UPDATE_KEY, Date.now())
+		await cache.set(LAST_UPDATE_KEY, new Date().toISOString())
 	}
 }
