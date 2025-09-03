@@ -17,6 +17,7 @@ import type {
 	EventsParser,
 	EventsProcessor,
 } from '../types/index.js'
+import { arrDifference } from '../utils/index.js'
 
 export class EventsProcessorImpl implements EventsProcessor {
 	private readonly db: DatabaseClient
@@ -73,7 +74,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 
 			const { startTime, endTime, auditorium, type, numberPair } = event
 
-			await this.db.transaction(async (tx) => {
+			const e = await this.db.transaction(async (tx) => {
 				const [auditoriumId] = await tx
 					.select({ id: auditoriumTable.id })
 					.from(auditoriumTable)
@@ -163,10 +164,41 @@ export class EventsProcessorImpl implements EventsProcessor {
 
 					await this.cache.set(eventGroupKey, 'exists')
 				}
+
+				return e!
 			})
 
-			this.cache.set(key, 'exists')
+			await Promise.all([
+				this.cache.set(key, e.id),
+				this.cache.lpush('new-events', key),
+			])
 			this.logger.info(`Events processing for group with id ${id} ended`)
 		}
+	}
+
+	async removeExtraEvents(): Promise<void> {
+		const existingEvents = await this.cache.lrange('old-events', 0, -1)
+
+		if (!existingEvents.length) {
+			return
+		}
+
+		const newEvents = await this.cache.lrange('new-events', 0, -1)
+
+		const eventsToRemove = arrDifference(existingEvents, newEvents)
+
+		for (const eventKey of eventsToRemove) {
+			const eventId = await this.cache.get(eventKey)
+
+			await Promise.all([
+				this.db.delete(eventTable).where(eq(eventTable.id, Number(eventId))),
+				this.cache.del(eventKey),
+			])
+		}
+
+		await Promise.all([
+			this.cache.del('old-events'),
+			this.cache.rename('new-events', 'old-events'),
+		])
 	}
 }

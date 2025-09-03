@@ -9,6 +9,7 @@ interface EventsParser {
 
 interface EventsProcessor {
 	process: (id: number, type: ScheduleType) => Promise<void>
+	removeExtraEvents: () => Promise<void>
 }
 
 interface EventModuleDependencies {
