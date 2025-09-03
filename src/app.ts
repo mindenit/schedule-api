@@ -141,9 +141,8 @@ export class App {
 		})
 
 		return {
-			job: new CronJob({ cronExpression: '0 */12 * * *' }, task, {
+			job: new CronJob({ cronExpression: '* * * * *' }, task, {
 				id: 'cist-postman',
-				preventOverrun: true,
 			}),
 			task,
 		}
