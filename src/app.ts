@@ -77,7 +77,7 @@ export class App {
 				info: {
 					title: 'Mindenit Schedule API',
 					description: 'API for Mindenit Schedule application',
-					version: '0.0.0',
+					version: '1.0.0',
 				},
 				components: {
 					securitySchemes: {
