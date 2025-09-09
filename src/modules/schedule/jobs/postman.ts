@@ -35,9 +35,10 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 		logger.info('Start filling events')
 
 		for (const group of groups) {
-			await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
-
-			await delay(10000)
+			await Promise.all([
+				eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP),
+				delay(8000),
+			])
 		}
 
 		await Promise.all([
