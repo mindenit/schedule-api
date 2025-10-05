@@ -17,10 +17,15 @@ interface ProxyConfig {
 	baseUrl: string
 }
 
+interface IntegrationConfig {
+	discordWebhookUrl: string
+}
+
 interface Config {
 	db: DbConfig
 	cache: CacheConfig
 	proxy: ProxyConfig
+	integration: IntegrationConfig
 }
 
-export type { Config, DbConfig, CacheConfig, ProxyConfig }
+export type { Config, DbConfig, CacheConfig, ProxyConfig, IntegrationConfig }

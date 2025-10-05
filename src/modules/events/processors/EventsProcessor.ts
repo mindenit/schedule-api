@@ -41,7 +41,9 @@ export class EventsProcessorImpl implements EventsProcessor {
 		const data = await this.parser.parse(id, type)
 
 		if (!data) {
-			this.logger.info(`No events parsed for group with id: ${id}`)
+			this.logger.info(
+				`[Cist Postman]: No events parsed for group with id: ${id}`,
+			)
 			return
 		}
 
@@ -53,7 +55,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 			const isExist = await this.cache.get(key)
 
 			if (isExist) {
-				this.logger.info('Skipping subject duplicate')
+				this.logger.info('[Cist Postman]: Skipping subject duplicate')
 				continue
 			}
 
@@ -67,7 +69,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 			const isExist = await this.cache.exists(key)
 
 			if (isExist) {
-				this.logger.info('Skipping event duplicate')
+				this.logger.info('[Cist Postman]: Skipping event duplicate')
 
 				continue
 			}
@@ -98,7 +100,9 @@ export class EventsProcessorImpl implements EventsProcessor {
 					)
 
 					if (!isTeacherExist) {
-						this.logger.info(`Skipping event's teacher duplicate`)
+						this.logger.info(
+							`[Cist Postman]: Skipping event's teacher duplicate`,
+						)
 						continue
 					}
 
@@ -153,7 +157,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 					const isExist = await this.cache.get(eventGroupKey)
 
 					if (isExist) {
-						this.logger.info(`Skipping event's group duplicate`)
+						this.logger.info(`[Cist Postman]: Skipping event's group duplicate`)
 						continue
 					}
 
@@ -172,7 +176,9 @@ export class EventsProcessorImpl implements EventsProcessor {
 				this.cache.set(key, e.id),
 				this.cache.lpush('new-events', key),
 			])
-			this.logger.info(`Events processing for group with id ${id} ended`)
+			this.logger.info(
+				`[Cist Postman]: Events processing for group with id ${id} ended`,
+			)
 		}
 	}
 

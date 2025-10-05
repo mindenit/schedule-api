@@ -31,8 +31,6 @@ export class EventsParserImpl implements EventsParser {
 		id: number,
 		type: ScheduleType,
 	): Promise<Maybe<CistScheduleOutput>> {
-		console.log(`${this.endpoint}/${id}?type=${type}`)
-
 		const raw = await fetchProxy<CistScheduleRawJson>(
 			`${this.endpoint}/${id}?type=${type}`,
 		)
