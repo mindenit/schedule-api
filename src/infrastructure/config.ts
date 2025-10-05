@@ -25,10 +25,15 @@ const getProxyConfig = (): ProxyConfig => ({
 	baseUrl: env.PROXY_BASE_URL,
 })
 
+const getIntegrationConfig = () => ({
+	discordWebhookUrl: env.DISCORD_WEBHOOK_URL,
+})
+
 const getConfig = (): Config => ({
 	db: getDbConfig(),
 	cache: getCacheConfig(),
 	proxy: getProxyConfig(),
+	integration: getIntegrationConfig(),
 })
 
 export { getConfig }

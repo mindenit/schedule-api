@@ -14,6 +14,10 @@ const envSchema = z.object({
 	CACHE_PASSWORD: z.string(),
 	CACHE_PORT: z.coerce.number().default(6379),
 	PROXY_BASE_URL: z.string(),
+	DISCORD_WEBHOOK_URL: z.url({
+		protocol: /^https$/,
+		hostname: /^discord\.com$/,
+	}),
 })
 
 const env = envSchema.parse(process.env)
