@@ -185,10 +185,6 @@ export class EventsProcessorImpl implements EventsProcessor {
 	async removeExtraEvents(): Promise<void> {
 		const existingEvents = await this.cache.lrange('old-events', 0, -1)
 
-		if (!existingEvents.length) {
-			return
-		}
-
 		const newEvents = await this.cache.lrange('new-events', 0, -1)
 
 		const eventsToRemove = arrDifference(existingEvents, newEvents)
