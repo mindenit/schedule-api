@@ -121,6 +121,7 @@ services:
       - CACHE_PASSWORD=${CACHE_PASSWORD}
       - CACHE_PORT=6379
       - PROXY_BASE_URL=${PROXY_BASE_URL}
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL}
     depends_on:
       db:
         condition: service_healthy
