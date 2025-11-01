@@ -41,7 +41,7 @@ export class GroupsProcessorImpl implements CistProcessor<Group[]> {
 				continue
 			}
 
-			await this.db.insert(facultyTable).values(faculty)
+			await this.db.insert(facultyTable).values(faculty).onConflictDoNothing()
 			this.cache.set(key, 'exists')
 		}
 
