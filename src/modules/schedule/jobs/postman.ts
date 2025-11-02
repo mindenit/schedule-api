@@ -51,7 +51,7 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 		}
 
 		await Promise.all([
-			eventsProcessor.removeExtraEvents(),
+			// eventsProcessor.removeExtraEvents(),
 			cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.HEALTHY),
 		])
 
