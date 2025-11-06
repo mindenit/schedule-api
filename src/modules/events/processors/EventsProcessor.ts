@@ -17,7 +17,6 @@ import type {
 	EventsParser,
 	EventsProcessor,
 } from '../types/index.js'
-import { arrDifference } from '../utils/index.js'
 
 export class EventsProcessorImpl implements EventsProcessor {
 	private readonly db: DatabaseClient
@@ -174,7 +173,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 
 			await Promise.all([
 				this.cache.set(key, e.id),
-				this.cache.lpush('new-events', key),
+				this.cache.sadd('new-events', key),
 			])
 			this.logger.info(
 				`[Cist Postman]: Events processing for group with id ${id} ended`,
@@ -183,11 +182,7 @@ export class EventsProcessorImpl implements EventsProcessor {
 	}
 
 	async removeExtraEvents(): Promise<void> {
-		const existingEvents = await this.cache.lrange('old-events', 0, -1)
-
-		const newEvents = await this.cache.lrange('new-events', 0, -1)
-
-		const eventsToRemove = arrDifference(existingEvents, newEvents)
+		const eventsToRemove = await this.cache.sinter('old-events', 'new-events')
 
 		for (const eventKey of eventsToRemove) {
 			const eventId = await this.cache.get(eventKey)
