@@ -8,4 +8,17 @@ const HEALTH_STATUS = {
 	FAILED: 'failed',
 }
 
-export { HEALTH_CHECK_KEY, HEALTH_STATUS, LAST_UPDATE_KEY }
+const IS_UPDATE_IN_PROGRESS_KEY = 'is-update-in-progress' as const
+
+const UPDATE_STATUS = {
+	IN_PROGRESS: '1',
+	FINISHED: '0',
+}
+
+export {
+	HEALTH_CHECK_KEY,
+	HEALTH_STATUS,
+	LAST_UPDATE_KEY,
+	IS_UPDATE_IN_PROGRESS_KEY,
+	UPDATE_STATUS,
+}

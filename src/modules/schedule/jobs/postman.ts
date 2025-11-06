@@ -1,8 +1,10 @@
 import {
 	HEALTH_CHECK_KEY,
 	HEALTH_STATUS,
+	IS_UPDATE_IN_PROGRESS_KEY,
 	LAST_UPDATE_KEY,
 	SCHEDULE_TYPE,
+	UPDATE_STATUS,
 } from '@/core/constants/index.js'
 import type { AppInstance } from '@/core/types/common.js'
 import { delay } from '@/core/utils/index.js'
@@ -20,7 +22,10 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 	} = app.diContainer.cradle
 
 	try {
-		await cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.UPDATING)
+		await Promise.all([
+			cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.UPDATING),
+			cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.IN_PROGRESS),
+		])
 
 		logger.info('[Cist Postman]: Start CIST Postman')
 
@@ -53,6 +58,7 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 		await Promise.all([
 			eventsProcessor.removeExtraEvents(),
 			cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.HEALTHY),
+			cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
 		])
 
 		logger.info('[Cist Postman]: Job completed sucessfully')

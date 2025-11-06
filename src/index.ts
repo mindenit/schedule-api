@@ -1,5 +1,5 @@
 import { App } from './app.js'
-import { isDbEmpty } from './core/utils/index.js'
+import { isDbEmpty, isScheduleUpdating } from './core/utils/index.js'
 import { cistPostmanJob } from './modules/schedule/jobs/postman.js'
 
 const bootstrap = async () => {
@@ -13,9 +13,12 @@ const bootstrap = async () => {
 
 		console.log(`Server is running on port ${port}`)
 
-		const isEmpty = await isDbEmpty(server.diContainer.cradle.db.client)
+		const [isEmpty, isUpdating] = await Promise.all([
+			isDbEmpty(server.diContainer.cradle.db.client),
+			isScheduleUpdating(server.diContainer.cradle.cache),
+		])
 
-		if (isEmpty) {
+		if (isEmpty || isUpdating) {
 			await cistPostmanJob(server)
 		}
 	} catch (e: unknown) {
