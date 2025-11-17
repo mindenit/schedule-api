@@ -18,6 +18,7 @@ import {
 	CREATE_SHARABLE_LINK_SCHEMA,
 	GET_LINK_BY_ID_SCHEMA,
 	LINK_SCHEMA,
+	SHARABLE_LINK_SCHEMA,
 	UPDATE_LINK_SCHEMA,
 } from '../schemas/index.js'
 import { z } from 'zod'
@@ -54,7 +55,7 @@ export const getLinksRoutes = (): Routes => ({
 				tags: ['Sharable Links'],
 				params: GET_LINK_BY_ID_SCHEMA,
 				response: {
-					200: generateSuccessResponseSchema(LINK_SCHEMA).describe(
+					200: generateSuccessResponseSchema(SHARABLE_LINK_SCHEMA).describe(
 						'Sharable link details',
 					),
 					404: generateFailureResponseSchema(404).describe(
