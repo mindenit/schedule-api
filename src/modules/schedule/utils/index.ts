@@ -92,7 +92,7 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
     left join teacher t2 on t2.id = ett2.teacher_id
     where ${sql.join(whereClause, sql.raw(' '))}
     group by
-      e.id, a.name, s.id, a.id
+      e.id, a.name, s.id, a.id, t1.id
     order by
       e.started_at;
   `
