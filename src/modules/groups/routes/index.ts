@@ -1,10 +1,8 @@
 import { GET_ENTITY_BY_ID_SCHEMA } from '@/core/schemas/index.js'
 import type { Routes } from '@/core/types/routes.js'
 import { generateSuccessResponseSchema } from '@/core/utils/schemas.js'
-import {
-	GET_SCHEDULE_PARAMS_SCHEMA,
-	SCHEDULE_SCHEMA,
-} from '@/modules/schedule/schemas/index.js'
+import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
+import { GET_SCHEDULE_PARAMS_SCHEMA } from '@/modules/schedule/schemas/index.js'
 import { getScheduleQuerySchema } from '@/modules/schedule/utils/index.js'
 import { TEACHER_SCHEMA } from '@/modules/teachers/schemas/index.js'
 import {
@@ -19,7 +17,6 @@ import {
 	GROUP_SCHEMA,
 	SUBJECT_SCHEMA,
 } from '../schemas/index.js'
-import { AUDITORIUM_SCHEMA } from '@/modules/auditoriums/schemas/index.js'
 
 export const getGroupsRoutes = (): Routes => ({
 	routes: [
@@ -98,11 +95,11 @@ export const getGroupsRoutes = (): Routes => ({
 				tags: ['Groups'],
 				params: GET_SCHEDULE_PARAMS_SCHEMA,
 				querystring: getScheduleQuerySchema(GET_GROUP_SCHEDULE_FILTERS_SCHEMA),
-				response: {
-					200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
-						'Successful response',
-					),
-				},
+				// response: {
+				// 	200: generateSuccessResponseSchema(SCHEDULE_SCHEMA.array()).describe(
+				// 		'Successful response',
+				// 	),
+				// },
 			},
 		},
 	],
