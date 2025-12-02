@@ -36,6 +36,11 @@ const SCHEDULE_SCHEMA = z.object({
 	teachers: TEACHER_SCHEMA.omit({ departmentId: true })
 		.array()
 		.describe('List of teachers who teach the class'),
+	pairIndex: z.number().int().describe('Index of the pair for the subject'),
+	pairsCount: z
+		.number()
+		.int()
+		.describe('Total number of pairs for the subject'),
 })
 
 const GET_SCHEDULE_PARAMS_SCHEMA = z.object({

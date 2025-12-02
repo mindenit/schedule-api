@@ -99,7 +99,7 @@ export const getLinksRoutes = (): Routes => ({
 				response: {
 					201: generateSuccessResponseSchema(
 						z.object({
-							id: z.string().uuid(),
+							id: z.uuid(),
 						}),
 					).describe('Sharable link successfully created'),
 					401: generateFailureResponseSchema(401).describe(

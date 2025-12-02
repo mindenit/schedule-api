@@ -72,7 +72,12 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
           )
         ) filter (where t2.id is not null),
         '[]'::json
-      ) as teachers
+      ) as teachers,
+      row_number() over (
+        partition by s.id, e.type
+        order by e.started_at
+      ) as "pairIndex",
+      count(*) over (partition by s.id, e.type) as "pairsCount"
     from
       event e
     join auditorium a on a.id = e.auditorium_id
