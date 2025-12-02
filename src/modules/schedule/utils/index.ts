@@ -74,10 +74,10 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
         '[]'::json
       ) as teachers,
       row_number() over (
-        partition by s.id, e.type
+        partition by s.id, e.type, t1.id
         order by e.started_at
       )::int as "pairIndex",
-      count(*) over (partition by s.id, e.type)::int as "pairsCount"
+      count(*) over (partition by s.id, e.type, t1.id)::int as "pairsCount"
     from
       event e
     join auditorium a on a.id = e.auditorium_id

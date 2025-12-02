@@ -22,7 +22,7 @@ const SCHEDULE_SCHEMA = z.object({
 				.describe('Name of an auditorium where double period is held'),
 		})
 		.describe('Auditorium where double period is held'),
-	numberPair: z.number().int().describe('Number of pair'),
+	numberPair: z.number().int().min(1).describe('Number of pair'),
 	subject: z
 		.object({
 			id: z.number().int().describe('Subject identifier'),
@@ -36,10 +36,15 @@ const SCHEDULE_SCHEMA = z.object({
 	teachers: TEACHER_SCHEMA.omit({ departmentId: true })
 		.array()
 		.describe('List of teachers who teach the class'),
-	pairIndex: z.number().int().describe('Index of the pair for the subject'),
+	pairIndex: z
+		.number()
+		.int()
+		.min(1)
+		.describe('Index of the pair for the subject'),
 	pairsCount: z
 		.number()
 		.int()
+		.min(1)
 		.describe('Total number of pairs for the subject'),
 })
 
