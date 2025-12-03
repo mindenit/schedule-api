@@ -18,6 +18,10 @@ const envSchema = z.object({
 		protocol: /^https$/,
 		hostname: /^discord\.com$/,
 	}),
+	ALLOWED_ORIGINS: z
+		.string()
+		.transform((val) => val.split(','))
+		.default(['https://sh.mindenit.org', 'http://localhost:3000']),
 })
 
 const env = envSchema.parse(process.env)

@@ -44,8 +44,8 @@ export class App {
 		this.app.setSerializerCompiler(serializerCompiler)
 
 		await this.app.register(fastifyCors, {
-			origin: '*', // TODO: Change to your origin(s)
-			// credentials: true, // remember origin shouldn't be *, otherwise it won't work
+			origin: env.ALLOWED_ORIGINS,
+			credentials: true,
 			methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
 		})
 
