@@ -73,53 +73,11 @@ export const buildScheduleQuery = (whereClause: SQL[]): SQL<unknown> => {
         ) filter (where t2.id is not null),
         '[]'::json
       ) as teachers,
-      case
-        when e.type = 'Лбʼ then
-          dense_rank() over (
-            partition by s.id, e.type, t1.id, ag1.id
-            order by
-              date(e.started_at),
-              sum(case
-                when extract(epoch from (e.started_at - lag(e.ended_at) over (
-                  partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-                  order by e.started_at
-                ))) > 1800 or lag(e.ended_at) over (
-                  partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-                  order by e.started_at
-                ) is null then 1
-                else 0
-              end) over (
-                partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-                order by e.started_at
-              )
-          )
-        else
-          row_number() over (
-            partition by s.id, e.type, t1.id, ag1.id
-            order by e.started_at
-          )
-      end::int as "pairIndex",
-      case
-        when e.type = 'Лбʼ then
-          count(distinct (
-            date(e.started_at),
-            sum(case
-              when extract(epoch from (e.started_at - lag(e.ended_at) over (
-                partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-                order by e.started_at
-              ))) > 1800 or lag(e.ended_at) over (
-                partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-                order by e.started_at
-              ) is null then 1
-              else 0
-            end) over (
-              partition by s.id, e.type, t1.id, ag1.id, date(e.started_at)
-              order by e.started_at
-            )
-          )) over (partition by s.id, e.type, t1.id, ag1.id)
-        else
-          count(*) over (partition by s.id, e.type, t1.id, ag1.id)
-      end::int as "pairsCount"
+      row_number() over (
+        partition by s.id, e.type, t1.id, ag1.id
+        order by e.started_at
+      )::int as "pairIndex",
+      count(*) over (partition by s.id, e.type, t1.id, ag1.id)::int as "pairsCount"
     from
       event e
     join auditorium a on a.id = e.auditorium_id
