@@ -193,9 +193,13 @@ export class EventsProcessorImpl implements EventsProcessor {
 			])
 		}
 
-		await Promise.all([
-			this.cache.del('old-events'),
-			this.cache.rename('new-events', 'old-events'),
-		])
+		const newEventsExists = await this.cache.exists('new-events')
+
+		if (newEventsExists) {
+			await Promise.all([
+				this.cache.del('old-events'),
+				this.cache.rename('new-events', 'old-events'),
+			])
+		}
 	}
 }
