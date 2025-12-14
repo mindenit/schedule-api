@@ -13,6 +13,7 @@ import { resolveTeachersModule } from '@/modules/teachers/index.js'
 import type { EventModuleDependencies } from '@/modules/events/types/index.js'
 import { resolveEventsModule } from '@/modules/events/index.js'
 import type { LinksModuleDependencies } from '@/modules/links/types/index.js'
+import { resolveLinksModule } from '@/modules/links/index.js'
 
 type Dependencies = CommonDependencies &
 	AuditoriumsModuleDependencies &
@@ -33,6 +34,7 @@ export const registerDependencies = (
 		...resolveGroupsModule(),
 		...resolveTeachersModule(),
 		...resolveEventsModule(),
+		...resolveLinksModule(),
 	}
 
 	diContainer.register(diConfig)

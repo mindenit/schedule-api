@@ -4,7 +4,7 @@ import type {
 	Maybe,
 	SuccessResponse,
 } from '@/core/types/common.js'
-import type { InjectableDependencies } from '@/core/types/deps.js'
+import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { FindableById } from '@/core/types/services.js'
 import type { Result } from 'neverthrow'
 import type {
@@ -67,6 +67,8 @@ interface LinksModuleDependencies {
 type LinksInjectableDependencies =
 	InjectableDependencies<LinksModuleDependencies>
 
+type LinksDiConfig = BaseDiConfig<LinksModuleDependencies>
+
 export type {
 	LinksInjectableDependencies,
 	LinksModuleDependencies,
@@ -74,4 +76,5 @@ export type {
 	LinksService,
 	SharableLinksRepository,
 	SharableLinksService,
+	LinksDiConfig,
 }
