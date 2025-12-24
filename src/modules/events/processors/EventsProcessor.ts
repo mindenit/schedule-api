@@ -37,147 +37,158 @@ export class EventsProcessorImpl implements EventsProcessor {
 	}
 
 	async process(id: number, type: ScheduleType): Promise<void> {
-		const data = await this.parser.parse(id, type)
+		try {
+			const data = await this.parser.parse(id, type)
 
-		if (!data) {
-			this.logger.info(
-				`[Cist Postman]: No events parsed for group with id: ${id}`,
-			)
-			return
-		}
-
-		const { events, subjects, hours } = data
-
-		for (const subject of subjects) {
-			const key = RedisKeyBuilder.subjectKey(subject.id)
-
-			const isExist = await this.cache.get(key)
-
-			if (isExist) {
-				this.logger.info('[Cist Postman]: Skipping subject duplicate')
-				continue
+			if (!data) {
+				this.logger.info(
+					`[Cist Postman]: No events parsed for group with id: ${id}`,
+				)
+				return
 			}
 
-			await this.db.insert(subjectTable).values(subject)
-			await this.cache.set(key, 'exists')
-		}
+			const { events, subjects, hours } = data
 
-		for (const event of events) {
-			const key = RedisKeyBuilder.eventKey(event)
+			for (const subject of subjects) {
+				const key = RedisKeyBuilder.subjectKey(subject.id)
 
-			const isExist = await this.cache.exists(key)
+				const isExist = await this.cache.get(key)
 
-			if (isExist) {
-				this.logger.info('[Cist Postman]: Skipping event duplicate')
+				if (isExist) {
+					this.logger.info('[Cist Postman]: Skipping subject duplicate')
+					continue
+				}
 
-				continue
+				await this.db.insert(subjectTable).values(subject)
+				await this.cache.set(key, 'exists')
 			}
 
-			const { startTime, endTime, auditorium, type, numberPair } = event
+			for (const event of events) {
+				const key = RedisKeyBuilder.eventKey(event)
 
-			const e = await this.db.transaction(async (tx) => {
-				const [auditoriumId] = await tx
-					.select({ id: auditoriumTable.id })
-					.from(auditoriumTable)
-					.where(eq(auditoriumTable.name, auditorium))
+				const isExist = await this.cache.exists(key)
 
-				const [e] = await tx
-					.insert(eventTable)
-					.values({
-						startedAt: startTime,
-						endedAt: endTime,
-						auditoriumId: auditoriumId?.id as number,
-						type,
-						numberPair,
-						subjectId: event.subject.id,
-					})
-					.returning()
+				if (isExist) {
+					this.logger.info('[Cist Postman]: Skipping event duplicate')
 
-				for (const teacher of event.teachers) {
-					const isTeacherExist = await this.cache.get(
-						RedisKeyBuilder.teacherKey(teacher.id),
-					)
+					continue
+				}
 
-					if (!isTeacherExist) {
-						this.logger.info(
-							`[Cist Postman]: Skipping event's teacher duplicate`,
-						)
-						continue
-					}
+				const { startTime, endTime, auditorium, type, numberPair } = event
 
-					const teacherEventKey = RedisKeyBuilder.teacherEventKey(
-						teacher.id,
-						e?.id as number,
-					)
+				const e = await this.db.transaction(async (tx) => {
+					const [auditoriumId] = await tx
+						.select({ id: auditoriumTable.id })
+						.from(auditoriumTable)
+						.where(eq(auditoriumTable.name, auditorium))
 
-					const isEventExist = await this.cache.get(teacherEventKey)
-
-					if (!isEventExist) {
-						await tx.insert(eventToTeacherTable).values({
-							eventId: e?.id as number,
-							teacherId: teacher.id,
+					const [e] = await tx
+						.insert(eventTable)
+						.values({
+							startedAt: startTime,
+							endedAt: endTime,
+							auditoriumId: auditoriumId?.id as number,
+							type,
+							numberPair,
+							subjectId: event.subject.id,
 						})
+						.returning()
 
-						await this.cache.set(teacherEventKey, 'exists')
-					}
-
-					const teacherSubjectKey = RedisKeyBuilder.teacherSubjectKey(
-						teacher.id,
-						event.subject.id,
-					)
-
-					const isSubjectExist = await this.cache.get(teacherSubjectKey)
-
-					if (!isSubjectExist) {
-						const hour = hours.find(
-							(h) =>
-								h.subjectId === event.subject.id && h.teacherId === teacher.id,
+					for (const teacher of event.teachers) {
+						const isTeacherExist = await this.cache.get(
+							RedisKeyBuilder.teacherKey(teacher.id),
 						)
 
-						if (!hour) {
+						if (!isTeacherExist) {
+							this.logger.info(
+								`[Cist Postman]: Skipping event's teacher duplicate`,
+							)
 							continue
 						}
 
-						// @ts-expect-error will be fixed soon
-						await tx.insert(subjectToTeacherTable).values({
-							...hour,
+						const teacherEventKey = RedisKeyBuilder.teacherEventKey(
+							teacher.id,
+							e?.id as number,
+						)
+
+						const isEventExist = await this.cache.get(teacherEventKey)
+
+						if (!isEventExist) {
+							await tx.insert(eventToTeacherTable).values({
+								eventId: e?.id as number,
+								teacherId: teacher.id,
+							})
+
+							await this.cache.set(teacherEventKey, 'exists')
+						}
+
+						const teacherSubjectKey = RedisKeyBuilder.teacherSubjectKey(
+							teacher.id,
+							event.subject.id,
+						)
+
+						const isSubjectExist = await this.cache.get(teacherSubjectKey)
+
+						if (!isSubjectExist) {
+							const hour = hours.find(
+								(h) =>
+									h.subjectId === event.subject.id &&
+									h.teacherId === teacher.id,
+							)
+
+							if (!hour) {
+								continue
+							}
+
+							// @ts-expect-error will be fixed soon
+							await tx.insert(subjectToTeacherTable).values({
+								...hour,
+							})
+
+							await this.cache.set(teacherSubjectKey, 'exists')
+						}
+					}
+
+					for (const group of event.groups) {
+						const eventGroupKey = RedisKeyBuilder.groupEventKey(
+							group.id,
+							e?.id as number,
+						)
+
+						const isExist = await this.cache.get(eventGroupKey)
+
+						if (isExist) {
+							this.logger.info(
+								`[Cist Postman]: Skipping event's group duplicate`,
+							)
+							continue
+						}
+
+						await tx.insert(eventToAcademicGroupTable).values({
+							eventId: e?.id as number,
+							groudId: group.id,
 						})
 
-						await this.cache.set(teacherSubjectKey, 'exists')
-					}
-				}
-
-				for (const group of event.groups) {
-					const eventGroupKey = RedisKeyBuilder.groupEventKey(
-						group.id,
-						e?.id as number,
-					)
-
-					const isExist = await this.cache.get(eventGroupKey)
-
-					if (isExist) {
-						this.logger.info(`[Cist Postman]: Skipping event's group duplicate`)
-						continue
+						await this.cache.set(eventGroupKey, 'exists')
 					}
 
-					await tx.insert(eventToAcademicGroupTable).values({
-						eventId: e?.id as number,
-						groudId: group.id,
-					})
+					return e!
+				})
 
-					await this.cache.set(eventGroupKey, 'exists')
-				}
+				await Promise.all([
+					this.cache.set(key, e.id),
+					this.cache.sadd('new-events', key),
+				])
+				this.logger.info(
+					`[Cist Postman]: Events processing for group with id ${id} ended`,
+				)
+			}
+		} catch (e: unknown) {
+			const message = `Events processing for group with id ${id} failed: ${e instanceof Error ? e.message : 'Unknown error'}`
 
-				return e!
-			})
+			this.logger.error(`[Cist Postman]: ${message}`)
 
-			await Promise.all([
-				this.cache.set(key, e.id),
-				this.cache.sadd('new-events', key),
-			])
-			this.logger.info(
-				`[Cist Postman]: Events processing for group with id ${id} ended`,
-			)
+			throw new Error(message)
 		}
 	}
 
