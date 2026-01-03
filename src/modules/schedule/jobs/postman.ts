@@ -61,14 +61,14 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 			cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
 		])
 
-		logger.info('[Cist Postman]: Job completed sucessfully')
+		logger.info('[Cist Postman] Job completed sucessfully')
 	} catch (e: unknown) {
 		await cache.set(HEALTH_CHECK_KEY, HEALTH_STATUS.FAILED)
 
-		logger.error('[Cist Postman]: Job failed')
+		logger.error('[Cist Postman] Job failed')
 		logger.error(e)
 
-		const errMessage = `:warning: CIST Postman job failed!\n\`\`\`${e instanceof Error ? e.message : 'Unknown error'}\`\`\``
+		const errMessage = `:warning: **CIST Postman** job failed!\n\`\`\`${e instanceof Error ? e.message : 'Unknown error'}\`\`\``
 
 		await pingDiscordWebhook(config.integration.discordWebhookUrl, errMessage)
 	} finally {

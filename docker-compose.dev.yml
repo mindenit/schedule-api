@@ -19,7 +19,7 @@ services:
       - POSTGRES_HOST_AUTH_METHOD=scram-sha-256
       - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
@@ -34,35 +34,6 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
-  bouncer:
-    container_name: schedule-db-bcr
-    image: 'bitnami/pgbouncer:latest'
-    restart: unless-stopped
-    environment:
-      - POSTGRESQL_HOST=db
-      - POSTGRESQL_DATABASE=${POSTGRES_DB}
-      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
-      - PGBOUNCER_DATABASE=${POSTGRES_DB}
-      - PGBOUNCER_AUTH_TYPE=scram-sha-256
-      - PGBOUNCER_AUTH_USER=${POSTGRES_USER}
-      - PGBOUNCER_AUTH_QUERY=SELECT usename, passwd FROM pg_shadow WHERE usename=$1
-    deploy:
-      resources:
-        limits:
-          cpus: '0.3'
-          memory: 1.5G
-    networks:
-      - dev
-    ports:
-      - '6432:6432'
-    logging:
-      driver: 'json-file'
-      options:
-        max-size: '10m'
-        max-file: '3'
-    depends_on:
-      db:
-        condition: service_healthy
   cache:
     container_name: schedule-cache
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly'

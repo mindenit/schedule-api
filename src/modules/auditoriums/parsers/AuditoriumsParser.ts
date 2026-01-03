@@ -20,65 +20,73 @@ export class AuditoriumsParserImpl
 	}
 
 	async parse(): Promise<Maybe<CistAuditoriumsOutput>> {
-		const raw = await fetchProxy<CistAuditoriumsRawJson>(this.endpoint)
+		try {
+			const raw = await fetchProxy<CistAuditoriumsRawJson>(this.endpoint)
 
-		const auditoriums: Auditorium[] = []
-		const auditoriumTypes: AuditoriumType[] = []
-		const buildings: Building[] = []
+			const auditoriums: Auditorium[] = []
+			const auditoriumTypes: AuditoriumType[] = []
+			const buildings: Building[] = []
 
-		const hashMap = new Map<string, boolean>()
+			const hashMap = new Map<string, boolean>()
 
-		if (!Object.hasOwn(raw, 'university')) {
-			return null
-		}
-
-		if (!Object.hasOwn(raw.university, 'buildings')) {
-			return null
-		}
-
-		for (const building of raw.university.buildings) {
-			if (!Object.hasOwn(building, 'auditories')) {
-				continue
+			if (!Object.hasOwn(raw, 'university')) {
+				return null
 			}
 
-			for (const auditorium of building.auditories) {
-				if (!auditorium.short_name.length) {
+			if (!Object.hasOwn(raw.university, 'buildings')) {
+				return null
+			}
+
+			for (const building of raw.university.buildings) {
+				if (!Object.hasOwn(building, 'auditories')) {
 					continue
 				}
 
-				const hash = hashObject(auditorium)
+				for (const auditorium of building.auditories) {
+					if (!auditorium.short_name.length) {
+						continue
+					}
 
-				if (hashMap.has(hash)) {
-					continue
-				}
+					const hash = hashObject(auditorium)
 
-				for (const type of auditorium.auditory_types) {
-					auditoriumTypes.push({
-						id: Number.parseInt(type.id),
-						name: type.short_name,
-						auditoriumId: Number.parseInt(auditorium.id),
+					if (hashMap.has(hash)) {
+						continue
+					}
+
+					for (const type of auditorium.auditory_types) {
+						auditoriumTypes.push({
+							id: Number.parseInt(type.id),
+							name: type.short_name,
+							auditoriumId: Number.parseInt(auditorium.id),
+						})
+					}
+
+					auditoriums.push({
+						id: Number.parseInt(auditorium.id),
+						name: auditorium.short_name,
+						hasPower: Boolean(auditorium.is_have_power),
+						floor:
+							auditorium.floor === '' ? 0 : Number.parseInt(auditorium.floor),
+						buildingId: building.id,
 					})
+
+					hashMap.set(hash, true)
 				}
 
-				auditoriums.push({
-					id: Number.parseInt(auditorium.id),
-					name: auditorium.short_name,
-					hasPower: Boolean(auditorium.is_have_power),
-					floor:
-						auditorium.floor === '' ? 0 : Number.parseInt(auditorium.floor),
-					buildingId: building.id,
+				buildings.push({
+					id: building.id,
+					fullName: building.full_name,
+					shortName: building.short_name,
 				})
-
-				hashMap.set(hash, true)
 			}
 
-			buildings.push({
-				id: building.id,
-				fullName: building.full_name,
-				shortName: building.short_name,
-			})
-		}
+			return { buildings, auditoriums, auditoriumTypes }
+		} catch (e: unknown) {
+			const message = e instanceof Error ? e.message : String(e)
 
-		return { buildings, auditoriums, auditoriumTypes }
+			throw new Error(
+				`[AuditoriumsParser] Failed to fetch or parse auditoriums data: ${message}`,
+			)
+		}
 	}
 }

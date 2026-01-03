@@ -31,88 +31,96 @@ export class EventsParserImpl implements EventsParser {
 		id: number,
 		type: ScheduleType,
 	): Promise<Maybe<CistScheduleOutput>> {
-		const raw = await fetchProxy<CistScheduleRawJson>(
-			`${this.endpoint}/${id}?type=${type}`,
-		)
-
-		if (Array.isArray(raw) && !raw.length) {
-			return null
-		}
-
-		if (!Object.hasOwn(raw, 'events')) {
-			return null
-		}
-
-		const events: Omit<Event, 'id'>[] = []
-		const subjects: Subject[] = []
-		const hours = EventsParserImpl.getSubjectHours(raw.subjects)
-
-		for (const e of raw.events) {
-			const pair = {
-				numberPair: e.number_pair ?? 0,
-				startTime: e.start_time ?? 0,
-				endTime: e.end_time ?? 0,
-				type: EventsParserImpl.getType(e.type),
-				auditorium: e.auditory,
-				teachers: [] as TeacherData[],
-				groups: [] as GroupData[],
-				subject: {
-					id: 0,
-					name: '',
-					brief: '',
-				},
-			} satisfies Omit<Event, 'id'>
-
-			const subject = EventsParserImpl.findSubjectById(
-				raw.subjects,
-				e.subject_id,
+		try {
+			const raw = await fetchProxy<CistScheduleRawJson>(
+				`${this.endpoint}/${id}?type=${type}`,
 			)
 
-			if (!subject) {
-				continue
+			if (Array.isArray(raw) && !raw.length) {
+				return null
 			}
 
-			pair.subject = subject
-			subjects.push(subject)
-
-			if (!Object.hasOwn(e, 'groups')) {
-				continue
+			if (!Object.hasOwn(raw, 'events')) {
+				return null
 			}
 
-			for (const groupId of e.groups) {
-				const group = EventsParserImpl.findGroupById(raw.groups, groupId)
+			const events: Omit<Event, 'id'>[] = []
+			const subjects: Subject[] = []
+			const hours = EventsParserImpl.getSubjectHours(raw.subjects)
 
-				if (!group) {
-					continue
-				}
+			for (const e of raw.events) {
+				const pair = {
+					numberPair: e.number_pair ?? 0,
+					startTime: e.start_time ?? 0,
+					endTime: e.end_time ?? 0,
+					type: EventsParserImpl.getType(e.type),
+					auditorium: e.auditory,
+					teachers: [] as TeacherData[],
+					groups: [] as GroupData[],
+					subject: {
+						id: 0,
+						name: '',
+						brief: '',
+					},
+				} satisfies Omit<Event, 'id'>
 
-				pair.groups.push(group)
-			}
-
-			if (!Object.hasOwn(e, 'teachers')) {
-				continue
-			}
-
-			for (const teacherId of e.teachers) {
-				const teacher = EventsParserImpl.findTeacherById(
-					raw.teachers,
-					teacherId,
+				const subject = EventsParserImpl.findSubjectById(
+					raw.subjects,
+					e.subject_id,
 				)
 
-				if (!teacher) {
+				if (!subject) {
 					continue
 				}
 
-				pair.teachers.push(teacher)
+				pair.subject = subject
+				subjects.push(subject)
+
+				if (!Object.hasOwn(e, 'groups')) {
+					continue
+				}
+
+				for (const groupId of e.groups) {
+					const group = EventsParserImpl.findGroupById(raw.groups, groupId)
+
+					if (!group) {
+						continue
+					}
+
+					pair.groups.push(group)
+				}
+
+				if (!Object.hasOwn(e, 'teachers')) {
+					continue
+				}
+
+				for (const teacherId of e.teachers) {
+					const teacher = EventsParserImpl.findTeacherById(
+						raw.teachers,
+						teacherId,
+					)
+
+					if (!teacher) {
+						continue
+					}
+
+					pair.teachers.push(teacher)
+				}
+
+				events.push(pair)
 			}
 
-			events.push(pair)
-		}
+			return {
+				events: events.toSorted((a, b) => a.startTime - b.startTime),
+				subjects,
+				hours,
+			}
+		} catch (e) {
+			const message = `${e instanceof Error ? e.message : 'Unknown error'}`
 
-		return {
-			events: events.toSorted((a, b) => a.startTime - b.startTime),
-			subjects,
-			hours,
+			throw new Error(
+				`[EventsParser] Failed to fetch or parse events data: ${message}`,
+			)
 		}
 	}
 

@@ -184,9 +184,11 @@ export class EventsProcessorImpl implements EventsProcessor {
 				)
 			}
 		} catch (e: unknown) {
-			const message = `Events processing for group with id ${id} failed: ${e instanceof Error ? e.message : 'Unknown error'}`
+			if (e instanceof Error && e.message.includes('[EventsParser]')) {
+				throw new Error(e.message)
+			}
 
-			this.logger.error(`[Cist Postman]: ${message}`)
+			const message = `[EventsProcessor] Processing for group with id ${id} failed: ${e instanceof Error ? e.message : 'Unknown error'}`
 
 			throw new Error(message)
 		}

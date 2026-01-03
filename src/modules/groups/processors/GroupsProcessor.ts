@@ -24,66 +24,76 @@ export class GroupsProcessorImpl implements CistProcessor<Group[]> {
 	}
 
 	async process(): Promise<Group[]> {
-		const data = await this.parser.parse()
+		try {
+			const data = await this.parser.parse()
 
-		if (!data) {
-			return []
-		}
-
-		const { groups, faculties, specialities, directions } = data
-
-		for (const faculty of faculties) {
-			const key = RedisKeyBuilder.facultyKey(faculty.id)
-
-			const isExist = await this.cache.get(key)
-
-			if (isExist) {
-				continue
+			if (!data) {
+				return []
 			}
 
-			await this.db.insert(facultyTable).values(faculty).onConflictDoNothing()
-			this.cache.set(key, 'exists')
-		}
+			const { groups, faculties, specialities, directions } = data
 
-		for (const direction of directions) {
-			const key = RedisKeyBuilder.directionKey(direction.id)
+			for (const faculty of faculties) {
+				const key = RedisKeyBuilder.facultyKey(faculty.id)
 
-			const isExist = await this.cache.get(key)
+				const isExist = await this.cache.get(key)
 
-			if (isExist) {
-				continue
+				if (isExist) {
+					continue
+				}
+
+				await this.db.insert(facultyTable).values(faculty).onConflictDoNothing()
+				this.cache.set(key, 'exists')
 			}
 
-			await this.db.insert(directionTable).values(direction)
-			this.cache.set(key, 'exists')
-		}
+			for (const direction of directions) {
+				const key = RedisKeyBuilder.directionKey(direction.id)
 
-		for (const speciality of specialities) {
-			const key = RedisKeyBuilder.specialityKey(speciality.id)
+				const isExist = await this.cache.get(key)
 
-			const isExist = await this.cache.get(key)
+				if (isExist) {
+					continue
+				}
 
-			if (isExist) {
-				continue
+				await this.db.insert(directionTable).values(direction)
+				this.cache.set(key, 'exists')
 			}
 
-			await this.db.insert(specialityTable).values(speciality)
-			await this.cache.set(key, 'exists')
-		}
+			for (const speciality of specialities) {
+				const key = RedisKeyBuilder.specialityKey(speciality.id)
 
-		for (const group of groups) {
-			const key = RedisKeyBuilder.groupKey(group.id)
+				const isExist = await this.cache.get(key)
 
-			const isExist = await this.cache.get(key)
+				if (isExist) {
+					continue
+				}
 
-			if (isExist) {
-				continue
+				await this.db.insert(specialityTable).values(speciality)
+				await this.cache.set(key, 'exists')
 			}
 
-			await this.db.insert(academicGroupTable).values(group)
-			await this.cache.set(key, 'exists')
-		}
+			for (const group of groups) {
+				const key = RedisKeyBuilder.groupKey(group.id)
 
-		return groups
+				const isExist = await this.cache.get(key)
+
+				if (isExist) {
+					continue
+				}
+
+				await this.db.insert(academicGroupTable).values(group)
+				await this.cache.set(key, 'exists')
+			}
+
+			return groups
+		} catch (e: unknown) {
+			if (e instanceof Error && e.message.includes('[GroupsParser]')) {
+				throw new Error(e.message)
+			}
+
+			const message = `[GroupsProcessor] Failed to process data: ${e instanceof Error ? e.message : 'Unknown error'}`
+
+			throw new Error(message)
+		}
 	}
 }
