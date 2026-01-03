@@ -24,56 +24,64 @@ export class TeachersParserImpl implements CistParser<CistTeachersOutput> {
 	}
 
 	async parse(): Promise<Maybe<CistTeachersOutput>> {
-		const raw = await fetchProxy<CistTeachersRawJson>(this.endpoint)
+		try {
+			const raw = await fetchProxy<CistTeachersRawJson>(this.endpoint)
 
-		const faculties: Faculty[] = []
-		const departments: Department[] = []
+			const faculties: Faculty[] = []
+			const departments: Department[] = []
 
-		if (!Object.hasOwn(raw, 'university')) {
-			return null
-		}
-
-		if (!Object.hasOwn(raw.university, 'faculties')) {
-			return null
-		}
-
-		for (const faculty of raw.university.faculties) {
-			faculties.push({
-				id: faculty.id,
-				fullName: faculty.full_name,
-				shortName: faculty.short_name,
-			})
-
-			if (!Object.hasOwn(faculty, 'departments')) {
-				continue
+			if (!Object.hasOwn(raw, 'university')) {
+				return null
 			}
 
-			for (const department of faculty.departments) {
-				departments.push({
-					id: department.id,
-					fullName: department.full_name,
-					shortName: department.short_name,
-					facultyId: faculty.id,
+			if (!Object.hasOwn(raw.university, 'faculties')) {
+				return null
+			}
+
+			for (const faculty of raw.university.faculties) {
+				faculties.push({
+					id: faculty.id,
+					fullName: faculty.full_name,
+					shortName: faculty.short_name,
 				})
 
-				this.processDepartment(department)
+				if (!Object.hasOwn(faculty, 'departments')) {
+					continue
+				}
 
-				if (Object.hasOwn(department, 'departments')) {
-					for (const subDepartment of department.departments) {
-						departments.push({
-							id: subDepartment.id,
-							fullName: subDepartment.full_name,
-							shortName: subDepartment.short_name,
-							facultyId: faculty.id,
-						})
+				for (const department of faculty.departments) {
+					departments.push({
+						id: department.id,
+						fullName: department.full_name,
+						shortName: department.short_name,
+						facultyId: faculty.id,
+					})
 
-						this.processDepartment(subDepartment)
+					this.processDepartment(department)
+
+					if (Object.hasOwn(department, 'departments')) {
+						for (const subDepartment of department.departments) {
+							departments.push({
+								id: subDepartment.id,
+								fullName: subDepartment.full_name,
+								shortName: subDepartment.short_name,
+								facultyId: faculty.id,
+							})
+
+							this.processDepartment(subDepartment)
+						}
 					}
 				}
 			}
-		}
 
-		return { teachers: this.teachers, faculties, departments }
+			return { teachers: this.teachers, faculties, departments }
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e)
+
+			throw new Error(
+				`[TeachersParser] Failed to fetch or parse teachers data: ${message}`,
+			)
+		}
 	}
 
 	private processDepartment(department: RawDepartment) {

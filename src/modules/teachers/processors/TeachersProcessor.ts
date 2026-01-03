@@ -23,53 +23,63 @@ export class TeachersProcessorImpl implements CistProcessor<Teacher[]> {
 	}
 
 	async process(): Promise<Teacher[]> {
-		const data = await this.parser.parse()
+		try {
+			const data = await this.parser.parse()
 
-		if (!data) {
-			return []
-		}
-
-		const { teachers, faculties, departments } = data
-
-		for (const faculty of faculties) {
-			const key = RedisKeyBuilder.facultyKey(faculty.id)
-
-			const isExist = await this.cache.get(key)
-
-			if (isExist) {
-				continue
+			if (!data) {
+				return []
 			}
 
-			await this.db.insert(facultyTable).values(faculty)
-			await this.cache.set(key, 'exists')
-		}
+			const { teachers, faculties, departments } = data
 
-		for (const department of departments) {
-			const key = RedisKeyBuilder.departmentKey(department.id)
+			for (const faculty of faculties) {
+				const key = RedisKeyBuilder.facultyKey(faculty.id)
 
-			const isExist = await this.cache.get(key)
+				const isExist = await this.cache.get(key)
 
-			if (isExist) {
-				continue
+				if (isExist) {
+					continue
+				}
+
+				await this.db.insert(facultyTable).values(faculty)
+				await this.cache.set(key, 'exists')
 			}
 
-			await this.db.insert(departmentTable).values(department)
-			this.cache.set(key, 'exists')
-		}
+			for (const department of departments) {
+				const key = RedisKeyBuilder.departmentKey(department.id)
 
-		for (const teacher of teachers) {
-			const key = RedisKeyBuilder.teacherKey(teacher.id)
+				const isExist = await this.cache.get(key)
 
-			const isExist = await this.cache.get(key)
+				if (isExist) {
+					continue
+				}
 
-			if (isExist) {
-				continue
+				await this.db.insert(departmentTable).values(department)
+				this.cache.set(key, 'exists')
 			}
 
-			await this.db.insert(teacherTable).values(teacher)
-			this.cache.set(key, 'exists')
-		}
+			for (const teacher of teachers) {
+				const key = RedisKeyBuilder.teacherKey(teacher.id)
 
-		return teachers
+				const isExist = await this.cache.get(key)
+
+				if (isExist) {
+					continue
+				}
+
+				await this.db.insert(teacherTable).values(teacher)
+				this.cache.set(key, 'exists')
+			}
+
+			return teachers
+		} catch (e: unknown) {
+			if (e instanceof Error && e.message.includes('[TeachersParser]')) {
+				throw new Error(e.message)
+			}
+
+			const message = `[TeachersProcessor] Failed to process data: ${e instanceof Error ? e.message : 'Unknown error'}`
+
+			throw new Error(message)
+		}
 	}
 }

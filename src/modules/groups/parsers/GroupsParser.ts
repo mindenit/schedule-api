@@ -18,79 +18,87 @@ export class GroupsParserImpl implements CistParser<CistGroupsOutput> {
 	}
 
 	async parse(): Promise<Maybe<CistGroupsOutput>> {
-		const raw = await fetchProxy<CistGroupsRawJson>(this.endpoint)
+		try {
+			const raw = await fetchProxy<CistGroupsRawJson>(this.endpoint)
 
-		if (!Object.hasOwn(raw, 'university')) {
-			return null
-		}
-
-		const faculties: Faculty[] = []
-		const directions: Direction[] = []
-		const specialities: Speciality[] = []
-
-		if (!Object.hasOwn(raw.university, 'faculties')) {
-			return null
-		}
-
-		for (const faculty of raw.university.faculties) {
-			faculties.push({
-				id: faculty.id,
-				fullName: faculty.short_name,
-				shortName: faculty.full_name,
-			})
-
-			if (!Object.hasOwn(faculty, 'directions')) {
-				continue
+			if (!Object.hasOwn(raw, 'university')) {
+				return null
 			}
 
-			for (const direction of faculty.directions) {
-				directions.push({
-					id: direction.id,
-					fullName: direction.short_name,
-					shortName: direction.full_name,
-					facultyId: faculty.id,
+			const faculties: Faculty[] = []
+			const directions: Direction[] = []
+			const specialities: Speciality[] = []
+
+			if (!Object.hasOwn(raw.university, 'faculties')) {
+				return null
+			}
+
+			for (const faculty of raw.university.faculties) {
+				faculties.push({
+					id: faculty.id,
+					fullName: faculty.short_name,
+					shortName: faculty.full_name,
 				})
 
-				if (!Object.hasOwn(direction, 'specialities')) {
+				if (!Object.hasOwn(faculty, 'directions')) {
 					continue
 				}
 
-				for (const speciality of direction.specialities) {
-					specialities.push({
-						id: speciality.id,
-						fullName: speciality.full_name,
-						shortName: speciality.short_name,
-						directionId: direction.id,
+				for (const direction of faculty.directions) {
+					directions.push({
+						id: direction.id,
+						fullName: direction.short_name,
+						shortName: direction.full_name,
+						facultyId: faculty.id,
 					})
 
-					if (!Object.hasOwn(speciality, 'groups')) {
+					if (!Object.hasOwn(direction, 'specialities')) {
 						continue
 					}
 
-					for (const group of speciality.groups) {
+					for (const speciality of direction.specialities) {
+						specialities.push({
+							id: speciality.id,
+							fullName: speciality.full_name,
+							shortName: speciality.short_name,
+							directionId: direction.id,
+						})
+
+						if (!Object.hasOwn(speciality, 'groups')) {
+							continue
+						}
+
+						for (const group of speciality.groups) {
+							this.addGroup({
+								...group,
+								specialityId: speciality.id,
+								directionId: null,
+							})
+						}
+					}
+
+					if (!Object.hasOwn(direction, 'groups')) {
+						continue
+					}
+
+					for (const group of direction.groups) {
 						this.addGroup({
 							...group,
-							specialityId: speciality.id,
-							directionId: null,
+							directionId: direction.id,
+							specialityId: null,
 						})
 					}
 				}
-
-				if (!Object.hasOwn(direction, 'groups')) {
-					continue
-				}
-
-				for (const group of direction.groups) {
-					this.addGroup({
-						...group,
-						directionId: direction.id,
-						specialityId: null,
-					})
-				}
 			}
-		}
 
-		return { groups: this.groups, faculties, specialities, directions }
+			return { groups: this.groups, faculties, specialities, directions }
+		} catch (e) {
+			const message = e instanceof Error ? e.message : String(e)
+
+			throw new Error(
+				`[GroupsParser] Failed to fetch or parse groups data: ${message}`,
+			)
+		}
 	}
 
 	private addGroup(group: Group): void {
