@@ -184,10 +184,6 @@ export class EventsProcessorImpl implements EventsProcessor {
 				)
 			}
 		} catch (e: unknown) {
-			if (e instanceof Error && e.message.includes('[EventsParser]')) {
-				throw new Error(e.message)
-			}
-
 			const message = `[EventsProcessor] Processing for group with id ${id} failed: ${e instanceof Error ? e.message : 'Unknown error'}`
 
 			throw new Error(message)
