@@ -1,5 +1,5 @@
 import type { FailureResponse, SuccessResponse } from '@/core/types/common.js'
-import { err, ok, type Result } from 'neverthrow'
+import { Result } from 'better-result'
 import type { SharableLink } from '../schemas/index.js'
 import type {
 	LinksInjectableDependencies,
@@ -21,7 +21,7 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 		const sharableLink = await this.repository.findOne(id)
 
 		if (!sharableLink) {
-			return err(
+			return Result.err(
 				failureResponse({
 					status: 404,
 					message: 'Sharable link not found',
@@ -29,7 +29,9 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 			)
 		}
 
-		return ok(successResponse(sharableLink, 'Sharable link found successfully'))
+		return Result.ok(
+			successResponse(sharableLink, 'Sharable link found successfully'),
+		)
 	}
 
 	async createOne(
@@ -48,7 +50,7 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 		const sharableLink = await this.repository.findOne(id)
 
 		if (!sharableLink) {
-			return err(
+			return Result.err(
 				failureResponse({
 					status: 404,
 					message: 'Sharable link not found',
@@ -57,7 +59,7 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 		}
 
 		if (await this.repository.isAccepted(id, userId)) {
-			return err(
+			return Result.err(
 				failureResponse({
 					status: 400,
 					message: 'You have already accepted this sharable link',
@@ -70,6 +72,6 @@ export class SharableLinksServiceImpl implements SharableLinksService {
 			this.repository.setAccepted(id, userId),
 		])
 
-		return ok(undefined)
+		return Result.ok(undefined)
 	}
 }

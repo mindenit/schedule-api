@@ -21,5 +21,6 @@
 		},
 		"lib": ["ESNext.Array", "ESNext"]
 	},
-	"include": ["src"]
+	"include": ["src"],
+	"exclude": ["opensrc"]
 }

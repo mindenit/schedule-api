@@ -14,13 +14,16 @@ import type { EventModuleDependencies } from '@/modules/events/types/index.js'
 import { resolveEventsModule } from '@/modules/events/index.js'
 import type { LinksModuleDependencies } from '@/modules/links/types/index.js'
 import { resolveLinksModule } from '@/modules/links/index.js'
+import type { MoodleModuleDependencies } from '@/modules/moodle/types/di.js'
+import { resolveMoodleModule } from '@/modules/moodle/index.js'
 
 type Dependencies = CommonDependencies &
 	AuditoriumsModuleDependencies &
 	GroupsModuleDependencies &
 	EventModuleDependencies &
 	TeachersModuleDependencies &
-	LinksModuleDependencies
+	LinksModuleDependencies &
+	MoodleModuleDependencies
 
 type DiConfig = NameAndRegistrationPair<Dependencies>
 
@@ -35,6 +38,7 @@ export const registerDependencies = (
 		...resolveTeachersModule(),
 		...resolveEventsModule(),
 		...resolveLinksModule(),
+		...resolveMoodleModule(),
 	}
 
 	diContainer.register(diConfig)

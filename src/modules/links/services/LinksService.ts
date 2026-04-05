@@ -4,7 +4,7 @@ import type {
 	SuccessResponse,
 } from '@/core/types/common.js'
 import { failureResponse, successResponse } from '@/core/utils/response.js'
-import { err, ok, Result } from 'neverthrow'
+import { Result } from 'better-result'
 import type { CREATE_LINK, Link, UPDATE_LINK } from '../schemas/index.js'
 import type {
 	LinksInjectableDependencies,
@@ -44,7 +44,7 @@ export class LinksServiceImpl implements LinksService {
 		const existingLink = await this.repository.findOne(id, userId)
 
 		if (!existingLink) {
-			return err(
+			return Result.err(
 				failureResponse({
 					status: 404,
 					message: 'Link not found',
@@ -59,7 +59,7 @@ export class LinksServiceImpl implements LinksService {
 			...data,
 		}
 
-		return ok(successResponse(link, 'Link updated successfully'))
+		return Result.ok(successResponse(link, 'Link updated successfully'))
 	}
 
 	async deleteOne(
@@ -69,7 +69,7 @@ export class LinksServiceImpl implements LinksService {
 		const existingLink = await this.repository.findOne(id, userId)
 
 		if (!existingLink) {
-			return err(
+			return Result.err(
 				failureResponse({
 					status: 404,
 					message: 'Link not found',
@@ -79,6 +79,6 @@ export class LinksServiceImpl implements LinksService {
 
 		await this.repository.deleteOne(id, userId)
 
-		return ok(successResponse(existingLink, 'Link deleted successfully'))
+		return Result.ok(successResponse(existingLink, 'Link deleted successfully'))
 	}
 }

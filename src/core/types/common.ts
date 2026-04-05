@@ -30,6 +30,15 @@ type FailureResponse = {
 
 type BaseResponse<T extends object> = SuccessResponse<T> | FailureResponse
 
+type HttpExceptionOverrides = {
+	message: string | null
+	status: number
+}
+
+type HttpExceptionMap<K extends string> = Partial<
+	Record<K, HttpExceptionOverrides>
+>
+
 export type {
 	AppInstance,
 	HttpError,
@@ -37,4 +46,6 @@ export type {
 	BaseResponse,
 	SuccessResponse,
 	FailureResponse,
+	HttpExceptionOverrides,
+	HttpExceptionMap,
 }

@@ -22,6 +22,10 @@ const envSchema = z.object({
 		.string()
 		.transform((val) => val.split(','))
 		.default(['https://sh.mindenit.org', 'http://localhost:3000']),
+	MOODLE_BASE_URL: z.url({
+		protocol: /^https?$/,
+		hostname: /^([a-zA-Z0-9-]+\.)*nure\.ua$/,
+	}),
 })
 
 const env = envSchema.parse(process.env)
