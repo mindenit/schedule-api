@@ -181,3 +181,5 @@ dist
 
 # opensrc - source code for packages
 opensrc/
+temp_auto_push.bat
+temp_interactive_push.bat

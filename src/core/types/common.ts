@@ -23,7 +23,7 @@ interface HttpError {
 	message: string
 }
 
-type SuccessResponse<T extends object> = {
+type SuccessResponse<T> = {
 	success: true
 	data: T
 	message?: string
