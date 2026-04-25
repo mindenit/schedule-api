@@ -14,6 +14,7 @@ const MOODLE_WS_FUNCTION = {
 	GET_ASSIGNMENTS: 'mod_assign_get_assignments',
 	GET_COURSES: 'core_enrol_get_users_courses',
 	GET_COURSE_GRADES: 'gradereport_user_get_grade_items',
+	GET_COURSE_CONTENT: 'core_course_get_contents',
 } as const
 
 const MOODLE_COURSE_PAGE_BASE_URL = `${env.MOODLE_BASE_URL}/course/view.php`

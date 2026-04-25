@@ -10,4 +10,4 @@ interface Schedulable<TFilters extends object, TResult = Schedule[]> {
 	getSchedule: (options: GET_SCHEDULE_OPTIONS<TFilters>) => Promise<TResult>
 }
 
-export type { Schedulable, FindableById }
+export type { FindableById, Schedulable }

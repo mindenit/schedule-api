@@ -1,4 +1,4 @@
-export const HTTP_STATUS = {
+const HTTP_STATUS = {
 	OK: 200,
 	CREATED: 201,
 	NO_CONTENT: 204,
@@ -15,3 +15,8 @@ export const HTTP_STATUS = {
 	SERVICE_UNAVAILABLE: 503,
 	GATEWAY_TIMEOUT: 504,
 } as const
+
+type HttpStatus = (typeof HTTP_STATUS)[keyof typeof HTTP_STATUS]
+
+export { HTTP_STATUS }
+export type { HttpStatus }

@@ -18,7 +18,7 @@ type MoodleLogin = z.infer<typeof MOODLE_LOGIN>
 const MOODLE_LOGIN_RESPONSE = z
 	.object({
 		token: z.string(),
-		privatetoken: z.string().optional(),
+		privatetoken: z.string().nullable(),
 	})
 	.strict()
 

@@ -10,6 +10,8 @@ import {
 import { MoodleOperationException } from '../exceptions/moodle.exceptions.js'
 import type { MoodleLogin, MoodleLoginResponse } from '../schemas/index.js'
 import type {
+	GetAssignmentsArgs,
+	GetCourseContent,
 	GetCourseGradesArgs,
 	GetUserCoursesArgs,
 	MoodleInjectableDependencies,
@@ -17,6 +19,7 @@ import type {
 	MoodleService,
 } from '../types/index.js'
 import type {
+	MoodleAssignmentsResponse,
 	MoodleGradesResponse,
 	MoodleSiteInfoResponse,
 	RawMoodleCoursesResponse,
@@ -31,9 +34,11 @@ import {
 	hasPrivateToken,
 	isAssignmentGrade,
 	isMoodleAuthTokenValid,
+	mapMoodleAssignment,
 	mapMoodleCourse,
 	mapMoodleCourseGrades,
 	mapMoodleSiteInfo,
+	moodleWarningToException,
 } from '../utils/index.js'
 
 export class MoodleServiceImpl implements MoodleService {
@@ -82,9 +87,7 @@ export class MoodleServiceImpl implements MoodleService {
 
 		return Result.ok({
 			token: response.token,
-			privatetoken: hasPrivateToken(response)
-				? response.privatetoken
-				: undefined,
+			privatetoken: hasPrivateToken(response) ? response.privatetoken : null,
 		})
 	}
 
@@ -188,5 +191,64 @@ export class MoodleServiceImpl implements MoodleService {
 			final: getMoodleCourseFinalGrade(grades),
 			grades: moduleGrades,
 		})
+	}
+
+	async getCourseAssignments({
+		token,
+		courseId,
+	}: GetAssignmentsArgs): Promise<Result<unknown, MoodleOperationException>> {
+		const url = this.repository.buildApiUrl({
+			token: token,
+			wsFunction: MOODLE_WS_FUNCTION.GET_ASSIGNMENTS,
+		})
+
+		url.searchParams.set(`courseids[]`, courseId.toString())
+
+		const response = await this.repository.fetch<MoodleAssignmentsResponse>(url)
+
+		if (response.isErr()) {
+			return Result.err(response.error)
+		}
+
+		const courses = response.unwrap().courses
+
+		if (!courses.length) {
+			const warning = response.unwrap().warnings.at(0)
+
+			if (!warning) {
+				return Result.err(
+					new MoodleOperationException(
+						MOODLE_EXCEPTION_CODE.API_ERROR,
+						'Failed to fetch course assignments due to an unknown error.',
+						HTTP_STATUS.INTERNAL_SERVER_ERR,
+					),
+				)
+			}
+
+			return Result.err(moodleWarningToException(warning))
+		}
+
+		const assignments = courses.at(0)?.assignments
+
+		if (!assignments) {
+			return Result.ok([])
+		}
+
+		return Result.ok(assignments.map(mapMoodleAssignment))
+	}
+
+	async getCourseContent({
+		token,
+		...rest
+	}: GetCourseContent): Promise<Result<unknown, MoodleOperationException>> {
+		const params = constructMoodleRequestParams(rest)
+
+		const url = this.repository.buildApiUrl({
+			token,
+			wsFunction: MOODLE_WS_FUNCTION.GET_COURSE_CONTENT,
+			params,
+		})
+
+		return this.repository.fetch(url)
 	}
 }

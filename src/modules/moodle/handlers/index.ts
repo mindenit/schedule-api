@@ -3,7 +3,6 @@ import type { GetCourse, MoodleLogin } from '../schemas/index.js'
 import { setMoodleTokenCookie } from '../utils/index.js'
 import { HTTP_STATUS } from '@/core/constants/http.js'
 import { successResponse } from '@/core/utils/response.js'
-import { MOODLE_TOKEN_COOKIE_NAME } from '../constant/index.js'
 
 export const moodleLogin = async (
 	request: FastifyRequest<{ Body: MoodleLogin }>,
@@ -33,25 +32,19 @@ export const getSiteInfo = async (
 	reply: FastifyReply,
 ): Promise<void> => {
 	const { moodleService } = request.diScope.cradle
+	const { token } = request.moodleAuth
 
-	const token = request.cookies[MOODLE_TOKEN_COOKIE_NAME]
+	const siteInfo = await moodleService.getSiteInfo(token)
 
-	if (!token) {
-		return reply.status(HTTP_STATUS.UNAUTHORIZED).send({
-			message: 'Authentication token is missing',
-		})
+	if (siteInfo.isErr()) {
+		const error = siteInfo.error
+
+		return reply
+			.status(error.status ?? HTTP_STATUS.INTERNAL_SERVER_ERR)
+			.send(error)
 	}
 
-	try {
-		const siteInfo = await moodleService.getSiteInfo(token)
-
-		return reply.status(HTTP_STATUS.OK).send(siteInfo.unwrap())
-	} catch (error) {
-		return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERR).send({
-			message: 'Failed to fetch site info',
-			error: error instanceof Error ? error.message : String(error),
-		})
-	}
+	return reply.status(HTTP_STATUS.OK).send(siteInfo.unwrap())
 }
 
 export const getCourses = async (
@@ -59,25 +52,19 @@ export const getCourses = async (
 	reply: FastifyReply,
 ): Promise<void> => {
 	const { moodleService } = request.diScope.cradle
+	const { token, userId } = request.moodleAuth
 
-	const token = request.cookies[MOODLE_TOKEN_COOKIE_NAME]
+	const courses = await moodleService.getUserCourses({ token, userId })
 
-	if (!token) {
-		return reply.status(HTTP_STATUS.UNAUTHORIZED).send({
-			message: 'Authentication token is missing',
-		})
+	if (courses.isErr()) {
+		const error = courses.error
+
+		return reply
+			.status(error.status ?? HTTP_STATUS.INTERNAL_SERVER_ERR)
+			.send(error)
 	}
 
-	try {
-		const courses = await moodleService.getUserCourses({ token, userId: 26170 })
-
-		return reply.status(HTTP_STATUS.OK).send(courses.unwrap())
-	} catch (error) {
-		return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERR).send({
-			message: 'Failed to fetch courses',
-			error: error instanceof Error ? error.message : String(error),
-		})
-	}
+	return reply.status(HTTP_STATUS.OK).send(courses.unwrap())
 }
 
 export const getCourseGrades = async (
@@ -86,34 +73,63 @@ export const getCourseGrades = async (
 ): Promise<void> => {
 	const { moodleService } = request.diScope.cradle
 	const { courseId } = request.params
-	const token = request.cookies[MOODLE_TOKEN_COOKIE_NAME]
+	const { token, userId } = request.moodleAuth
 
-	if (!token) {
-		return reply.status(HTTP_STATUS.UNAUTHORIZED).send({
-			message: 'Authentication token is missing',
-		})
+	const grades = await moodleService.getCourseGrades({
+		token,
+		courseId,
+		userId,
+	})
+
+	if (grades.isErr()) {
+		const error = grades.error
+
+		return reply.status(error.status).send(error)
 	}
 
-	try {
-		const grades = await moodleService.getCourseGrades({
-			token,
-			courseId,
-			userId: 26170,
-		})
+	return reply.status(HTTP_STATUS.OK).send(grades.unwrap())
+}
 
-		if (grades.isErr()) {
-			const error = grades.error
+export const getCourseAssignments = async (
+	request: FastifyRequest<{ Params: GetCourse }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { moodleService } = request.diScope.cradle
+	const { courseId } = request.params
+	const { token } = request.moodleAuth
 
-			return reply
-				.status(error.status ?? HTTP_STATUS.INTERNAL_SERVER_ERR)
-				.send(error)
-		}
+	const assignments = await moodleService.getCourseAssignments({
+		token,
+		courseId,
+	})
 
-		return reply.status(HTTP_STATUS.OK).send(grades.unwrap())
-	} catch (error) {
-		return reply.status(HTTP_STATUS.INTERNAL_SERVER_ERR).send({
-			message: 'Failed to fetch course grades',
-			error: error instanceof Error ? error.message : String(error),
-		})
+	if (assignments.isErr()) {
+		const error = assignments.error
+
+		return reply.status(error.status).send(error)
 	}
+
+	return reply.status(HTTP_STATUS.OK).send(assignments.unwrap())
+}
+
+export const getCourseContent = async (
+	request: FastifyRequest<{ Params: GetCourse }>,
+	reply: FastifyReply,
+): Promise<void> => {
+	const { moodleService } = request.diScope.cradle
+	const { courseId } = request.params
+	const { token } = request.moodleAuth
+
+	const content = await moodleService.getCourseContent({
+		token,
+		courseId,
+	})
+
+	if (content.isErr()) {
+		const error = content.error
+
+		return reply.status(error.status).send(error)
+	}
+
+	return reply.status(HTTP_STATUS.OK).send(content.unwrap())
 }

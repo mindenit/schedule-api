@@ -1,4 +1,4 @@
-import type { Maybe } from '@/core/types/common.js'
+import type { Bit, Maybe } from '@/core/types/common.js'
 
 interface MoodleFunction {
 	name: string
@@ -100,9 +100,101 @@ type MoodleGrade = BaseMoodleGrade &
 
 type MoodleFinalGrade = Pick<BaseMoodleGrade, 'grade' | 'letterGrade'>
 
-type MoodleGradesResponse = {
+interface MoodleGradesResponse {
 	final: Maybe<MoodleFinalGrade>
 	grades: MoodleGrade[]
+}
+
+type AttemptReopenMethod = 'manual' | 'untilpass' | 'none'
+
+interface RawAssignmentAttachment {
+	filename: string
+	filesize: number
+	mimetype: string
+	fileurl: string
+}
+
+type MoodleAssigmentInputFormat = 0 | 1 | 2 | 3
+
+type MoodlePlugin = 'file' | 'comment'
+interface RawMoodleAssignmentConfig {
+	plugin: MoodlePlugin
+	subtype: string
+	name: string
+	value: string
+}
+
+interface RawMoodleAssignment {
+	id: number
+	name: string
+	duedate: number
+	cutoffdate: number
+	grade: number
+	gradepenalty: number
+	completionsubmit: Bit
+	maxattempts: number
+	configs: RawMoodleAssignmentConfig[]
+	attemptreopenmethod: AttemptReopenMethod
+	intro: string
+	introformat: MoodleAssigmentInputFormat
+	introattachments: RawAssignmentAttachment[]
+}
+
+type MoodleWarningItem =
+	| 'course'
+	| 'module'
+	| 'user'
+	| 'category'
+	| 'section'
+	| 'assignment'
+	| 'quiz'
+	| 'forum'
+	| 'group'
+
+type MoodleWarningCode = '1' | '2' | '3' | '4' | '8'
+
+interface MoodleWarning {
+	item: MoodleWarningItem
+	itemid: number
+	warningcode: MoodleWarningCode
+	message: string
+}
+
+interface MoodleAssignmentsResponse {
+	courses: {
+		id: number
+		fullname: string
+		shortname: string
+		timemodified: number
+		assignments: RawMoodleAssignment[]
+	}[]
+	warnings: MoodleWarning[]
+}
+
+interface MoodleAssignmentAttachment {
+	name: string
+	size: number
+	mimeType: string
+	url: string
+}
+
+type MoodleAssignmentFileSubmission = {
+	maxFiles: number
+	maxSize: number
+	allowedTypes: string[]
+}
+
+interface MoodleAssignment {
+	id: number
+	name: string
+	deadlineAt: number
+	hardDeadlineAt: number
+	isSubmitRequired: boolean
+	grade: number
+	reopenMethod: AttemptReopenMethod
+	intro: Maybe<string>
+	attachments: MoodleAssignmentAttachment[]
+	fileSubmission: Maybe<MoodleAssignmentFileSubmission>
 }
 
 export type {
@@ -113,10 +205,18 @@ export type {
 	RawMoodleGradesResponse,
 	RawGradeType,
 	RawGradeModule,
+	RawMoodleAssignment,
 	GradeModule,
 	GradeType,
 	MoodleGrade,
 	MoodleGradesResponse,
 	RawMoodleGrade,
 	MoodleFinalGrade,
+	MoodleAssignmentsResponse,
+	MoodleWarning,
+	MoodleWarningCode,
+	MoodleWarningItem,
+	MoodleAssignment,
+	MoodleAssignmentFileSubmission,
+	MoodleAssignmentAttachment,
 }

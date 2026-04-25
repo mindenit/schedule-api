@@ -20,17 +20,25 @@ import type { MoodleException } from '../types/common.js'
 import type {
 	GradeModule,
 	GradeType,
+	MoodleAssignment,
+	MoodleAssignmentAttachment,
+	MoodleAssignmentFileSubmission,
 	MoodleCoursesResponse,
 	MoodleFinalGrade,
 	MoodleGrade,
 	MoodleSiteInfoResponse,
+	MoodleWarning,
+	MoodleWarningCode,
 	RawGradeModule,
 	RawGradeType,
+	RawMoodleAssignment,
 	RawMoodleCoursesResponse,
 	RawMoodleGrade,
 	RawMoodleSiteInfoResponse,
 } from '../types/responses.js'
 import type { Maybe } from '@/core/types/common.js'
+import { HTTP_STATUS, type HttpStatus } from '@/core/constants/http.js'
+import { NodeHtmlMarkdown } from 'node-html-markdown'
 
 const getDefaultMoodleHeaders = () => {
 	const headers = new Headers()
@@ -188,7 +196,7 @@ const mapMoodleCourseGrades = (grade: RawMoodleGrade): MoodleGrade => {
 		id: grade.id,
 		gradedAt: grade.gradedategraded,
 		grade: grade.graderaw,
-		letterGrade: grade.lettergradeformatted,
+		letterGrade: !grade.graderaw ? null : grade.lettergradeformatted,
 		range: {
 			min: grade.grademin,
 			max: grade.grademax,
@@ -226,6 +234,106 @@ const getMoodleCourseFinalGrade = (
 	}
 }
 
+const mapMoodleWarningToErrorCode = (
+	warning: MoodleWarning,
+): MoodleExceptionCode => {
+	const warningCodeMap: Record<MoodleWarningCode, MoodleExceptionCode> = {
+		'1': MOODLE_EXCEPTION_CODE.RECORD_NOT_FOUND_ERROR,
+		'2': MOODLE_EXCEPTION_CODE.ACCESS_DENIED_ERROR,
+		'3': MOODLE_EXCEPTION_CODE.INVALID_PARAM_OR_VALUE_ERROR,
+		'4': MOODLE_EXCEPTION_CODE.CONTENT_UNAVAILABLE_ERROR,
+		'8': MOODLE_EXCEPTION_CODE.ACTIVITY_UNAVAILABLE_ERROR,
+	}
+
+	return warningCodeMap[warning.warningcode]
+}
+
+const mapMoodleWarningToStatusCode = (warning: MoodleWarning): HttpStatus => {
+	const statusCodeMap: Record<MoodleWarningCode, HttpStatus> = {
+		'1': HTTP_STATUS.NOT_FOUND,
+		'2': HTTP_STATUS.FORBIDDEN,
+		'3': HTTP_STATUS.BAD_REQUEST,
+		'4': HTTP_STATUS.SERVICE_UNAVAILABLE,
+		'8': HTTP_STATUS.SERVICE_UNAVAILABLE,
+	}
+
+	return statusCodeMap[warning.warningcode] ?? HTTP_STATUS.INTERNAL_SERVER_ERR
+}
+
+const moodleWarningToException = (
+	warning: MoodleWarning,
+): MoodleOperationException => {
+	const code = mapMoodleWarningToErrorCode(warning)
+	const status = mapMoodleWarningToStatusCode(warning)
+
+	return new MoodleOperationException(code, warning.message, status)
+}
+
+const mapAssignmentFileSubmission = (
+	from: RawMoodleAssignment,
+): Maybe<MoodleAssignmentFileSubmission> => {
+	const fileConfigs = from.configs.filter((c) => c.plugin === 'file')
+
+	const isFileSubmissionEnabled = fileConfigs.find(
+		(c) => c.name === 'enabled' && Boolean(c.value),
+	)
+
+	if (!isFileSubmissionEnabled) {
+		return null
+	}
+
+	const allowedFileTypesConfig = fileConfigs.find(
+		(c) => c.name === 'filetypeslist',
+	)
+	const allowedFileTypes = allowedFileTypesConfig
+		? allowedFileTypesConfig.value === ''
+			? []
+			: allowedFileTypesConfig.value.split(',')
+		: []
+
+	return {
+		maxFiles: Number(
+			fileConfigs.find((c) => c.name === 'maxfilesubmissions')?.value,
+		),
+		maxSize: Number(
+			fileConfigs.find((c) => c.name === 'maxsubmissionsizebytes')?.value,
+		),
+		allowedTypes: allowedFileTypes,
+	}
+}
+
+const mapAssignmentAttachments = (
+	from: RawMoodleAssignment,
+): MoodleAssignmentAttachment[] => {
+	return from.introattachments.map((attachment) => ({
+		name: attachment.filename,
+		url: attachment.fileurl,
+		size: attachment.filesize,
+		mimeType: attachment.mimetype,
+	}))
+}
+
+const mapAssignmentIntro = (from: RawMoodleAssignment): string => {
+	if (from.introformat === 1) {
+		return NodeHtmlMarkdown.translate(from.intro)
+	}
+
+	return from.intro
+}
+
+const mapMoodleAssignment = (from: RawMoodleAssignment): MoodleAssignment => ({
+	id: from.id,
+	name: from.name,
+	deadlineAt: from.duedate,
+	hardDeadlineAt: from.cutoffdate,
+	isSubmitRequired: Boolean(from.completionsubmit),
+	grade: from.grade,
+	reopenMethod: from.attemptreopenmethod,
+	intro: from.intro.trim() ? mapAssignmentIntro(from) : null,
+	fileSubmission: mapAssignmentFileSubmission(from),
+	attachments: mapAssignmentAttachments(from),
+})
+
 export {
 	byCourseNameAsc,
 	constructMoodleRequestParams,
@@ -242,4 +350,6 @@ export {
 	setMoodleTokenCookie,
 	throwMoodleApiException,
 	getMoodleCourseFinalGrade,
+	moodleWarningToException,
+	mapMoodleAssignment,
 }

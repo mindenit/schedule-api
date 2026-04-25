@@ -4,6 +4,8 @@ import type { MoodleOperationException } from '../exceptions/moodle.exceptions.j
 import type { MoodleLogin, MoodleLoginResponse } from '../schemas/index.js'
 import type {
 	BuildMoodleApiUrlArgs,
+	GetAssignmentsArgs,
+	GetCourseContent,
 	GetCourseGradesArgs,
 	GetUserCoursesArgs,
 } from './common.js'
@@ -30,9 +32,15 @@ interface MoodleService {
 	getCourseGrades: (
 		args: GetCourseGradesArgs,
 	) => Promise<Result<MoodleGradesResponse, MoodleOperationException>>
+	getCourseAssignments: (
+		args: GetAssignmentsArgs,
+	) => Promise<Result<unknown, MoodleOperationException>>
 	login: (
 		data: MoodleLogin,
 	) => Promise<Result<MoodleLoginResponse, MoodleOperationException>>
+	getCourseContent: (
+		data: GetCourseContent,
+	) => Promise<Result<unknown, MoodleOperationException>>
 }
 
 interface MoodleModuleDependencies {

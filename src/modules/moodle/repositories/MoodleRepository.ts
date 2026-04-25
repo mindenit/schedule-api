@@ -14,13 +14,11 @@ import {
 	throwMoodleApiException,
 } from '../utils/index.js'
 
+const JSON_CONTENT_TYPES = ['application/json', 'text/json']
+const JSON_START_CHARS = ['{', '[']
+
 export class MoodleRepositoryImpl implements MoodleRepository {
 	private readonly baseUrl: string
-	private static readonly JSON_CONTENT_TYPES: string[] = [
-		'application/json',
-		'text/json',
-	]
-	private static readonly JSON_START_CHARS = ['{', '[']
 
 	constructor({ config }: MoodleInjectableDependencies) {
 		const { moodle } = config
@@ -35,14 +33,10 @@ export class MoodleRepositoryImpl implements MoodleRepository {
 		const response = await fetch(url, params)
 		const contentType = getContentType(response)
 
-		if (!MoodleRepositoryImpl.JSON_CONTENT_TYPES.includes(contentType)) {
+		if (!JSON_CONTENT_TYPES.includes(contentType)) {
 			const text = await response.text()
 
-			if (
-				MoodleRepositoryImpl.JSON_START_CHARS.some((char) =>
-					text.trim().startsWith(char),
-				)
-			) {
+			if (JSON_START_CHARS.some((char) => text.trim().startsWith(char))) {
 				const data: T = JSON.parse(text)
 				if (isMoodleExceptionResponse(data)) {
 					return throwMoodleApiException(data)
