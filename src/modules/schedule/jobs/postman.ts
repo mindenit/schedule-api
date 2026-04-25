@@ -10,12 +10,14 @@ import type { AppInstance } from '@/core/types/common.js'
 import { delay } from '@/core/utils/index.js'
 import { pingDiscordWebhook } from '../utils/discord.js'
 
+const CIST_DELAY_MS = 8_000
+
 export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 	const {
 		auditoriumsProcessor,
 		groupsProcessor,
-		eventsProcessor,
 		teachersProcessor,
+		eventsProcessor,
 		logger,
 		cache,
 		config,
@@ -51,8 +53,7 @@ export const cistPostmanJob = async (app: AppInstance): Promise<void> => {
 			const group = groups[i]!
 
 			await eventsProcessor.process(group.id, SCHEDULE_TYPE.GROUP)
-
-			await delay(8000)
+			await delay(CIST_DELAY_MS)
 		}
 
 		await Promise.all([

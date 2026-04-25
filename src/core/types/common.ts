@@ -1,7 +1,16 @@
+import type { Result } from 'better-result'
 import type { FastifyInstance } from 'fastify'
 import type http from 'node:http'
 
 type Maybe<T> = T | undefined | null
+
+type Bit = 0 | 1
+
+type PromiseResult<T, E> = Promise<Result<T, E>>
+
+interface EntityMapper<From, To> {
+	toEntity: (from: From) => To
+}
 
 type AppInstance = FastifyInstance<
 	http.Server,
@@ -30,11 +39,25 @@ type FailureResponse = {
 
 type BaseResponse<T extends object> = SuccessResponse<T> | FailureResponse
 
+type HttpExceptionOverrides = {
+	message: string | null
+	status: number
+}
+
+type HttpExceptionMap<K extends string> = Partial<
+	Record<K, HttpExceptionOverrides>
+>
+
 export type {
 	AppInstance,
-	HttpError,
-	Maybe,
 	BaseResponse,
-	SuccessResponse,
+	Bit,
+	EntityMapper,
 	FailureResponse,
+	HttpError,
+	HttpExceptionMap,
+	HttpExceptionOverrides,
+	Maybe,
+	PromiseResult,
+	SuccessResponse,
 }

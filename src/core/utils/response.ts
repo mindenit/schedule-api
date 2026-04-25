@@ -4,7 +4,7 @@ import type {
 	SuccessResponse,
 } from '../types/common.js'
 
-export const successResponse = <T extends object>(
+export const successResponse = <T>(
 	data: T,
 	message: string,
 ): SuccessResponse<T> => ({

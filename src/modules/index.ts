@@ -8,6 +8,7 @@ import { getAuditoriumsRoutes } from './auditoriums/routes/index.js'
 import { getGroupsRoutes } from './groups/routes/index.js'
 import { getLinksRoutes } from './links/routes/index.js'
 import { getTeachersRoutes } from './teachers/routes/index.js'
+import { getMoodleRoutes } from './moodle/routes/index.js'
 
 export const getRoutes = (): Routes => ({
 	routes: [
@@ -58,5 +59,6 @@ export const getRoutes = (): Routes => ({
 		...getGroupsRoutes().routes,
 		...getTeachersRoutes().routes,
 		...getLinksRoutes().routes,
+		...getMoodleRoutes().routes,
 	],
 })

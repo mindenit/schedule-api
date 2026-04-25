@@ -6,7 +6,7 @@ import type {
 } from '@/core/types/common.js'
 import type { BaseDiConfig, InjectableDependencies } from '@/core/types/deps.js'
 import type { FindableById } from '@/core/types/services.js'
-import type { Result } from 'neverthrow'
+import type { Result } from 'better-result'
 import type {
 	CREATE_LINK,
 	Link,

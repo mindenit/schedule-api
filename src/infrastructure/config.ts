@@ -3,6 +3,7 @@ import type {
 	DbConfig,
 	CacheConfig,
 	ProxyConfig,
+	MoodleConfig,
 } from '@/core/types/index.js'
 import { env } from '@/env.js'
 
@@ -29,11 +30,16 @@ const getIntegrationConfig = () => ({
 	discordWebhookUrl: env.DISCORD_WEBHOOK_URL,
 })
 
+const getMoodleConfig = (): MoodleConfig => ({
+	baseUrl: env.MOODLE_BASE_URL,
+})
+
 const getConfig = (): Config => ({
 	db: getDbConfig(),
 	cache: getCacheConfig(),
 	proxy: getProxyConfig(),
 	integration: getIntegrationConfig(),
+	moodle: getMoodleConfig(),
 })
 
 export { getConfig }
