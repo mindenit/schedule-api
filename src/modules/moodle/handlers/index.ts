@@ -44,7 +44,11 @@ export const getSiteInfo = async (
 			.send(error)
 	}
 
-	return reply.status(HTTP_STATUS.OK).send(siteInfo.unwrap())
+	return reply
+		.status(HTTP_STATUS.OK)
+		.send(
+			successResponse(siteInfo.unwrap(), 'Site info retrieved successfully'),
+		)
 }
 
 export const getCourses = async (
@@ -64,7 +68,11 @@ export const getCourses = async (
 			.send(error)
 	}
 
-	return reply.status(HTTP_STATUS.OK).send(courses.unwrap())
+	return reply
+		.status(HTTP_STATUS.OK)
+		.send(
+			successResponse(courses.unwrap(), 'User courses retrieved successfully'),
+		)
 }
 
 export const getCourseGrades = async (
@@ -87,7 +95,11 @@ export const getCourseGrades = async (
 		return reply.status(error.status).send(error)
 	}
 
-	return reply.status(HTTP_STATUS.OK).send(grades.unwrap())
+	return reply
+		.status(HTTP_STATUS.OK)
+		.send(
+			successResponse(grades.unwrap(), 'Course grades retrieved successfully'),
+		)
 }
 
 export const getCourseAssignments = async (
@@ -109,7 +121,14 @@ export const getCourseAssignments = async (
 		return reply.status(error.status).send(error)
 	}
 
-	return reply.status(HTTP_STATUS.OK).send(assignments.unwrap())
+	return reply
+		.status(HTTP_STATUS.OK)
+		.send(
+			successResponse(
+				assignments.unwrap(),
+				'Course assignments retrieved successfully',
+			),
+		)
 }
 
 export const getCourseContent = async (
@@ -131,5 +150,12 @@ export const getCourseContent = async (
 		return reply.status(error.status).send(error)
 	}
 
-	return reply.status(HTTP_STATUS.OK).send(content.unwrap())
+	return reply
+		.status(HTTP_STATUS.OK)
+		.send(
+			successResponse(
+				content.unwrap(),
+				'Course content retrieved successfully',
+			),
+		)
 }
