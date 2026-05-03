@@ -1,0 +1,1 @@
+export const CIST_CRAWLER_TOKEN = Symbol('CIST_CRAWLER_TOKEN')

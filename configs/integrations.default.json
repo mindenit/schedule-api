@@ -1,0 +1,10 @@
+{
+	"moodle": {
+		"enabled": false,
+		"baseUrl": "https://example.com"
+	},
+	"proxy": {
+		"enabled": false,
+		"baseUrl": "http://127.0.0.1:5035"
+	}
+}

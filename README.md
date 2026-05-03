@@ -33,9 +33,6 @@ node --run copy:config
 ```sh
 # Using docker cli
 docker compose up db -d
-
-# Using provided npm script
-node --run db:start:dev
 ```
 
 5. Generate and apply migration:
@@ -52,9 +49,6 @@ node --run db:apply-migration
 
 ```sh
 node --run start:dev
-
-# For running in watch mode
-node --run start:dev:watch
 ```
 
 ### Working with migrations
