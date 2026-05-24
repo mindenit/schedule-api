@@ -5,6 +5,7 @@ import { HealthModule } from './components/health/health.module'
 import { DatabaseModule } from './components/database/database.module'
 import { ScheduleModule } from '@nestjs/schedule'
 import { LoggerModule } from 'nestjs-pino'
+import { AuditoriumModule } from './application/auditoriums/auditorium.module'
 
 @Module({
 	imports: [
@@ -23,6 +24,9 @@ import { LoggerModule } from 'nestjs-pino'
 		CacheModule,
 		DatabaseModule,
 		HealthModule,
+
+		// Application
+		AuditoriumModule,
 	],
 })
 export class AppModule {}

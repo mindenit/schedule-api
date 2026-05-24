@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import Redis from 'ioredis'
 import {
+	HEALTH_CHECK_KEY,
+	LAST_UPDATE_KEY,
 	SYSTEM_HEALTH_STATUS,
 	SystemHealthStatus,
 } from 'src/common/constants/health-status'
@@ -10,10 +12,6 @@ import { PromiseResult } from 'src/common/types'
 import { attemptAsync } from 'src/common/utils/error-handling'
 import { CACHE_CONNECTION_TOKEN } from '../cache/di-tokens'
 import { HealthResponse } from './dto/health.dto'
-
-// Constants
-const HEALTH_CHECK_KEY = 'health-check' as const
-const LAST_UPDATE_KEY = 'last-update' as const
 
 @Injectable()
 export class HealthService {
