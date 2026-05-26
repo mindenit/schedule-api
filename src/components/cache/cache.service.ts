@@ -4,12 +4,12 @@ import Redis from 'ioredis'
 
 @Injectable()
 export class CacheService {
-	private _cache: Redis
+	private cache: Redis
 
 	constructor(private readonly configService: ConfigService) {
 		const { port, host, user, password } = this.configService.get('cache')
 
-		this._cache = new Redis({
+		this.cache = new Redis({
 			port,
 			host,
 			username: user,
@@ -21,7 +21,7 @@ export class CacheService {
 	 * Gets the Redis cache instance.
 	 * @returns {Redis} The Redis cache instance.
 	 */
-	get cache(): Redis {
-		return this._cache
+	get(): Redis {
+		return this.cache
 	}
 }

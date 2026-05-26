@@ -13,7 +13,7 @@
 		"test:cov": "vitest run --coverage",
 		"test:debug": "vitest --inspect-brk --inspect --logHeapUsage --threads=false",
 		"test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-		"infrastructure:start:dev": "docker compose -f ./docker-compose.dev.yml up -d db cache cist-proxy",
+		"infrastructure:start:dev": "docker compose -f ./docker-compose.dev.yml up -d db db-gateway cache cist-proxy",
 		"infrastructure:stop:dev": "docker compose down",
 		"db:generate-schema": "tsc -p tsconfig.drizzle.json",
 		"db:generate-migration": "NODE_ENV=development node --run db:generate-schema && npx drizzle-kit generate --config=./drizzle.config.ts",

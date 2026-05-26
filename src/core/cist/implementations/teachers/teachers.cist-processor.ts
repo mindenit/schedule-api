@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Result } from 'better-result'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
@@ -19,6 +19,8 @@ export class CistTeachersProcessor extends CistAbstractProcessor<
 	Teacher[],
 	CistTeachersProcessorException
 > {
+	private readonly logger = new Logger(CistTeachersProcessor.name)
+
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
 		db: PostgresJsDatabase,

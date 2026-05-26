@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common'
+import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'
+import { LoggerModule } from 'nestjs-pino'
+import { AudtoriumsModule } from './application/auditoriums/auditoriums.module'
+import { GroupsModule } from './application/groups/groups.module'
+import { ScheduleModule } from './application/schedule/schedule.module'
+import { TeachersModule } from './application/teachers/teachers.module'
 import { CacheModule } from './components/cache/cache.module'
 import { ConfigModule } from './components/config/config.module'
-import { HealthModule } from './components/health/health.module'
 import { DatabaseModule } from './components/database/database.module'
-import { ScheduleModule } from '@nestjs/schedule'
-import { LoggerModule } from 'nestjs-pino'
-import { AuditoriumModule } from './application/auditoriums/auditorium.module'
+import { HealthModule } from './components/health/health.module'
 
 @Module({
 	imports: [
@@ -17,7 +20,7 @@ import { AuditoriumModule } from './application/auditoriums/auditorium.module'
 						: undefined,
 			},
 		}),
-		ScheduleModule.forRoot(),
+		NestScheduleModule.forRoot(),
 
 		// Components
 		ConfigModule,
@@ -26,7 +29,10 @@ import { AuditoriumModule } from './application/auditoriums/auditorium.module'
 		HealthModule,
 
 		// Application
-		AuditoriumModule,
+		AudtoriumsModule,
+		GroupsModule,
+		ScheduleModule,
+		TeachersModule,
 	],
 })
 export class AppModule {}

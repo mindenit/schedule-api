@@ -15,7 +15,7 @@ export class DepartmentMapper
 		return Maybe.fromThrowable(() =>
 			this.schema.parse({
 				id: from.id,
-				shortname: from.short_name,
+				shortName: from.short_name,
 				fullName: from.full_name,
 				facultyId: from.facultyId,
 			}),

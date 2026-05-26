@@ -4,7 +4,7 @@ import CistCrawler, {
 	Subject as CistSubject,
 	Teacher as CistTeacher,
 } from '@mindenit/cist-crawler'
-import { Inject } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import {
 	CistCrawlerErrorCodes,
@@ -25,11 +25,13 @@ import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
 import { EventMapper, SubjectHourMapper, SubjectMapper } from '../../mappers'
 
+// Constants
 export const SCHEDULE_TYPE = {
 	GROUP: 1,
 	TEACHER: 2,
 } as const
 
+// Types
 export type ScheduleType = (typeof SCHEDULE_TYPE)[keyof typeof SCHEDULE_TYPE]
 
 type PairsParserArgs = Readonly<{
@@ -43,6 +45,7 @@ type Accumulator = {
 	hours: SubjectHour[]
 }
 
+@Injectable()
 export class CistEventsParser
 	implements
 		CistParser<PairsParserOutput, CistCrawlerException, PairsParserArgs>

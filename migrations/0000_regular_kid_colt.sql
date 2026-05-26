@@ -28,20 +28,20 @@ CREATE TABLE "auditorium" (
 CREATE TABLE "building" (
 	"id" varchar PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL
+	"short_name" varchar(255) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "department" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL,
+	"short_name" varchar(255) NOT NULL,
 	"faculty_id" integer NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "direction" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL,
+	"short_name" varchar(255) NOT NULL,
 	"faculty_id" integer NOT NULL
 );
 --> statement-breakpoint
@@ -71,13 +71,13 @@ CREATE TABLE "event" (
 CREATE TABLE "faculty" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL
+	"short_name" varchar(255) NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "speciality" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL,
+	"short_name" varchar(255) NOT NULL,
 	"direction_id" integer NOT NULL
 );
 --> statement-breakpoint
@@ -98,7 +98,7 @@ CREATE TABLE "subject" (
 CREATE TABLE "teacher" (
 	"id" integer PRIMARY KEY NOT NULL,
 	"full_name" varchar(255) NOT NULL,
-	"short_name" varchar(40) NOT NULL,
+	"short_name" varchar(255) NOT NULL,
 	"department_id" integer NOT NULL
 );
 --> statement-breakpoint

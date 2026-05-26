@@ -11,7 +11,7 @@ import { AppException } from 'src/common/exceptions/app.exception'
 import { PromiseResult } from 'src/common/types'
 import { attemptAsync } from 'src/common/utils/error-handling'
 import { CACHE_CONNECTION_TOKEN } from '../cache/di-tokens'
-import { HealthResponse } from './dto/health.dto'
+import { HealthResponse } from './dtos/health.dto'
 
 @Injectable()
 export class HealthService {

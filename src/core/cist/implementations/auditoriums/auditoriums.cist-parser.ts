@@ -3,7 +3,7 @@ import CistCrawler, {
 	Building as CistBuilding,
 } from '@mindenit/cist-crawler'
 import { CistParser } from '../../interfaces/parser.interface'
-import { Inject } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
 import { Result } from 'better-result'
 import {
@@ -28,6 +28,7 @@ type Accumulator = {
 	auditoriumTypes: AuditoriumType[]
 }
 
+@Injectable()
 export class CistAuditoriumParser
 	implements CistParser<AuditoriumParserOutput, CistCrawlerException>
 {

@@ -2,7 +2,7 @@ import CistCrawler, {
 	Direction as CistDirection,
 	Faculty as CistFaculty,
 } from '@mindenit/cist-crawler'
-import { Inject } from '@nestjs/common'
+import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import {
 	CistCrawlerErrorCodes,
@@ -22,6 +22,7 @@ import {
 	SpecialityMapper,
 } from '../../mappers'
 
+// Types
 type Accumulator = {
 	groups: Group[]
 	faculties: Faculty[]
@@ -31,6 +32,7 @@ type Accumulator = {
 
 type CistSpeciality = Omit<CistDirection, 'specialities'>
 
+@Injectable()
 export class CistGroupsParser
 	implements CistParser<GroupsParserOutput, CistCrawlerException>
 {

@@ -5,7 +5,7 @@ import postgres from 'postgres'
 
 @Injectable()
 export class DatabaseService {
-	private _database: PostgresJsDatabase
+	private database: PostgresJsDatabase
 
 	constructor(private readonly configService: ConfigService) {
 		const { user, password, host, port, database } =
@@ -19,7 +19,7 @@ export class DatabaseService {
 			database,
 		})
 
-		this._database = drizzle(queryClient, {
+		this.database = drizzle(queryClient, {
 			casing: 'snake_case',
 		})
 	}
@@ -29,6 +29,6 @@ export class DatabaseService {
 	 * @returns {PostgresJsDatabase} The database instance.
 	 */
 	get(): PostgresJsDatabase {
-		return this._database
+		return this.database
 	}
 }

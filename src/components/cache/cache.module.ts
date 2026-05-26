@@ -6,7 +6,7 @@ import { ConfigModule } from '../config/config.module'
 
 const cacheConnectionProvider = {
 	provide: CACHE_CONNECTION_TOKEN,
-	useFactory: (cacheService: CacheService): Redis => cacheService.cache,
+	useFactory: (cacheService: CacheService): Redis => cacheService.get(),
 	inject: [CacheService],
 } satisfies Provider
 

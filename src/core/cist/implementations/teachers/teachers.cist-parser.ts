@@ -3,7 +3,7 @@ import CistCrawler, {
 	Faculty as CistFaculty,
 	Teacher as CistTeacher,
 } from '@mindenit/cist-crawler'
-import { Inject } from '@nestjs/common'
+import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Result } from 'better-result'
 import {
 	CistCrawlerErrorCodes,
@@ -20,15 +20,19 @@ import { DepartmentMapper } from '../../mappers/department.mapper'
 import { TeacherMapper } from '../../mappers/teacher.mapper'
 import { Department, Faculty, Teacher } from '../../dtos'
 
+// Types
 type Accumulator = {
 	teachers: Teacher[]
 	faculties: Faculty[]
 	departments: Department[]
 }
 
+@Injectable()
 export class CistTeachersParser
 	implements CistParser<TeachersParserOutput, CistCrawlerException>
 {
+	private readonly logger = new Logger(CistTeachersParser.name)
+
 	private readonly facultyMapper = new FacultyMapper()
 	private readonly departmentMapper = new DepartmentMapper()
 	private readonly teacherMapper = new TeacherMapper()
@@ -79,7 +83,7 @@ export class CistTeachersParser
 		acc: Accumulator,
 		seen: Set<number>,
 	): void {
-		if (!collectEntity(this.facultyMapper, faculty, acc.faculties)) return
+		collectEntity(this.facultyMapper, faculty, acc.faculties)
 
 		for (const department of Array.orEmpty(faculty.departments)) {
 			this.processDepartment(department, faculty.id, acc, seen)
@@ -105,9 +109,7 @@ export class CistTeachersParser
 			return
 		}
 
-		for (const teacher of Array.orEmpty(
-			department.teachers as unknown as CistTeacher[] | undefined,
-		)) {
+		for (const teacher of Array.orEmpty(department.teachers)) {
 			this.processTeacher(teacher, department.id, acc, seen)
 		}
 	}
@@ -118,11 +120,7 @@ export class CistTeachersParser
 		acc: Accumulator,
 		seen: Set<number>,
 	): void {
-		if (
-			seen.has(teacher.id) ||
-			!teacher.full_name.length ||
-			!teacher.short_name.length
-		) {
+		if (seen.has(teacher.id)) {
 			return
 		}
 

@@ -16,6 +16,7 @@ import {
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
 import { CistGroupsParser } from './groups.cist-parser'
 
+// Types
 type CistGroupsProcessorException = CistCrawlerException
 
 @Injectable()

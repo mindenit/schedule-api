@@ -12,12 +12,18 @@ export class BuildingMapper implements EntityMapper<CistBuilding, Building> {
 	 * @returns {Maybe.Maybe<Building>} The building entity.
 	 */
 	toEntity(from: CistBuilding): Maybe.Maybe<Building> {
-		return Maybe.fromThrowable(() =>
-			this.schema.parse({
+		try {
+			const a = this.schema.parse({
 				id: from.id,
 				fullName: from.full_name,
 				shortName: from.short_name,
-			}),
-		)
+			})
+
+			return Maybe.fromNullable(a)
+		} catch (e: unknown) {
+			console.log(JSON.stringify(e))
+
+			throw new Error(JSON.stringify(e))
+		}
 	}
 }

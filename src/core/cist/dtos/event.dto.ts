@@ -26,6 +26,15 @@ const EventTypeSchema = z.enum([
 	'КП/КР',
 ])
 
+const SubjectHourSchema = z.object({
+	subjectId: z.number().int(),
+	hours: z.number().int(),
+	type: EventTypeSchema,
+	teacherId: z.number().int().nullable(),
+})
+
+type SubjectHour = z.infer<typeof SubjectHourSchema>
+
 export type EventType = z.infer<typeof EventTypeSchema>
 
 const EventSchema = z.object({
@@ -41,5 +50,11 @@ const EventSchema = z.object({
 
 type Event = z.infer<typeof EventSchema>
 
-export { EventSchema, EventGroupSchema, EventTeacherSchema, EventTypeSchema }
-export type { Event, EventGroup, EventTeacher }
+export {
+	EventSchema,
+	EventGroupSchema,
+	EventTeacherSchema,
+	EventTypeSchema,
+	SubjectHourSchema,
+}
+export type { Event, EventGroup, EventTeacher, SubjectHour }
