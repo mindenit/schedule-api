@@ -1,7 +1,7 @@
 import eslintNestJs from '@darraghor/eslint-plugin-nestjs-typed'
 import pluginJs from '@eslint/js'
 import vitest from '@vitest/eslint-plugin'
-import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended'
+import pluginOxfmt from 'eslint-plugin-oxfmt'
 import pluginSecurity from 'eslint-plugin-security'
 import simpleImportSort from 'eslint-plugin-simple-import-sort'
 import unusedImports from 'eslint-plugin-unused-imports'
@@ -49,5 +49,5 @@ export default tseslint.config(
 		},
 	},
 	{ files: ['**/*.spec.ts', '**/*.e2e.ts'], ...vitest.configs.recommended },
-	eslintPluginPrettierRecommended,
+	pluginOxfmt.configs.recommendedWithoutParser,
 )
