@@ -30,9 +30,10 @@ interface Accumulator {
 }
 
 @Injectable()
-export class CistAuditoriumParser
-	implements CistParser<AuditoriumParserOutput, CistCrawlerException>
-{
+export class CistAuditoriumParser implements CistParser<
+	AuditoriumParserOutput,
+	CistCrawlerException
+> {
 	private readonly auditoriumMapper = new AuditoriumMapper()
 	private readonly auditoriumTypeMapper = new AuditoriumTypeMapper()
 	private readonly buildingMapper = new BuildingMapper()
@@ -44,7 +45,7 @@ export class CistAuditoriumParser
 
 	async parse(): PromiseResult<AuditoriumParserOutput, CistCrawlerException> {
 		const responseResult = await Result.tryPromise({
-			try: () => this.cistCrawler.getAuditories(),
+			// try: () => this.cistCrawler.getAuditories(),
 			catch: (e) =>
 				new CistCrawlerException(
 					CistCrawlerErrorCodes.FETCH_FAILED,

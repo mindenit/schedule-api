@@ -7,9 +7,10 @@ import { cistTypeIdToEventType } from '../helpers/event-type.helper'
 
 type CistHourWithSubjectId = CistHour & { subjectId: number }
 
-export class SubjectHourMapper
-	implements EntityMapper<CistHourWithSubjectId, SubjectHour>
-{
+export class SubjectHourMapper implements EntityMapper<
+	CistHourWithSubjectId,
+	SubjectHour
+> {
 	schema = SubjectHourSchema
 
 	toEntity(from: CistHourWithSubjectId): Maybe.Maybe<SubjectHour> {
