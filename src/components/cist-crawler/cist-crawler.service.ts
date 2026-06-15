@@ -1,6 +1,5 @@
 import CistCrawler from '@mindenit/cist-crawler'
 import { Injectable } from '@nestjs/common'
-import { ConfigNotFoundException } from 'src/common/exceptions/config.exception'
 
 import { ConfigService } from '../config/config.service'
 
@@ -9,31 +8,9 @@ export class CistCrawlerService {
 	private readonly _crawler: CistCrawler
 
 	constructor(private readonly configService: ConfigService) {
-		const integrationsConfig = this.configService.get('integrations')
-		if (!('cist' in integrationsConfig)) {
-			throw new ConfigNotFoundException(
-				'Cist integration configuration not found',
-			)
-		}
+		const { cist } = this.configService.get('integrations')
 
-		const cistConfig = integrationsConfig?.cist
-		if (!cistConfig) {
-			throw new ConfigNotFoundException(
-				'Cist integration configuration not found',
-			)
-		}
-
-		if (
-			typeof cistConfig !== 'object' ||
-			!('clientId' in cistConfig) ||
-			typeof cistConfig.clientId !== 'string'
-		) {
-			throw new ConfigNotFoundException(
-				'Cist integration configuration not found',
-			)
-		}
-
-		this._crawler = new CistCrawler({ clientId: cistConfig.clientId })
+		this._crawler = new CistCrawler({ clientId: cist.clientId })
 	}
 
 	/*

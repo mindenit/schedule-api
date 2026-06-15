@@ -1,3 +1,5 @@
+import 'dotenv/config'
+
 import { INestApplication } from '@nestjs/common'
 import { NestFactory, Reflector } from '@nestjs/core'
 import {
