@@ -50,5 +50,5 @@ type GetAuditoriumScheduleFilters = z.infer<
 	typeof GetAuditoriumScheduleFiltersSchema
 >
 
-export { PublicAuditoriumSchema, GetAuditoriumScheduleFiltersSchema }
-export type { PublicAditorium, GetAuditoriumScheduleFilters }
+export { GetAuditoriumScheduleFiltersSchema, PublicAuditoriumSchema }
+export type { GetAuditoriumScheduleFilters, PublicAditorium }

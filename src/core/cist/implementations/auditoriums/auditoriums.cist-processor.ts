@@ -1,15 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { Auditorium } from 'src/core/cist/dtos/auditorium.dto'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
+import { Auditorium } from 'src/core/cist/dtos/auditorium.dto'
 import {
 	auditoriumTable,
 	auditoriumTypeTable,
 	buildingTable,
 } from 'src/db/schema'
+
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
 import { CistAuditoriumParser } from './auditoriums.cist-parser'
 

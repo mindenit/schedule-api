@@ -1,16 +1,17 @@
 import { createZodDto } from 'nestjs-zod'
-import {
-	GetTeacherScheduleFiltersSchema,
-	PublicTeacherSchema,
-} from '../teachers.schemas'
-import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
 import { PublicAuditoriumSchema } from 'src/application/auditoriums/auditoriums.schema'
 import { PublicGroupSchema } from 'src/application/groups/groups.schema'
-import { SubjectSchema } from 'src/core/cist/dtos'
+import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
 import {
 	getScheduleQuerySchema,
 	ScheduleSchema,
 } from 'src/common/schemas/schedule.schema'
+import { SubjectSchema } from 'src/core/cist/dtos'
+
+import {
+	GetTeacherScheduleFiltersSchema,
+	PublicTeacherSchema,
+} from '../teachers.schemas'
 
 export class TeachersResponseDto extends createZodDto(
 	PublicTeacherSchema.array(),

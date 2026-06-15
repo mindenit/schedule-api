@@ -12,16 +12,17 @@ import {
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+
 import { TeachersParserOutput } from '../../cist.types'
+import { Department, Faculty, Teacher } from '../../dtos'
 import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
-import { FacultyMapper } from '../../mappers/faculty.mapper'
 import { DepartmentMapper } from '../../mappers/department.mapper'
+import { FacultyMapper } from '../../mappers/faculty.mapper'
 import { TeacherMapper } from '../../mappers/teacher.mapper'
-import { Department, Faculty, Teacher } from '../../dtos'
 
 // Types
-type Accumulator = {
+interface Accumulator {
 	teachers: Teacher[]
 	faculties: Faculty[]
 	departments: Department[]

@@ -1,4 +1,5 @@
 import { Module, Provider } from '@nestjs/common'
+
 import { ConfigModule } from '../config/config.module'
 import { CistCrawlerService } from './cist-crawler.service'
 import { CIST_CRAWLER_TOKEN } from './di-tokens'

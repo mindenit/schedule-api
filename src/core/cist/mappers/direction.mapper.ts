@@ -1,8 +1,9 @@
 import { Direction as CistDirection } from '@mindenit/cist-crawler'
-import { EntityMapper } from 'src/core/entity.mapper'
-import { Direction, DirectionSchema } from '../dtos'
 import { Maybe } from 'src/common/utils/maybe'
 import { Sorting } from 'src/common/utils/sorting'
+import { EntityMapper } from 'src/core/entity.mapper'
+
+import { Direction, DirectionSchema } from '../dtos'
 
 type CistDirectionWithFaculty = CistDirection & {
 	facultyId: number

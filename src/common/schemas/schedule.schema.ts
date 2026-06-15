@@ -79,5 +79,5 @@ const getScheduleQuerySchema = <T extends object>(schema: ZodType<T>) => {
 	})
 }
 
-export { GetScheduleTimeIntervalSchema, ScheduleSchema, getScheduleQuerySchema }
+export { getScheduleQuerySchema, GetScheduleTimeIntervalSchema, ScheduleSchema }
 export type { GetScheduleOptions, Schedule }

@@ -1,8 +1,9 @@
 import { Controller, Get, HttpStatus } from '@nestjs/common'
-import { HealthService } from './health.service'
-import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
-import { HealthResponseDto } from './dtos/health.dto'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
+
+import { HealthResponseDto } from './dtos/health.dto'
+import { HealthService } from './health.service'
 
 @ApiTags('System Check')
 @Controller('health')

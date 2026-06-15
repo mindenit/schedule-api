@@ -7,6 +7,7 @@ import {
 	ScheduleSchema,
 } from 'src/common/schemas/schedule.schema'
 import { AuditoriumSchema, SubjectSchema } from 'src/core/cist/dtos'
+
 import { GetAuditoriumScheduleFiltersSchema } from '../auditoriums.schema'
 
 export class AuditoriumsResponseDto extends createZodDto(

@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { bigint, check, pgTable, uniqueIndex } from 'drizzle-orm/pg-core'
+
 import { referencialIntegrityOptions } from '../utils'
 import { auditoriumTable } from './auditorium'
 import { eventTypeEnum } from './event-type-enum'

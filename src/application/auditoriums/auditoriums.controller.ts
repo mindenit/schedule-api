@@ -1,6 +1,7 @@
 import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
-import { ApiOperation } from '@nestjs/swagger'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
+
 import { AuditoriumsRepository } from './auditoriums.repository'
 import {
 	AuditoriumGroupsResponseDto,
@@ -12,6 +13,7 @@ import {
 	GetAuditoriumScheduleQueryDto,
 } from './dtos/auditoriums.dto'
 
+@ApiTags('Auditoriums')
 @Controller('auditoriums')
 export class AuditoriumsController {
 	constructor(private readonly auditoriumsRepository: AuditoriumsRepository) {}

@@ -1,5 +1,6 @@
-import { ConsoleLogger, Injectable, LogLevel, Scope } from '@nestjs/common'
 import { randomBytes } from 'node:crypto'
+
+import { ConsoleLogger, Injectable, LogLevel, Scope } from '@nestjs/common'
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService extends ConsoleLogger {

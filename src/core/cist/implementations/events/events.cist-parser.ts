@@ -13,6 +13,7 @@ import {
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+
 import { PairsParserOutput } from '../../cist.types'
 import {
 	Event,
@@ -39,7 +40,7 @@ type PairsParserArgs = Readonly<{
 	type: ScheduleType
 }>
 
-type Accumulator = {
+interface Accumulator {
 	events: Event[]
 	subjects: Subject[]
 	hours: SubjectHour[]

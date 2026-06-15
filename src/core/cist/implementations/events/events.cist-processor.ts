@@ -15,6 +15,7 @@ import {
 	subjectTable,
 	subjectToTeacherTable,
 } from 'src/db/schema'
+
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
 import { CistEventsParser } from './events.cist-parser'
 

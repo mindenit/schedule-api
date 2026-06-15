@@ -1,4 +1,4 @@
-import { and, eq, exists, gte, inArray, lte, sql, type SQL } from 'drizzle-orm'
+import { and, eq, exists, gte, inArray, lte, type SQL, sql } from 'drizzle-orm'
 import { alias, PgColumn, PgTable, QueryBuilder } from 'drizzle-orm/pg-core'
 import {
 	academicGroupTable,
@@ -10,7 +10,7 @@ import {
 	subjectTable,
 } from 'src/db/schema'
 
-export type TimeInterval = {
+export interface TimeInterval {
 	startedAt: number | null
 	endedAt: number | null
 }

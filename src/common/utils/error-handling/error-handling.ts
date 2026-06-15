@@ -18,14 +18,30 @@ export const attemptAsync = async <A, E extends AppException>(
 ): PromiseResult<A, E | UnknownException> => {
 	const result = await Result.tryPromise(thunk)
 
-	return result.mapError<E | UnknownException>((e: unknown) =>
-		errorClass
-			? errorClass
-			: new AppException(
-					CommonErrorCodes.UNKNOWN_EXCEPTION,
-					e instanceof Error ? e.message : 'Unknown error',
-					HttpStatus.INTERNAL_SERVER_ERROR,
-					{ cause: e },
-				),
+	return result.mapError<E | UnknownException>(
+		(e: unknown) =>
+			errorClass ??
+			new AppException(
+				CommonErrorCodes.UNKNOWN_EXCEPTION,
+				e instanceof Error ? e.message : 'Unknown error',
+				HttpStatus.INTERNAL_SERVER_ERROR,
+				{ cause: e },
+			),
 	)
+}
+
+export const stringifyErrorCause = (cause: unknown): string => {
+	if (cause instanceof Error) {
+		return cause.message
+	}
+
+	if (typeof cause === 'string') {
+		return cause
+	}
+
+	try {
+		return JSON.stringify(cause)
+	} catch {
+		return String(cause)
+	}
 }

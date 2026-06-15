@@ -1,8 +1,9 @@
 import { Direction } from '@mindenit/cist-crawler'
 import { Maybe } from 'src/common/utils/maybe'
-import { EntityMapper } from 'src/core/entity.mapper'
-import { Speciality, SpecialitySchema } from '../dtos'
 import { Sorting } from 'src/common/utils/sorting'
+import { EntityMapper } from 'src/core/entity.mapper'
+
+import { Speciality, SpecialitySchema } from '../dtos'
 
 type CistSpeciality = Omit<Direction, 'specialities'> & {
 	directionId: number

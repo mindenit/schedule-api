@@ -1,4 +1,5 @@
 import z from 'zod'
+
 import { SubjectSchema } from './subject.dto'
 
 const EventGroupSchema = z.object({
@@ -51,8 +52,8 @@ const EventSchema = z.object({
 type Event = z.infer<typeof EventSchema>
 
 export {
-	EventSchema,
 	EventGroupSchema,
+	EventSchema,
 	EventTeacherSchema,
 	EventTypeSchema,
 	SubjectHourSchema,

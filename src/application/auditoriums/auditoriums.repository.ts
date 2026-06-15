@@ -1,6 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { asc, eq, notLike, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
+import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { Auditorium, Group, Subject, Teacher } from 'src/core/cist/dtos'
 import {
@@ -12,9 +14,8 @@ import {
 	subjectTable,
 	teacherTable,
 } from 'src/db/schema'
+
 import { GetAuditoriumScheduleFilters } from './auditoriums.schema'
-import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
-import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { getAuditoriumFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()

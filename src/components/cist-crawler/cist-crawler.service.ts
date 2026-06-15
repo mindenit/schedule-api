@@ -1,6 +1,7 @@
 import CistCrawler from '@mindenit/cist-crawler'
 import { Injectable } from '@nestjs/common'
 import { ConfigNotFoundException } from 'src/common/exceptions/config.exception'
+
 import { ConfigService } from '../config/config.service'
 
 @Injectable()

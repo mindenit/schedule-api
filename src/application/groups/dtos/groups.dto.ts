@@ -6,10 +6,11 @@ import {
 	getScheduleQuerySchema,
 	ScheduleSchema,
 } from 'src/common/schemas/schedule.schema'
-import { GroupSchema, SubjectSchema } from 'src/core/cist/dtos'
+import * as dtos from 'src/core/cist/dtos'
+
 import { GetGroupScheduleFiltersSchema } from '../groups.schema'
 
-export class GroupsResponseDto extends createZodDto(GroupSchema.array()) {}
+export class GroupsResponseDto extends createZodDto(dtos.GroupSchema.array()) {}
 
 export class GetGroupParamsDto extends createZodDto(GetByIdParamSchema) {}
 
@@ -18,7 +19,7 @@ export class GroupAuditoriumsResponseDto extends createZodDto(
 ) {}
 
 export class GroupSubjectsResponseDto extends createZodDto(
-	SubjectSchema.array(),
+	dtos.SubjectSchema.array(),
 ) {}
 
 export class GroupTeachersResponseDto extends createZodDto(

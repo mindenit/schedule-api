@@ -1,22 +1,23 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { asc, eq, getTableColumns, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
+import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
+import { Subject } from 'src/core/cist/dtos'
 import {
-	subjectTable,
 	academicGroupTable,
 	auditoriumTable,
 	eventTable,
 	eventToAcademicGroupTable,
 	eventToTeacherTable,
+	subjectTable,
 	teacherTable,
 } from 'src/db/schema'
+
 import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import { PublicGroup } from '../groups/groups.schema'
 import { GetTeacherScheduleFilters, PublicTeacher } from './teachers.schemas'
-import { Subject } from 'src/core/cist/dtos'
-import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
-import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { getTeacherFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()
@@ -29,7 +30,6 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 	}
 
 	async findAll(): Promise<PublicTeacher[]> {
-		// eslint-disable-next-line @typescript-eslint/no-unused-vars
 		const { departmentId, ...rest } = getTableColumns(teacherTable)
 
 		return this.db

@@ -1,16 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { Group } from 'src/core/cist/dtos/group.dto'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
+import { Group } from 'src/core/cist/dtos/group.dto'
 import {
 	academicGroupTable,
 	directionTable,
 	facultyTable,
 	specialityTable,
 } from 'src/db/schema'
+
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
 import { CistGroupsParser } from './groups.cist-parser'
 

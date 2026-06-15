@@ -5,9 +5,10 @@ import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.excepti
 import { PromiseResult } from 'src/common/types'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { departmentTable, facultyTable, teacherTable } from 'src/db/schema'
+
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
-import { CistTeachersParser } from './teachers.cist-parser'
 import { Teacher } from '../../dtos/teacher.dto'
+import { CistTeachersParser } from './teachers.cist-parser'
 
 // Types
 type CistTeachersProcessorException = CistCrawlerException

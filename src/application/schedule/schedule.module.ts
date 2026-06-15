@@ -4,6 +4,7 @@ import { DatabaseModule } from 'src/components/database/database.module'
 import { LoggerModule } from 'src/components/logger/logger.module'
 import { WebhooksModule } from 'src/components/webhooks/webhooks.module'
 import { CistModule } from 'src/core/cist/cist.module'
+
 import { ScheduleService } from './schedule.service'
 
 @Module({

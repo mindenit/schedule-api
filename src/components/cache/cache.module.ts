@@ -1,8 +1,9 @@
 import { Module, Provider } from '@nestjs/common'
-import { CACHE_CONNECTION_TOKEN } from './di-tokens'
-import { CacheService } from './cache.service'
 import Redis from 'ioredis'
+
 import { ConfigModule } from '../config/config.module'
+import { CacheService } from './cache.service'
+import { CACHE_CONNECTION_TOKEN } from './di-tokens'
 
 const cacheConnectionProvider = {
 	provide: CACHE_CONNECTION_TOKEN,

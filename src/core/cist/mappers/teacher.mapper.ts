@@ -1,8 +1,9 @@
 import { Teacher as CistTeacher } from '@mindenit/cist-crawler'
-import { Teacher, TeacherSchema } from '../dtos'
 import { Maybe } from 'src/common/utils/maybe'
-import { EntityMapper } from 'src/core/entity.mapper'
 import { Sorting } from 'src/common/utils/sorting'
+import { EntityMapper } from 'src/core/entity.mapper'
+
+import { Teacher, TeacherSchema } from '../dtos'
 
 // Types
 type CistTeacherWithDepartment = CistTeacher & { departmentId: number }

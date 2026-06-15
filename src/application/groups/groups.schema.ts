@@ -50,5 +50,5 @@ const GetGroupScheduleFiltersSchema = z
 
 type GetGroupScheduleFilters = z.infer<typeof GetGroupScheduleFiltersSchema>
 
-export { PublicGroupSchema, GetGroupScheduleFiltersSchema }
-export type { PublicGroup, GetGroupScheduleFilters }
+export { GetGroupScheduleFiltersSchema, PublicGroupSchema }
+export type { GetGroupScheduleFilters, PublicGroup }

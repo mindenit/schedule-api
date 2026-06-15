@@ -1,9 +1,9 @@
 import { AuditoryType } from '@mindenit/cist-crawler'
+import { Maybe } from 'src/common/utils/maybe'
 import {
 	AuditoriumType,
 	AuditoriumTypeSchema,
 } from 'src/core/cist/dtos/auditorium.dto'
-import { Maybe } from 'src/common/utils/maybe'
 import { EntityMapper } from 'src/core/entity.mapper'
 
 type AuditoryTypeWithAuditoryId = AuditoryType & { auditoriumId: string }

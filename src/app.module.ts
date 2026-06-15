@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'
+
 import { AudtoriumsModule } from './application/auditoriums/auditoriums.module'
 import { GroupsModule } from './application/groups/groups.module'
 import { ScheduleModule } from './application/schedule/schedule.module'

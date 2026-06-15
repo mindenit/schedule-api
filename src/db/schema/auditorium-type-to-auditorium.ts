@@ -1,4 +1,5 @@
 import { integer, pgTable, primaryKey } from 'drizzle-orm/pg-core'
+
 import { referencialIntegrityOptions } from '../utils'
 import { auditoriumTable } from './auditorium'
 import { auditoriumTypeTable } from './auditorium-type'

@@ -1,15 +1,16 @@
 import {
-	Injectable,
-	NestInterceptor,
-	ExecutionContext,
 	CallHandler,
+	ExecutionContext,
 	HttpException,
+	Injectable,
 	InternalServerErrorException,
 	Logger,
+	NestInterceptor,
 } from '@nestjs/common'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { Observable, throwError } from 'rxjs'
 import { catchError } from 'rxjs/operators'
+
 import { AppException } from '../exceptions/app.exception'
 
 @Injectable()

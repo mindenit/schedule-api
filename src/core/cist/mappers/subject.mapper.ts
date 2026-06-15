@@ -1,6 +1,7 @@
 import { Subject as CistSubject } from '@mindenit/cist-crawler'
 import { Maybe } from 'src/common/utils/maybe'
 import { EntityMapper } from 'src/core/entity.mapper'
+
 import { Subject, SubjectSchema } from '../dtos'
 
 export class SubjectMapper implements EntityMapper<CistSubject, Subject> {

@@ -1,9 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common'
 import { existsSync, globSync, readFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
-import { type Config, ConfigSchema } from './config.schema'
+
+import { Injectable, Logger } from '@nestjs/common'
 import { ConfigInvalidException } from 'src/common/exceptions/config.exception'
 import { isRecord } from 'src/common/utils/type-checkers/type-checkers'
+
+import { type Config, ConfigSchema } from './config.schema'
 
 const CONFIG_PATH = resolve('./configs')
 
@@ -17,7 +19,7 @@ const readJson = (filePath: string): Record<string, unknown> => {
 	const parsed = JSON.parse(content)
 
 	if (!isRecord(parsed)) {
-		throw {}
+		throw new ConfigInvalidException({ message: 'Invalid config file' })
 	}
 
 	return parsed
@@ -56,7 +58,7 @@ export class ConfigService {
 	 * @returns {Config[K]} Config value
 	 */
 	get<K extends keyof Config>(key: K): Config[K] {
-		return this.config[key]
+		return Reflect.get(this.config, key)
 	}
 
 	/*

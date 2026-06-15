@@ -46,5 +46,5 @@ const GetTeacherScheduleFiltersSchema = z
 
 type GetTeacherScheduleFilters = z.infer<typeof GetTeacherScheduleFiltersSchema>
 
-export { PublicTeacherSchema, GetTeacherScheduleFiltersSchema }
-export type { PublicTeacher, GetTeacherScheduleFilters }
+export { GetTeacherScheduleFiltersSchema, PublicTeacherSchema }
+export type { GetTeacherScheduleFilters, PublicTeacher }

@@ -1,10 +1,10 @@
 import { AuditoryElement } from '@mindenit/cist-crawler'
-import { EntityMapper } from 'src/core/entity.mapper'
-import {
-	AuditoriumSchema,
-	type Auditorium,
-} from 'src/core/cist/dtos/auditorium.dto'
 import { Maybe } from 'src/common/utils/maybe'
+import {
+	type Auditorium,
+	AuditoriumSchema,
+} from 'src/core/cist/dtos/auditorium.dto'
+import { EntityMapper } from 'src/core/entity.mapper'
 
 type AuditoryElementWithBuildingId = AuditoryElement & { buildingId: string }
 

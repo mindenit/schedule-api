@@ -57,7 +57,7 @@ const isNone = <T>(maybe: Maybe<T>): maybe is None => maybe.tag === 'none'
 const fromNullable = <T>(
 	value: T | null | undefined,
 ): Maybe<NonNullable<T>> => {
-	return value != null ? new Some(value as NonNullable<T>) : new None()
+	return value != null ? new Some(value) : new None()
 }
 
 /*
@@ -81,7 +81,7 @@ const fromThrowable = <T>(
  * @returns {Function} A function that returns a `Maybe` type.
  */
 const liftNullable =
-	<A extends ReadonlyArray<unknown>, B>(
+	<A extends readonly unknown[], B>(
 		f: (...a: A) => B | null | undefined,
 	): ((...a: A) => Maybe<NonNullable<B>>) =>
 	(...a) =>
@@ -92,7 +92,7 @@ const liftNullable =
  * @param {Function} f The function to lift.
  * @returns {Function} A function that returns a `Maybe` type.
  */
-const liftThrowable = <A extends ReadonlyArray<unknown>, B>(
+const liftThrowable = <A extends readonly unknown[], B>(
 	f: (...a: A) => B | null | undefined,
 ): ((...a: A) => Maybe<NonNullable<B>>) => {
 	return (...a) => {
@@ -130,14 +130,14 @@ const getOrElse = <T>(maybe: Maybe<T>, defaultValue: T): T =>
 	maybe.tag === 'some' ? maybe.value : defaultValue
 
 export {
-	isSome,
-	isNone,
 	fromNullable,
 	fromThrowable,
-	liftNullable,
-	liftThrowable,
 	getOrElse,
 	getOrNull,
 	getOrUndefined,
+	isNone,
+	isSome,
+	liftNullable,
+	liftThrowable,
 	type Maybe,
 }

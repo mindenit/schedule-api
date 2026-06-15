@@ -1,10 +1,11 @@
 import { Event as CistEvent } from '@mindenit/cist-crawler'
 import { Maybe } from 'src/common/utils/maybe'
 import { EntityMapper } from 'src/core/entity.mapper'
+
 import { Event, EventGroup, EventSchema, EventTeacher, Subject } from '../dtos'
 import { cistTypeIdToEventType } from '../helpers/event-type.helper'
 
-type EventMapperInput = {
+interface EventMapperInput {
 	event: CistEvent
 	subject: Subject
 	teachers: EventTeacher[]

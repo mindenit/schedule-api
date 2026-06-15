@@ -1,12 +1,13 @@
 import { SQL } from 'drizzle-orm'
-import { GetAuditoriumScheduleFilters } from '../auditoriums.schema'
-import { Auditorium } from 'src/core/cist/dtos'
 import {
 	groupIn,
 	lessonTypeIn,
 	subjectIn,
 	teacherIn,
 } from 'src/common/utils/schedule/schedule'
+import { Auditorium } from 'src/core/cist/dtos'
+
+import { GetAuditoriumScheduleFilters } from '../auditoriums.schema'
 
 export const getAuditoriumFiltersQuery = (
 	filters: GetAuditoriumScheduleFilters,

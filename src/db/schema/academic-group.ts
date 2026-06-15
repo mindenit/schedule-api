@@ -1,4 +1,5 @@
 import { pgTable } from 'drizzle-orm/pg-core'
+
 import { baseTableAttrs, referencialIntegrityOptions } from '../utils'
 import { directionTable } from './direction'
 import { specialityTable } from './speciality'

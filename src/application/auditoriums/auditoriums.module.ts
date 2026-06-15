@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common'
-import { AuditoriumsRepository } from './auditoriums.repository'
-import { AuditoriumsController } from './auditoriums.controller'
 import { DatabaseModule } from 'src/components/database/database.module'
+
+import { AuditoriumsController } from './auditoriums.controller'
+import { AuditoriumsRepository } from './auditoriums.repository'
 
 @Module({
 	imports: [DatabaseModule],

@@ -1,20 +1,22 @@
 import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
-import { TeachersRepository } from './teachers.repository'
-import { PublicTeacher } from './teachers.schemas'
-import { ApiOperation } from '@nestjs/swagger'
+import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
+import { Subject } from 'src/core/cist/dtos'
+
+import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import {
 	GetTeacherParamsDto,
 	TeacherAuditoriumsResponseDto,
-	TeachersResponseDto,
 	TeacherGroupsResponseDto,
-	TeacherSubjectsResponseDto,
 	TeacherScheduleQueryDto,
 	TeacherScheduleResponseDto,
+	TeachersResponseDto,
+	TeacherSubjectsResponseDto,
 } from './dtos/teachers.dto'
-import { PublicAditorium } from '../auditoriums/auditoriums.schema'
-import { Subject } from 'src/core/cist/dtos'
+import { TeachersRepository } from './teachers.repository'
+import { PublicTeacher } from './teachers.schemas'
 
+@ApiTags('Teachers')
 @Controller('teachers')
 export class TeachersController {
 	constructor(private readonly teachersRepository: TeachersRepository) {}

@@ -11,6 +11,7 @@ import {
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+
 import { GroupsParserOutput } from '../../cist.types'
 import { Direction, Faculty, Group, Speciality } from '../../dtos'
 import { collectEntity } from '../../helpers/collect-entity.helper'
@@ -23,7 +24,7 @@ import {
 } from '../../mappers'
 
 // Types
-type Accumulator = {
+interface Accumulator {
 	groups: Group[]
 	faculties: Faculty[]
 	specialities: Speciality[]

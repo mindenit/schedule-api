@@ -1,11 +1,12 @@
 import { SQL } from 'drizzle-orm'
-import { GetGroupScheduleFilters } from '../groups.schema'
 import {
 	auditoriumIn,
 	lessonTypeIn,
 	subjectIn,
 	teacherIn,
 } from 'src/common/utils/schedule/schedule'
+
+import { GetGroupScheduleFilters } from '../groups.schema'
 
 export const getGroupFiltersQuery = (
 	filters: GetGroupScheduleFilters,

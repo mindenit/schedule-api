@@ -1,4 +1,5 @@
 import { pgTable, primaryKey } from 'drizzle-orm/pg-core'
+
 import { referencialIntegrityOptions } from '../utils'
 import { eventTable } from './event'
 import { teacherTable } from './teacher'

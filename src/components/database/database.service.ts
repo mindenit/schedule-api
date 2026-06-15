@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import { ConfigService } from '../config/config.service'
 import postgres from 'postgres'
-import { LoggerService } from '../logger/logger.service'
+
+import { ConfigService } from '../config/config.service'
 import { createDrizzleLogger } from '../logger/helpers/drizzle.helper'
+import { LoggerService } from '../logger/logger.service'
 
 @Injectable()
 export class DatabaseService {

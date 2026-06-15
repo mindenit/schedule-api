@@ -1,8 +1,9 @@
+import { setTimeout } from 'node:timers/promises'
+
 import { Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
-import { setTimeout } from 'node:timers/promises'
 import {
 	HEALTH_CHECK_KEY,
 	IS_UPDATE_IN_PROGRESS_KEY,
@@ -10,6 +11,7 @@ import {
 	UPDATE_STATUS,
 } from 'src/common/constants/health-status'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
+import { stringifyErrorCause } from 'src/common/utils/error-handling'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
@@ -20,6 +22,7 @@ import { CistEventsProcessor } from 'src/core/cist/implementations/events/events
 import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups.cist-processor'
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
 import { academicGroupTable } from 'src/db/schema'
+
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 
 // Constants
@@ -139,7 +142,7 @@ export class ScheduleService {
 		exception: CistCrawlerException,
 	): Promise<void> {
 		const plural = `${entity}s`
-		const errMessage = `:warning: ${plural} processing failed!\n\`\`\`${exception.cause}\`\`\``
+		const errMessage = `:warning: ${plural} processing failed!\n\`\`\`${stringifyErrorCause(exception.cause)}\`\`\``
 
 		this.logger.log(`${LOG_PREFIX}|${plural}-processing-failed`, {
 			originalError: exception.cause,

@@ -1,8 +1,9 @@
-import { EntityMapper } from 'src/core/entity.mapper'
 import { Building as CistBuilding } from '@mindenit/cist-crawler'
 import { Maybe } from 'src/common/utils/maybe'
-import { Building, BuildingSchema } from '../dtos'
 import { Sorting } from 'src/common/utils/sorting'
+import { EntityMapper } from 'src/core/entity.mapper'
+
+import { Building, BuildingSchema } from '../dtos'
 
 export class BuildingMapper implements EntityMapper<CistBuilding, Building> {
 	schema = BuildingSchema

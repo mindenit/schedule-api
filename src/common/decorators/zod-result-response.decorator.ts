@@ -2,13 +2,17 @@ import { ZodDto, ZodResponse } from 'nestjs-zod'
 
 type AnyZodDto = ZodDto<ZodDto['schema'], false>
 
-type ZodResultResponseOptions = {
+interface ZodResultResponseOptions {
 	status?: number
 	description?: string
 	type: AnyZodDto | [AnyZodDto]
 }
 
-type SingleOptions = { status?: number; description?: string; type: AnyZodDto }
+interface SingleOptions {
+	status?: number
+	description?: string
+	type: AnyZodDto
+}
 
 export const ZodResultResponse = (
 	options: ZodResultResponseOptions,

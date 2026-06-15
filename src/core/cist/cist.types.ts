@@ -13,26 +13,26 @@ import {
 	Teacher,
 } from './dtos'
 
-type AuditoriumParserOutput = {
+interface AuditoriumParserOutput {
 	buildings: Building[]
 	auditoriums: Auditorium[]
 	auditoriumTypes: AuditoriumType[]
 }
 
-type GroupsParserOutput = {
+interface GroupsParserOutput {
 	groups: Group[]
 	faculties: Faculty[]
 	specialities: Speciality[]
 	directions: Direction[]
 }
 
-type TeachersParserOutput = {
+interface TeachersParserOutput {
 	teachers: Teacher[]
 	faculties: Faculty[]
 	departments: Department[]
 }
 
-type PairsParserOutput = {
+interface PairsParserOutput {
 	events: Event[]
 	subjects: Subject[]
 	hours: SubjectHour[]
@@ -41,6 +41,6 @@ type PairsParserOutput = {
 export type {
 	AuditoriumParserOutput,
 	GroupsParserOutput,
-	TeachersParserOutput,
 	PairsParserOutput,
+	TeachersParserOutput,
 }

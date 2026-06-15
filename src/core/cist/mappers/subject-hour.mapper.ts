@@ -1,6 +1,7 @@
 import { Hour as CistHour } from '@mindenit/cist-crawler'
 import { Maybe } from 'src/common/utils/maybe'
 import { EntityMapper } from 'src/core/entity.mapper'
+
 import { SubjectHour, SubjectHourSchema } from '../dtos'
 import { cistTypeIdToEventType } from '../helpers/event-type.helper'
 

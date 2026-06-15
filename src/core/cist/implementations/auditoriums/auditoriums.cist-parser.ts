@@ -2,27 +2,28 @@ import CistCrawler, {
 	AuditoryElement as CistAuditorium,
 	Building as CistBuilding,
 } from '@mindenit/cist-crawler'
-import { CistParser } from '../../interfaces/parser.interface'
 import { Inject, Injectable } from '@nestjs/common'
-import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
 import { Result } from 'better-result'
 import {
 	CistCrawlerErrorCodes,
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
-import { AuditoriumParserOutput } from '../../cist.types'
-import { Auditorium, AuditoriumType } from 'src/core/cist/dtos/auditorium.dto'
 import { Array } from 'src/common/utils/array'
+import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+import { Auditorium, AuditoriumType } from 'src/core/cist/dtos/auditorium.dto'
+
+import { AuditoriumParserOutput } from '../../cist.types'
 import { Building } from '../../dtos/builder.dto'
+import { collectEntity } from '../../helpers/collect-entity.helper'
+import { CistParser } from '../../interfaces/parser.interface'
 import {
 	AuditoriumMapper,
 	AuditoriumTypeMapper,
 	BuildingMapper,
 } from '../../mappers'
-import { collectEntity } from '../../helpers/collect-entity.helper'
 
-type Accumulator = {
+interface Accumulator {
 	buildings: Building[]
 	auditoriums: Auditorium[]
 	auditoriumTypes: AuditoriumType[]

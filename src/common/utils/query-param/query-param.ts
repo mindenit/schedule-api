@@ -9,6 +9,7 @@ const queryParamToArray = (param: string | null): string[] => {
 }
 
 export const transformEventTypes = (param: string | null): string[] => {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
 	return queryParamToArray(param).filter(eventTypeEnum.enumValues.includes)
 }
 

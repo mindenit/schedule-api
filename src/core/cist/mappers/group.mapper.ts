@@ -1,6 +1,6 @@
 import { Group as CistGroup } from '@mindenit/cist-crawler'
-import { Group, GroupSchema } from 'src/core/cist/dtos/group.dto'
 import { Maybe } from 'src/common/utils/maybe'
+import { Group, GroupSchema } from 'src/core/cist/dtos/group.dto'
 import { EntityMapper } from 'src/core/entity.mapper'
 
 type CistGroupWithSpecialityOrDirection = CistGroup & {
