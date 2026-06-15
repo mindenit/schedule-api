@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { bigint, check, pgTable } from 'drizzle-orm/pg-core'
+import { bigint, check, pgTable, uniqueIndex } from 'drizzle-orm/pg-core'
 import { referencialIntegrityOptions } from '../utils'
 import { auditoriumTable } from './auditorium'
 import { eventTypeEnum } from './event-type-enum'
@@ -13,6 +13,7 @@ export const eventTable = pgTable(
 		endedAt: t.integer(),
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
+		lastSeenAt: t.bigint({ mode: 'number' }).notNull(),
 		auditoriumId: t
 			.integer()
 			.notNull()
@@ -22,5 +23,15 @@ export const eventTable = pgTable(
 			.notNull()
 			.references(() => subjectTable.id, referencialIntegrityOptions),
 	}),
-	(t) => [check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`)],
+	(t) => [
+		check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`),
+		uniqueIndex('event_natural_key').on(
+			t.startedAt,
+			t.endedAt,
+			t.subjectId,
+			t.type,
+			t.auditoriumId,
+			t.numberPair,
+		),
+	],
 )

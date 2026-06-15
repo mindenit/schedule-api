@@ -23,7 +23,13 @@ export default [
 		},
 	},
 	{
-		ignores: ['coverage', 'public', 'dist', 'pnpm-lock.yaml'],
+		ignores: [
+			'coverage',
+			'public',
+			'**/dist/**',
+			'**/build/**',
+			'pnpm-lock.yaml',
+		],
 	},
 	{
 		rules: {

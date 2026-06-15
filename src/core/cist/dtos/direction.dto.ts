@@ -2,8 +2,8 @@ import z from 'zod'
 
 const DirectionSchema = z.object({
 	id: z.number().int(),
-	fullName: z.string().nonempty(),
-	shortName: z.string().nonempty(),
+	fullName: z.string().min(1).max(255),
+	shortName: z.string().min(1).max(40),
 	facultyId: z.number().int(),
 })
 

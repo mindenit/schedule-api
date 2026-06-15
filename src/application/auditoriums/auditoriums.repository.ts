@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, notLike } from 'drizzle-orm'
+import { asc, eq, notLike, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { Auditorium, Group, Subject, Teacher } from 'src/core/cist/dtos'
@@ -12,13 +12,29 @@ import {
 	subjectTable,
 	teacherTable,
 } from 'src/db/schema'
+import { GetAuditoriumScheduleFilters } from './auditoriums.schema'
+import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
+import { scheduleAliases } from 'src/common/utils/schedule/schedule'
+import { getAuditoriumFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()
-export class AuditoriumsRepository {
+export class AuditoriumsRepository extends ScheduleRepository<GetAuditoriumScheduleFilters> {
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
-		private readonly db: PostgresJsDatabase,
-	) {}
+		db: PostgresJsDatabase,
+	) {
+		super(db)
+	}
+
+	protected scopePredicate(id: number): SQL {
+		return eq(scheduleAliases.e.auditoriumId, id)
+	}
+
+	protected buildFilters(
+		filters: GetAuditoriumScheduleFilters,
+	): (SQL | undefined)[] {
+		return getAuditoriumFiltersQuery(filters)
+	}
 
 	async findAll(): Promise<Auditorium[]> {
 		return this.db
@@ -28,7 +44,9 @@ export class AuditoriumsRepository {
 			.orderBy(asc(auditoriumTable.name))
 	}
 
-	async getGroups(auditoriumId: number): Promise<Pick<Group, 'id' | 'name'>[]> {
+	async findAuditoriumGroups(
+		auditoriumId: number,
+	): Promise<Pick<Group, 'id' | 'name'>[]> {
 		return this.db
 			.selectDistinct({
 				id: academicGroupTable.id,
@@ -47,7 +65,7 @@ export class AuditoriumsRepository {
 			.orderBy(asc(academicGroupTable.name))
 	}
 
-	async getTeachers(
+	async findAuditoriumTeachers(
 		auditoriumId: number,
 	): Promise<Omit<Teacher, 'departmentId'>[]> {
 		return this.db
@@ -69,7 +87,7 @@ export class AuditoriumsRepository {
 			.orderBy(asc(teacherTable.shortName))
 	}
 
-	async getSubjects(auditoriumId: number): Promise<Subject[]> {
+	async findAuditoriumSubjects(auditoriumId: number): Promise<Subject[]> {
 		return this.db
 			.selectDistinct({
 				id: subjectTable.id,

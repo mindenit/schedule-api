@@ -1,10 +1,8 @@
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Result } from 'better-result'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import Redis from 'ioredis'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
-import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { departmentTable, facultyTable, teacherTable } from 'src/db/schema'
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
@@ -24,11 +22,9 @@ export class CistTeachersProcessor extends CistAbstractProcessor<
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
 		db: PostgresJsDatabase,
-		@Inject(CACHE_CONNECTION_TOKEN)
-		cache: Redis,
 		private readonly cistTeachersParser: CistTeachersParser,
 	) {
-		super(db, cache)
+		super(db)
 	}
 
 	async process(): PromiseResult<Teacher[], CistTeachersProcessorException> {
@@ -41,21 +37,9 @@ export class CistTeachersProcessor extends CistAbstractProcessor<
 		const { teachers, faculties, departments } = parseResult.value
 
 		const jobs: UploadJob[] = [
-			{
-				entities: faculties,
-				table: facultyTable,
-				computeKey: (id) => `faculties:${id}`,
-			},
-			{
-				entities: departments,
-				table: departmentTable,
-				computeKey: (id) => `departments:${id}`,
-			},
-			{
-				entities: teachers,
-				table: teacherTable,
-				computeKey: (id) => `teachers:${id}`,
-			},
+			{ entities: faculties, table: facultyTable },
+			{ entities: departments, table: departmentTable },
+			{ entities: teachers, table: teacherTable },
 		]
 
 		for (const job of jobs) {

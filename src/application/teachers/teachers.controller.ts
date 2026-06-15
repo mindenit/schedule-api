@@ -1,4 +1,4 @@
-import { Controller, Get, HttpStatus, Param } from '@nestjs/common'
+import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
 import { TeachersRepository } from './teachers.repository'
 import { PublicTeacher } from './teachers.schemas'
 import { ApiOperation } from '@nestjs/swagger'
@@ -9,6 +9,8 @@ import {
 	TeachersResponseDto,
 	TeacherGroupsResponseDto,
 	TeacherSubjectsResponseDto,
+	TeacherScheduleQueryDto,
+	TeacherScheduleResponseDto,
 } from './dtos/teachers.dto'
 import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import { Subject } from 'src/core/cist/dtos'
@@ -77,5 +79,25 @@ export class TeachersController {
 		@Param() params: GetTeacherParamsDto,
 	): Promise<Subject[]> {
 		return this.teachersRepository.findTeacherSubjects(params.id)
+	}
+
+	@ApiOperation({
+		summary: 'Get group schedule',
+		description: 'Get schedule for a group in particular time interval',
+	})
+	@ZodResultResponse({
+		status: HttpStatus.OK,
+		description: 'Successful response',
+		type: TeacherScheduleResponseDto,
+	})
+	@Get(':id/schedule')
+	async findGroupSchedule(
+		@Param() params: GetTeacherParamsDto,
+		@Query() query: TeacherScheduleQueryDto,
+	) {
+		return this.teachersRepository.findSchedule({
+			id: params.id,
+			...query,
+		})
 	}
 }

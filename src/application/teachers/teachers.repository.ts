@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, getTableColumns } from 'drizzle-orm'
+import { asc, eq, getTableColumns, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import {
@@ -13,15 +13,20 @@ import {
 } from 'src/db/schema'
 import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import { PublicGroup } from '../groups/groups.schema'
-import { PublicTeacher } from './teachers.schemas'
+import { GetTeacherScheduleFilters, PublicTeacher } from './teachers.schemas'
 import { Subject } from 'src/core/cist/dtos'
+import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
+import { scheduleAliases } from 'src/common/utils/schedule/schedule'
+import { getTeacherFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()
-export class TeachersRepository {
+export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFilters> {
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
-		private readonly db: PostgresJsDatabase,
-	) {}
+		db: PostgresJsDatabase,
+	) {
+		super(db)
+	}
 
 	async findAll(): Promise<PublicTeacher[]> {
 		// eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -90,5 +95,15 @@ export class TeachersRepository {
 			.innerJoin(subjectTable, eq(eventTable.subjectId, subjectTable.id))
 			.where(eq(eventToTeacherTable.teacherId, teacherId))
 			.orderBy(subjectTable.brief)
+	}
+
+	protected scopePredicate(id: number): SQL {
+		return eq(scheduleAliases.ett1.teacherId, id)
+	}
+
+	protected buildFilters(
+		filters: GetTeacherScheduleFilters,
+	): (SQL | undefined)[] {
+		return getTeacherFiltersQuery(filters)
 	}
 }

@@ -2,12 +2,17 @@ import { Injectable } from '@nestjs/common'
 import { drizzle, PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ConfigService } from '../config/config.service'
 import postgres from 'postgres'
+import { LoggerService } from '../logger/logger.service'
+import { createDrizzleLogger } from '../logger/helpers/drizzle.helper'
 
 @Injectable()
 export class DatabaseService {
 	private database: PostgresJsDatabase
 
-	constructor(private readonly configService: ConfigService) {
+	constructor(
+		private readonly configService: ConfigService,
+		private readonly logger: LoggerService,
+	) {
 		const { user, password, host, port, database } =
 			this.configService.get('db')
 
@@ -21,6 +26,7 @@ export class DatabaseService {
 
 		this.database = drizzle(queryClient, {
 			casing: 'snake_case',
+			logger: createDrizzleLogger(logger),
 		})
 	}
 

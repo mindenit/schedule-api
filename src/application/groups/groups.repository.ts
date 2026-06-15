@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq } from 'drizzle-orm'
+import { asc, eq, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { Group, Subject } from 'src/core/cist/dtos'
@@ -14,13 +14,29 @@ import {
 } from 'src/db/schema'
 import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import { PublicTeacher } from '../teachers/teachers.schemas'
+import { GetGroupScheduleFilters } from './groups.schema'
+import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
+import { scheduleAliases } from 'src/common/utils/schedule/schedule'
+import { getGroupFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()
-export class GroupsRepository {
+export class GroupsRepository extends ScheduleRepository<GetGroupScheduleFilters> {
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
-		private readonly db: PostgresJsDatabase,
-	) {}
+		db: PostgresJsDatabase,
+	) {
+		super(db)
+	}
+
+	protected scopePredicate(id: number): SQL {
+		return eq(scheduleAliases.ag1.id, id)
+	}
+
+	protected buildFilters(
+		filters: GetGroupScheduleFilters,
+	): (SQL | undefined)[] {
+		return getGroupFiltersQuery(filters)
+	}
 
 	async findAll(): Promise<Group[]> {
 		return this.db

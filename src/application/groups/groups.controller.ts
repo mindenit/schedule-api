@@ -1,9 +1,11 @@
-import { Controller, Get, HttpStatus, Param } from '@nestjs/common'
+import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
 import { ApiOperation } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
 import {
 	GetGroupParamsDto,
 	GroupAuditoriumsResponseDto,
+	GroupScheduleQueryDto,
+	GroupScheduleResponseDto,
 	GroupsResponseDto,
 	GroupSubjectsResponseDto,
 	GroupTeachersResponseDto,
@@ -71,5 +73,22 @@ export class GroupsController {
 	@Get(':id/teachers')
 	async findGroupTeachers(@Param() params: GetGroupParamsDto) {
 		return this.groupsRepository.findGroupSubjects(params.id)
+	}
+
+	@ApiOperation({
+		summary: 'Get group schedule',
+		description: 'Get schedule for a group in particular time interval',
+	})
+	@ZodResultResponse({
+		status: HttpStatus.OK,
+		description: 'Successful response',
+		type: GroupScheduleResponseDto,
+	})
+	@Get(':id/schedule')
+	async findGroupSchedule(
+		@Param() params: GetGroupParamsDto,
+		@Query() query: GroupScheduleQueryDto,
+	) {
+		return this.groupsRepository.findSchedule({ id: params.id, ...query })
 	}
 }

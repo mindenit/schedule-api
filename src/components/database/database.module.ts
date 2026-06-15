@@ -2,6 +2,7 @@ import { Module, Provider } from '@nestjs/common'
 import { DATABASE_CONNECTION_TOKEN } from './di-tokens'
 import { DatabaseService } from './database.service'
 import { ConfigModule } from '../config/config.module'
+import { LoggerModule } from '../logger/logger.module'
 
 const databaseConnectionProvider = {
 	provide: DATABASE_CONNECTION_TOKEN,
@@ -10,7 +11,7 @@ const databaseConnectionProvider = {
 } satisfies Provider
 
 @Module({
-	imports: [ConfigModule],
+	imports: [ConfigModule, LoggerModule],
 	providers: [DatabaseService, databaseConnectionProvider],
 	exports: [DATABASE_CONNECTION_TOKEN],
 })

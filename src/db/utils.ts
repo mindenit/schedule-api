@@ -8,5 +8,5 @@ export const referencialIntegrityOptions = {
 export const baseTableAttrs = {
 	id: integer().primaryKey().notNull(),
 	fullName: varchar({ length: 255 }).notNull(),
-	shortName: varchar({ length: 80 }).notNull(),
+	shortName: varchar({ length: 40 }).notNull(),
 }

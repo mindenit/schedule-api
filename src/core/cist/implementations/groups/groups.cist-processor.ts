@@ -1,11 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
-import Redis from 'ioredis'
 import { Group } from 'src/core/cist/dtos/group.dto'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
-import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import {
 	academicGroupTable,
@@ -27,11 +25,9 @@ export class CistGroupsProcessor extends CistAbstractProcessor<
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
 		db: PostgresJsDatabase,
-		@Inject(CACHE_CONNECTION_TOKEN)
-		cache: Redis,
 		private readonly cistGroupsParser: CistGroupsParser,
 	) {
-		super(db, cache)
+		super(db)
 	}
 
 	async process(): PromiseResult<Group[], CistGroupsProcessorException> {
@@ -44,26 +40,10 @@ export class CistGroupsProcessor extends CistAbstractProcessor<
 		const { groups, faculties, specialities, directions } = parseResult.value
 
 		const jobs: UploadJob[] = [
-			{
-				entities: faculties,
-				table: facultyTable,
-				computeKey: (id) => `faculties:${id}`,
-			},
-			{
-				entities: directions,
-				table: directionTable,
-				computeKey: (id) => `directions:${id}`,
-			},
-			{
-				entities: specialities,
-				table: specialityTable,
-				computeKey: (id) => `specialities:${id}`,
-			},
-			{
-				entities: groups,
-				table: academicGroupTable,
-				computeKey: (id) => `groups:${id}`,
-			},
+			{ entities: faculties, table: facultyTable },
+			{ entities: directions, table: directionTable },
+			{ entities: specialities, table: specialityTable },
+			{ entities: groups, table: academicGroupTable },
 		]
 
 		for (const job of jobs) {

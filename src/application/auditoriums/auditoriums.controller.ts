@@ -1,13 +1,15 @@
-import { Controller, Get, HttpStatus, Param } from '@nestjs/common'
+import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
 import { ApiOperation } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
 import { AuditoriumsRepository } from './auditoriums.repository'
 import {
 	AuditoriumGroupsResponseDto,
 	AuditoriumsResponseDto,
+	AuditoriumsScheduleResponseDto,
 	AuditoriumSubjectsResponseDto,
 	AuditoriumTeachersResponseDto,
 	GetAuditoriumParamsDto,
+	GetAuditoriumScheduleQueryDto,
 } from './dtos/auditoriums.dto'
 
 @Controller('auditoriums')
@@ -39,7 +41,7 @@ export class AuditoriumsController {
 	})
 	@Get(':id/groups')
 	async findAuditoriumGroups(@Param() params: GetAuditoriumParamsDto) {
-		return this.auditoriumsRepository.getGroups(params.id)
+		return this.auditoriumsRepository.findAuditoriumGroups(params.id)
 	}
 
 	@ApiOperation({
@@ -53,7 +55,7 @@ export class AuditoriumsController {
 	})
 	@Get(':id/subjects')
 	async findAuditoriumSubjects(@Param() params: GetAuditoriumParamsDto) {
-		return this.auditoriumsRepository.getSubjects(params.id)
+		return this.auditoriumsRepository.findAuditoriumSubjects(params.id)
 	}
 
 	@ApiOperation({
@@ -67,6 +69,26 @@ export class AuditoriumsController {
 	})
 	@Get(':id/teachers')
 	async findAuditoriumTeachers(@Param() params: GetAuditoriumParamsDto) {
-		return this.auditoriumsRepository.getTeachers(params.id)
+		return this.auditoriumsRepository.findAuditoriumTeachers(params.id)
+	}
+
+	@ApiOperation({
+		summary: 'Get auditorium schedule',
+		description: 'Get schedule for an auditorium in particular time interval',
+	})
+	@ZodResultResponse({
+		status: HttpStatus.OK,
+		description: 'Successful response',
+		type: AuditoriumsScheduleResponseDto,
+	})
+	@Get(':id/schedule')
+	async findAuditoriumSchedule(
+		@Param() params: GetAuditoriumParamsDto,
+		@Query() query: GetAuditoriumScheduleQueryDto,
+	) {
+		return this.auditoriumsRepository.findSchedule({
+			id: params.id,
+			...query,
+		})
 	}
 }

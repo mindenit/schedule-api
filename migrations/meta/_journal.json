@@ -6,7 +6,14 @@
 			"idx": 0,
 			"version": "7",
 			"when": 1750618928739,
-			"tag": "0000_regular_kid_colt",
+			"tag": "0000_init",
+			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1781557597581,
+			"tag": "0001_add_event_tracking_and_standardize_schema",
 			"breakpoints": true
 		}
 	]

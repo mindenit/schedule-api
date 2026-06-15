@@ -10,9 +10,10 @@ import { CistGroupsParser } from './implementations/groups/groups.cist-parser'
 import { CistEventsParser } from './implementations/events/events.cist-parser'
 import { CistTeachersParser } from './implementations/teachers/teachers.cist-parser'
 import { CistCrawlerModule } from 'src/components/cist-crawler/cist-crawler.module'
+import { LoggerModule } from 'src/components/logger/logger.module'
 
 @Module({
-	imports: [CacheModule, CistCrawlerModule, DatabaseModule],
+	imports: [CacheModule, CistCrawlerModule, DatabaseModule, LoggerModule],
 	providers: [
 		CistAuditoriumParser,
 		CistEventsParser,
