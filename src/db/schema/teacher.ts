@@ -1,6 +1,7 @@
 import { pgTable } from 'drizzle-orm/pg-core'
-import { baseTableAttrs, referencialIntegrityOptions } from '../utils.js'
-import { departmentTable } from './department.js'
+
+import { baseTableAttrs, referencialIntegrityOptions } from '../utils'
+import { departmentTable } from './department'
 
 const { id, fullName, shortName } = baseTableAttrs
 

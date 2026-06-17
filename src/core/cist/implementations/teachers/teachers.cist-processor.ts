@@ -1,0 +1,52 @@
+import { Inject, Injectable, Logger } from '@nestjs/common'
+import { Result } from 'better-result'
+import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
+import { PromiseResult } from 'src/common/types'
+import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
+import { departmentTable, facultyTable, teacherTable } from 'src/db/schema'
+
+import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
+import { Teacher } from '../../dtos/teacher.dto'
+import { CistTeachersParser } from './teachers.cist-parser'
+
+// Types
+type CistTeachersProcessorException = CistCrawlerException
+
+@Injectable()
+export class CistTeachersProcessor extends CistAbstractProcessor<
+	Teacher[],
+	CistTeachersProcessorException
+> {
+	private readonly logger = new Logger(CistTeachersProcessor.name)
+
+	constructor(
+		@Inject(DATABASE_CONNECTION_TOKEN)
+		db: PostgresJsDatabase,
+		private readonly cistTeachersParser: CistTeachersParser,
+	) {
+		super(db)
+	}
+
+	async process(): PromiseResult<Teacher[], CistTeachersProcessorException> {
+		const parseResult = await this.cistTeachersParser.parse()
+
+		if (parseResult.isErr()) {
+			return Result.err(parseResult.error)
+		}
+
+		const { teachers, faculties, departments } = parseResult.value
+
+		const jobs: UploadJob[] = [
+			{ entities: faculties, table: facultyTable },
+			{ entities: departments, table: departmentTable },
+			{ entities: teachers, table: teacherTable },
+		]
+
+		for (const job of jobs) {
+			await this.uploadEntities(job)
+		}
+
+		return Result.ok(teachers)
+	}
+}

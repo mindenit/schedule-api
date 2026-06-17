@@ -1,7 +1,8 @@
 import { pgTable } from 'drizzle-orm/pg-core'
-import { baseTableAttrs, referencialIntegrityOptions } from '../utils.js'
-import { directionTable } from './direction.js'
-import { specialityTable } from './speciality.js'
+
+import { baseTableAttrs, referencialIntegrityOptions } from '../utils'
+import { directionTable } from './direction'
+import { specialityTable } from './speciality'
 
 export const academicGroupTable = pgTable('academic_group', (t) => ({
 	id: baseTableAttrs.id,

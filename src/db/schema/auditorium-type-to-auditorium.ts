@@ -1,7 +1,8 @@
 import { integer, pgTable, primaryKey } from 'drizzle-orm/pg-core'
-import { auditoriumTable } from './auditorium.js'
-import { auditoriumTypeTable } from './auditorium-type.js'
-import { referencialIntegrityOptions } from '../utils.js'
+
+import { referencialIntegrityOptions } from '../utils'
+import { auditoriumTable } from './auditorium'
+import { auditoriumTypeTable } from './auditorium-type'
 
 export const auditoriumTypeToAuditoriumTable = pgTable(
 	'auditorium_type_to_auditorium',

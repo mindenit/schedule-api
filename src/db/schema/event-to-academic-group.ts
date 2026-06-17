@@ -1,7 +1,8 @@
 import { pgTable, primaryKey } from 'drizzle-orm/pg-core'
-import { eventTable } from './event.js'
-import { referencialIntegrityOptions } from '../utils.js'
-import { academicGroupTable } from './academic-group.js'
+
+import { referencialIntegrityOptions } from '../utils'
+import { academicGroupTable } from './academic-group'
+import { eventTable } from './event'
 
 export const eventToAcademicGroupTable = pgTable(
 	'event_to_academic_group',

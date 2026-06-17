@@ -1,5 +1,6 @@
 import { pgTable } from 'drizzle-orm/pg-core'
-import { baseTableAttrs } from '../utils.js'
+
+import { baseTableAttrs } from '../utils'
 
 export const subjectTable = pgTable('subject', (t) => ({
 	id: baseTableAttrs.id,

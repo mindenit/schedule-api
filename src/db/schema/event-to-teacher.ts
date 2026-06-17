@@ -1,7 +1,8 @@
 import { pgTable, primaryKey } from 'drizzle-orm/pg-core'
-import { eventTable } from './event.js'
-import { teacherTable } from './teacher.js'
-import { referencialIntegrityOptions } from '../utils.js'
+
+import { referencialIntegrityOptions } from '../utils'
+import { eventTable } from './event'
+import { teacherTable } from './teacher'
 
 export const eventToTeacherTable = pgTable(
 	'event_to_teacher',

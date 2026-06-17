@@ -32,6 +32,19 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
+  db-gateway:
+    container_name: schedule-db-gateway
+    image: 'ghcr.io/drizzle-team/gateway:latest'
+    restart: always
+    volumes:
+      - db-gateway:/app
+    networks:
+      - dev
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - '4983:4983'
   cache:
     container_name: schedule-cache
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
@@ -110,3 +123,4 @@ services:
 volumes:
   pgdata:
   dragonflydata:
+  db-gateway:

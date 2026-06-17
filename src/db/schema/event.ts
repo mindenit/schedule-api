@@ -1,9 +1,10 @@
 import { sql } from 'drizzle-orm'
-import { bigint, check, pgTable } from 'drizzle-orm/pg-core'
-import { auditoriumTable } from './auditorium.js'
-import { eventTypeEnum } from './event-type-enum.js'
-import { subjectTable } from './subject.js'
-import { referencialIntegrityOptions } from '../utils.js'
+import { bigint, check, pgTable, uniqueIndex } from 'drizzle-orm/pg-core'
+
+import { referencialIntegrityOptions } from '../utils'
+import { auditoriumTable } from './auditorium'
+import { eventTypeEnum } from './event-type-enum'
+import { subjectTable } from './subject'
 
 export const eventTable = pgTable(
 	'event',
@@ -13,6 +14,7 @@ export const eventTable = pgTable(
 		endedAt: t.integer(),
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
+		lastSeenAt: t.bigint({ mode: 'number' }).notNull(),
 		auditoriumId: t
 			.integer()
 			.notNull()
@@ -22,5 +24,15 @@ export const eventTable = pgTable(
 			.notNull()
 			.references(() => subjectTable.id, referencialIntegrityOptions),
 	}),
-	(t) => [check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`)],
+	(t) => [
+		check('start_before_end', sql`${t.startedAt} < ${t.endedAt}`),
+		uniqueIndex('event_natural_key').on(
+			t.startedAt,
+			t.endedAt,
+			t.subjectId,
+			t.type,
+			t.auditoriumId,
+			t.numberPair,
+		),
+	],
 )
