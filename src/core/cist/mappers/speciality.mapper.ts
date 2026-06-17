@@ -9,9 +9,10 @@ type CistSpeciality = Omit<Direction, 'specialities'> & {
 	directionId: number
 }
 
-export class SpecialityMapper
-	implements EntityMapper<CistSpeciality, Speciality>
-{
+export class SpecialityMapper implements EntityMapper<
+	CistSpeciality,
+	Speciality
+> {
 	schema = SpecialitySchema
 
 	toEntity(from: CistSpeciality): Maybe.Maybe<Speciality> {

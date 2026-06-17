@@ -8,9 +8,10 @@ import { EntityMapper } from 'src/core/entity.mapper'
 
 type AuditoryTypeWithAuditoryId = AuditoryType & { auditoriumId: string }
 
-export class AuditoriumTypeMapper
-	implements EntityMapper<AuditoryType, AuditoriumType>
-{
+export class AuditoriumTypeMapper implements EntityMapper<
+	AuditoryType,
+	AuditoriumType
+> {
 	schema = AuditoriumTypeSchema
 
 	toEntity(from: AuditoryTypeWithAuditoryId): Maybe.Maybe<AuditoriumType> {

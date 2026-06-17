@@ -9,9 +9,10 @@ type CistDirectionWithFaculty = CistDirection & {
 	facultyId: number
 }
 
-export class DirectionMapper
-	implements EntityMapper<CistDirectionWithFaculty, Direction>
-{
+export class DirectionMapper implements EntityMapper<
+	CistDirectionWithFaculty,
+	Direction
+> {
 	schema = DirectionSchema
 
 	toEntity(from: CistDirectionWithFaculty): Maybe.Maybe<Direction> {

@@ -8,9 +8,10 @@ type CistGroupWithSpecialityOrDirection = CistGroup & {
 	directionId: number | null
 }
 
-export class GroupMapper
-	implements EntityMapper<CistGroupWithSpecialityOrDirection, Group>
-{
+export class GroupMapper implements EntityMapper<
+	CistGroupWithSpecialityOrDirection,
+	Group
+> {
 	schema = GroupSchema
 
 	toEntity(from: CistGroupWithSpecialityOrDirection): Maybe.Maybe<Group> {

@@ -8,9 +8,10 @@ import { EntityMapper } from 'src/core/entity.mapper'
 
 type AuditoryElementWithBuildingId = AuditoryElement & { buildingId: string }
 
-export class AuditoriumMapper
-	implements EntityMapper<AuditoryElementWithBuildingId, Auditorium>
-{
+export class AuditoriumMapper implements EntityMapper<
+	AuditoryElementWithBuildingId,
+	Auditorium
+> {
 	schema = AuditoriumSchema
 
 	/*

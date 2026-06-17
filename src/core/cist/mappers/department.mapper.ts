@@ -8,9 +8,10 @@ import { Department, DepartmentSchema } from '../dtos'
 // Types
 type CistDepartmentWithFaculty = CistDepartment & { facultyId: number }
 
-export class DepartmentMapper
-	implements EntityMapper<CistDepartmentWithFaculty, Department>
-{
+export class DepartmentMapper implements EntityMapper<
+	CistDepartmentWithFaculty,
+	Department
+> {
 	schema = DepartmentSchema
 
 	toEntity(from: CistDepartmentWithFaculty): Maybe.Maybe<Department> {
