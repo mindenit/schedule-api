@@ -2,6 +2,7 @@ import { createZodDto } from 'nestjs-zod'
 import { PublicAuditoriumSchema } from 'src/application/auditoriums/auditoriums.schema'
 import { PublicGroupSchema } from 'src/application/groups/groups.schema'
 import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
+import { getSuccessResponseSchema } from 'src/common/schemas/response.schema'
 import {
 	getScheduleQuerySchema,
 	ScheduleSchema,
@@ -14,25 +15,25 @@ import {
 } from '../teachers.schemas'
 
 export class TeachersResponseDto extends createZodDto(
-	PublicTeacherSchema.array(),
+	getSuccessResponseSchema(PublicTeacherSchema.array()),
 ) {}
 
 export class GetTeacherParamsDto extends createZodDto(GetByIdParamSchema) {}
 
 export class TeacherAuditoriumsResponseDto extends createZodDto(
-	PublicAuditoriumSchema.array(),
+	getSuccessResponseSchema(PublicAuditoriumSchema.array()),
 ) {}
 
 export class TeacherGroupsResponseDto extends createZodDto(
-	PublicGroupSchema.array(),
+	getSuccessResponseSchema(PublicGroupSchema.array()),
 ) {}
 
 export class TeacherSubjectsResponseDto extends createZodDto(
-	SubjectSchema.array(),
+	getSuccessResponseSchema(SubjectSchema.array()),
 ) {}
 
 export class TeacherScheduleResponseDto extends createZodDto(
-	ScheduleSchema.array(),
+	getSuccessResponseSchema(ScheduleSchema.array()),
 ) {}
 
 export class TeacherScheduleQueryDto extends createZodDto(

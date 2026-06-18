@@ -1,10 +1,10 @@
 ARG NODE_VERSION=22
 
-FROM node:${NODE_VERSION}-alpine as base
+FROM node:${NODE_VERSION}-alpine AS base
 
 WORKDIR /app
 
-FROM base as build
+FROM base AS build
 
 COPY --link package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 

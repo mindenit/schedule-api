@@ -1,16 +1,16 @@
-version: "3.8"
+version: '3.8'
 networks:
   dev:
     driver: bridge
 services:
   db:
     container_name: schedule-db
-    image: "postgres:latest"
+    image: 'postgres:latest'
     restart: always
     deploy:
       resources:
         limits:
-          cpus: "0.3"
+          cpus: '0.3'
           memory: 1.5G
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -19,22 +19,22 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
       - dev
     ports:
-      - "5432:5432"
+      - '5432:5432'
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
   db-gateway:
     container_name: schedule-db-gateway
-    image: "ghcr.io/drizzle-team/gateway:latest"
+    image: 'ghcr.io/drizzle-team/gateway:latest'
     restart: always
     volumes:
       - db-gateway:/app
@@ -44,17 +44,17 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "4983:4983"
+      - '4983:4983'
   cache:
     container_name: schedule-cache
-    image: "docker.dragonflydb.io/dragonflydb/dragonfly"
+    image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
     restart: always
     deploy:
       resources:
         limits:
-          cpus: "0.3"
+          cpus: '0.3'
           memory: 1.5G
-    command: ["--requirepass", "${CACHE_PASSWORD}"]
+    command: ['--requirepass', '${CACHE_PASSWORD}']
     ulimits:
       memlock: -1
     volumes:
@@ -64,26 +64,17 @@ services:
     environment:
       - CACHE_PASSWORD=${CACHE_PASSWORD}
     ports:
-      - "6379:6379"
+      - '6379:6379'
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${CACHE_PASSWORD}", "ping"]
+      test: ['CMD', 'redis-cli', '-a', '${CACHE_PASSWORD}', 'ping']
       interval: 10s
       timeout: 5s
       retries: 5
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
-  cist-proxy:
-    container_name: schedule-cist-proxy
-    image: "ghcr.io/mindenit/cistproxy:main"
-    environment:
-      - ASPNETCORE_HTTP_PORTS=5035
-    ports:
-      - "5035:5035"
-    networks:
-      - dev
+        max-size: '10m'
+        max-file: '3'
   api:
     container_name: schedule-api
     build:
@@ -93,10 +84,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3"
+          cpus: '0.3'
           memory: 1.5G
     ports:
-      - "${PORT}:${PORT}"
+      - '${PORT}:${PORT}'
     environment:
       - NODE_ENV=production
       - PORT=${PORT}
@@ -117,10 +108,10 @@ services:
     networks:
       - dev
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 volumes:
   pgdata:
   dragonflydata:
