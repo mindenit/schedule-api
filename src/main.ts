@@ -111,7 +111,7 @@ async function bootstrap() {
 	const cache = app.get(CacheService).get()
 	const scheduleService = app.get(ScheduleService)
 
-	await app.listen(port)
+	await app.listen(port, '0.0.0.0')
 
 	const [isEmpty, isUpdating] = await Promise.all([
 		isDbEmpty(db),
@@ -119,7 +119,14 @@ async function bootstrap() {
 	])
 
 	if (isEmpty || isUpdating) {
-		await scheduleService.processSchedule()
+		// Fire-and-forget: the listener is already accepting traffic.
+		// Seeding runs in the background so Caddy / the reverse proxy never
+		// sees the server as unavailable during a potentially long seed run.
+		setImmediate(() => {
+			scheduleService.processSchedule().catch((err: unknown) => {
+				logger.error('bootstrap-seed-failed', { err })
+			})
+		})
 	}
 }
 

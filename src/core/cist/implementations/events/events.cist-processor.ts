@@ -65,6 +65,9 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 
 		for (const event of events) {
 			await this.processEvent(event, runId, hours)
+			// Yield to the I/O phase after every transaction so Fastify can service
+			// pending HTTP requests between events on a CPU-constrained container.
+			await new Promise(setImmediate)
 		}
 
 		return Result.ok(events)

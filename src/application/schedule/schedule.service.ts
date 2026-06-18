@@ -58,13 +58,14 @@ export class ScheduleService {
 
 		this.logger.log('Start CIST Postman')
 
-		const [auditoriumsResult, groupsResult, teachersResult] = await Promise.all(
-			[
-				this.auditoriumsProcessor.process(),
-				this.groupsProcessor.process(),
-				this.teachersProcessor.process(),
-			],
-		)
+		// Run sequentially instead of in parallel to reduce peak CPU/DB pressure
+		// during a seed run and keep the event loop responsive for HTTP handlers.
+		const auditoriumsResult = await this.auditoriumsProcessor.process()
+		await new Promise(setImmediate)
+		const groupsResult = await this.groupsProcessor.process()
+		await new Promise(setImmediate)
+		const teachersResult = await this.teachersProcessor.process()
+		await new Promise(setImmediate)
 
 		if (auditoriumsResult.isErr()) {
 			await this.logProcessingException(
@@ -117,6 +118,9 @@ export class ScheduleService {
 				})
 			}
 
+			// Yield to the I/O phase before the inter-group delay so Fastify can
+			// service pending HTTP requests even on a CPU-constrained container.
+			await new Promise(setImmediate)
 			await setTimeout(CIST_DELAY_MS)
 		}
 
