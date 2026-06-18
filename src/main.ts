@@ -50,7 +50,7 @@ const useSwagger = (app: INestApplication) => {
 	SwaggerModule.setup('api', app, cleanupOpenApiDoc(document))
 
 	app.use(
-		'/api',
+		'/docs',
 		apiReference({
 			content: document,
 			withFastify: true,
