@@ -4,7 +4,7 @@
 	"description": "API for Mindenit Schedule",
 	"scripts": {
 		"build": "nest build",
-		"start": "nest start",
+		"start": "node --run db:apply-migration && node --run start:prod",
 		"start:dev": "nest start --watch",
 		"start:debug": "nest start --debug --watch",
 		"start:prod": "node dist/main",
@@ -17,7 +17,7 @@
 		"infrastructure:stop:dev": "docker compose down",
 		"db:generate-schema": "tsc -p tsconfig.drizzle.json",
 		"db:generate-migration": "NODE_ENV=development node --run db:generate-schema && npx drizzle-kit generate --config=./drizzle.config.ts",
-		"db:apply-migration": "NODE_ENV=development npx drizzle-kit migrate --config=./drizzle.config.ts",
+		"db:apply-migration": "npx drizzle-kit migrate --config=./drizzle.config.ts",
 		"db:drop-migration": "NODE_ENV=development npx drizzle-kit drop --config=./drizzle.config.ts",
 		"copy:config": "cpy --rename=.env ./.env.example ./",
 		"lint": "eslint .",

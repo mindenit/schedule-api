@@ -29,4 +29,4 @@ COPY --from=build /app/drizzle.config.ts /app/drizzle.config.ts
 
 EXPOSE 8080
 
-CMD ["node", "--run", "start:prod"]
+CMD ["node", "--run", "start"]
