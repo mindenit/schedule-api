@@ -10,11 +10,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
-import {
-	cleanupOpenApiDoc,
-	ZodSerializerInterceptor,
-	ZodValidationPipe,
-} from 'nestjs-zod'
+import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod'
 
 import { AppModule } from './app.module'
 import { ScheduleService } from './application/schedule/schedule.service'
@@ -47,10 +43,8 @@ const useSwagger = (app: INestApplication) => {
 
 	const document = SwaggerModule.createDocument(app, config)
 
-	SwaggerModule.setup('api', app, cleanupOpenApiDoc(document))
-
 	app.use(
-		'/docs',
+		'/api/docs',
 		apiReference({
 			content: document,
 			withFastify: true,
@@ -95,6 +89,8 @@ async function bootstrap() {
 			},
 		},
 	)
+
+	app.setGlobalPrefix('api')
 
 	useSwagger(app)
 
