@@ -90,6 +90,18 @@ export const getTimeIntervalConditions = ({
 
 export const buildScheduleQuery = (where: SQL): SQL<unknown> => {
 	return sql`
+    with scoped_events as (
+      select distinct e.id as event_id
+      from
+        event e
+      join auditorium a on a.id = e.auditorium_id
+      join subject s on s.id = e.subject_id
+      join event_to_academic_group etag1 on etag1.event_id = e.id
+      join academic_group ag1 on ag1.id = etag1.groud_id
+      left join event_to_teacher ett1 on ett1.event_id = e.id
+      left join teacher t1 on t1.id = ett1.teacher_id
+      where ${where}
+    )
     select
       e.id::int as id,
       e.number_pair as "numberPair",
@@ -101,18 +113,15 @@ export const buildScheduleQuery = (where: SQL): SQL<unknown> => {
       g.groups,
       t.teachers,
       row_number() over (
-        partition by s.id, e.type, t1.id, ag1.id
-        order by e.started_at
+        partition by s.id, e.type
+        order by e.started_at, e.id
       )::int as "pairIndex",
-      count(*) over (partition by s.id, e.type, t1.id, ag1.id)::int as "pairsCount"
+      count(*) over (partition by s.id, e.type)::int as "pairsCount"
     from
       event e
+    join scoped_events se on se.event_id = e.id
     join auditorium a on a.id = e.auditorium_id
     join subject s on s.id = e.subject_id
-    join event_to_academic_group etag1 on etag1.event_id = e.id
-    join academic_group ag1 on ag1.id = etag1.groud_id
-    left join event_to_teacher ett1 on ett1.event_id = e.id
-    left join teacher t1 on t1.id = ett1.teacher_id
     left join lateral (
       select array_agg(jsonb_build_object('id', ag.id, 'name', ag.name)) as groups
       from event_to_academic_group etag
@@ -134,7 +143,6 @@ export const buildScheduleQuery = (where: SQL): SQL<unknown> => {
       join teacher tt on tt.id = ett.teacher_id
       where ett.event_id = e.id
     ) t on true
-    where ${where}
     order by
       e.started_at;
   `
