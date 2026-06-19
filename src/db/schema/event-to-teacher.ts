@@ -15,6 +15,7 @@ export const eventToTeacherTable = pgTable(
 			.integer()
 			.notNull()
 			.references(() => teacherTable.id, referencialIntegrityOptions),
+		lastSeenAt: t.bigint({ mode: 'number' }).notNull().default(0),
 	}),
 	(t) => [primaryKey({ columns: [t.eventId, t.teacherId] })],
 )

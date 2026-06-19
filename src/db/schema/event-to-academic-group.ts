@@ -15,6 +15,7 @@ export const eventToAcademicGroupTable = pgTable(
 			.integer()
 			.notNull()
 			.references(() => academicGroupTable.id, referencialIntegrityOptions),
+		lastSeenAt: t.bigint({ mode: 'number' }).notNull().default(0),
 	}),
 	(t) => [primaryKey({ columns: [t.eventId, t.groudId] })],
 )
