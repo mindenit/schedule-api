@@ -124,12 +124,6 @@ export class ScheduleService {
 			await setTimeout(CIST_DELAY_MS)
 		}
 
-		// Sweep stale link rows before sweeping events. Links for failed groups are
-		// protected so a transient CIST failure doesn't erase their associations.
-		// Event sweep runs last; cascade would clean links anyway, but doing it
-		// explicitly keeps the tables consistent between the two deletes.
-		await this.eventsProcessor.removeExtraEventLinks(runId, failedGroupIds)
-
 		// Only sweep events the crawler dropped; events of groups we couldn't refresh
 		// this run are protected so a transient CIST failure doesn't delete them.
 		await Promise.all([

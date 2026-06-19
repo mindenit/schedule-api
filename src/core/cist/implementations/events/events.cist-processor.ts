@@ -94,51 +94,6 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 			.where(and(isStale, notInArray(eventTable.id, eventsOfFailedGroups)))
 	}
 
-	// Sweep stale link rows from previous runs. Must be called after all groups
-	// have been processed so that no in-flight runId writes are active.
-	//
-	// INVARIANT: group processing must be sequential (not parallel) for the
-	// within-run delete-then-reinsert in processEvent to be race-free.
-	async removeExtraEventLinks(
-		runId: number,
-		failedGroupIds: number[] = [],
-	): Promise<void> {
-		const isStaleGroup = lt(eventToAcademicGroupTable.lastSeenAt, runId)
-		const isStalTeacher = lt(eventToTeacherTable.lastSeenAt, runId)
-
-		if (!failedGroupIds.length) {
-			await Promise.all([
-				this.db.delete(eventToAcademicGroupTable).where(isStaleGroup),
-				this.db.delete(eventToTeacherTable).where(isStalTeacher),
-			])
-			return
-		}
-
-		const eventsOfFailedGroups = this.db
-			.selectDistinct({ id: eventToAcademicGroupTable.eventId })
-			.from(eventToAcademicGroupTable)
-			.where(inArray(eventToAcademicGroupTable.groudId, failedGroupIds))
-
-		await Promise.all([
-			this.db
-				.delete(eventToAcademicGroupTable)
-				.where(
-					and(
-						isStaleGroup,
-						notInArray(eventToAcademicGroupTable.eventId, eventsOfFailedGroups),
-					),
-				),
-			this.db
-				.delete(eventToTeacherTable)
-				.where(
-					and(
-						isStalTeacher,
-						notInArray(eventToTeacherTable.eventId, eventsOfFailedGroups),
-					),
-				),
-		])
-	}
-
 	private async processEvent(
 		event: Event,
 		runId: number,
@@ -179,36 +134,10 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 				.returning({ id: eventTable.id })
 
 			if (event.teachers.length) {
-				// Delete any link rows written by a previous pass within this same run
-				// for the same event, then reinsert with the current run's group/teacher
-				// list. This ensures the last CIST response wins within a run — preventing
-				// link-table accumulation across multiple groups that share a physical
-				// event row (e.g. ФВ in auditorium DL).
-				await tx
-					.delete(eventToTeacherTable)
-					.where(
-						and(
-							eq(eventToTeacherTable.eventId, eventId),
-							eq(eventToTeacherTable.lastSeenAt, runId),
-						),
-					)
-
 				await tx
 					.insert(eventToTeacherTable)
-					.values(
-						event.teachers.map((t) => ({
-							eventId,
-							teacherId: t.id,
-							lastSeenAt: runId,
-						})),
-					)
-					.onConflictDoUpdate({
-						target: [
-							eventToTeacherTable.eventId,
-							eventToTeacherTable.teacherId,
-						],
-						set: { lastSeenAt: runId },
-					})
+					.values(event.teachers.map((t) => ({ eventId, teacherId: t.id })))
+					.onConflictDoNothing()
 
 				for (const teacher of event.teachers) {
 					const hour = hours.find(
@@ -233,32 +162,10 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 			}
 
 			if (event.groups.length) {
-				// Same delete-then-reinsert pattern as teachers above.
-				await tx
-					.delete(eventToAcademicGroupTable)
-					.where(
-						and(
-							eq(eventToAcademicGroupTable.eventId, eventId),
-							eq(eventToAcademicGroupTable.lastSeenAt, runId),
-						),
-					)
-
 				await tx
 					.insert(eventToAcademicGroupTable)
-					.values(
-						event.groups.map((g) => ({
-							eventId,
-							groudId: g.id,
-							lastSeenAt: runId,
-						})),
-					)
-					.onConflictDoUpdate({
-						target: [
-							eventToAcademicGroupTable.eventId,
-							eventToAcademicGroupTable.groudId,
-						],
-						set: { lastSeenAt: runId },
-					})
+					.values(event.groups.map((g) => ({ eventId, groudId: g.id })))
+					.onConflictDoNothing()
 			}
 		})
 	}
