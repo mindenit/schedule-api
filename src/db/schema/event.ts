@@ -15,6 +15,7 @@ export const eventTable = pgTable(
 		numberPair: t.smallint(),
 		type: eventTypeEnum(),
 		lastSeenAt: t.bigint({ mode: 'number' }).notNull(),
+		teachersKey: t.text().notNull().default(''),
 		auditoriumId: t
 			.integer()
 			.notNull()
@@ -33,6 +34,7 @@ export const eventTable = pgTable(
 			t.type,
 			t.auditoriumId,
 			t.numberPair,
+			t.teachersKey,
 		),
 	],
 )

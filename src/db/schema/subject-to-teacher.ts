@@ -1,7 +1,7 @@
 import { bigint, pgTable } from 'drizzle-orm/pg-core'
 
 import { referencialIntegrityOptions } from '../utils'
-import { eventTypeEnum } from './event-type-enum.js'
+import { eventTypeEnum } from './event-type-enum'
 import { subjectTable } from './subject'
 import { teacherTable } from './teacher'
 

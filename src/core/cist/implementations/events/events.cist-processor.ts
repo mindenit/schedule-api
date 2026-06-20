@@ -22,6 +22,14 @@ import { CistEventsParser } from './events.cist-parser'
 // Constants
 const LOG_PREFIX = 'event-processor'
 
+// Utils
+const buildTeachersKey = (teachers: Event['teachers']): string => {
+	return teachers
+		.map((t) => t.id)
+		.toSorted((a, b) => a - b)
+		.join(',')
+}
+
 @Injectable()
 export class CistEventsProcessor extends CistAbstractProcessor<
 	Event[],
@@ -65,8 +73,6 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 
 		for (const event of events) {
 			await this.processEvent(event, runId, hours)
-			// Yield to the I/O phase after every transaction so Fastify can service
-			// pending HTTP requests between events on a CPU-constrained container.
 			await new Promise(setImmediate)
 		}
 
@@ -117,6 +123,7 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 					numberPair: event.numberPair,
 					type: event.type,
 					lastSeenAt: runId,
+					teachersKey: buildTeachersKey(event.teachers),
 					auditoriumId: auditorium.id,
 					subjectId: event.subject.id,
 				})
@@ -128,6 +135,7 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 						eventTable.type,
 						eventTable.auditoriumId,
 						eventTable.numberPair,
+						eventTable.teachersKey,
 					],
 					set: { lastSeenAt: runId },
 				})

@@ -15,6 +15,13 @@
 			"when": 1781557597581,
 			"tag": "0001_add_event_tracking_and_standardize_schema",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1781959629490,
+			"tag": "0002_add_teachers_key_to_event_natural_key",
+			"breakpoints": true
 		}
 	]
 }

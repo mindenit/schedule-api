@@ -32,19 +32,33 @@ services:
       options:
         max-size: '10m'
         max-file: '3'
-  db-gateway:
-    container_name: schedule-db-gateway
-    image: 'ghcr.io/drizzle-team/gateway:latest'
+  pgadmin:
+    container_name: schedule-pgadmin
+    image: dpage/pgadmin4:latest
     restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+    ports:
+      - '5050:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_EMAIL:-admin@admin.com}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin_password}
+      #- PGADMIN_CONFIG_SERVER_MODE=False
+      #- PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED=False
     volumes:
-      - db-gateway:/app
+      - pgadmin_data:/var/lib/pgadmin
     networks:
       - dev
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - '4983:4983'
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
   cache:
     container_name: schedule-cache
     image: 'docker.dragonflydb.io/dragonflydb/dragonfly'
@@ -115,4 +129,4 @@ services:
 volumes:
   pgdata:
   dragonflydata:
-  db-gateway:
+  pgadmin_data:
