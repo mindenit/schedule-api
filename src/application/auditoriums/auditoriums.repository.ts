@@ -45,13 +45,13 @@ export class AuditoriumsRepository extends ScheduleRepository<GetAuditoriumSched
 			.orderBy(asc(auditoriumTable.name))
 	}
 
-	async findAuditoriumGroups(
-		auditoriumId: number,
-	): Promise<Pick<Group, 'id' | 'name'>[]> {
+	async findAuditoriumGroups(auditoriumId: number): Promise<Group[]> {
 		return this.db
 			.selectDistinct({
 				id: academicGroupTable.id,
 				name: academicGroupTable.name,
+				directionId: academicGroupTable.directionId,
+				specialityId: academicGroupTable.specialityId,
 			})
 			.from(eventTable)
 			.innerJoin(
@@ -66,14 +66,13 @@ export class AuditoriumsRepository extends ScheduleRepository<GetAuditoriumSched
 			.orderBy(asc(academicGroupTable.name))
 	}
 
-	async findAuditoriumTeachers(
-		auditoriumId: number,
-	): Promise<Omit<Teacher, 'departmentId'>[]> {
+	async findAuditoriumTeachers(auditoriumId: number): Promise<Teacher[]> {
 		return this.db
 			.selectDistinct({
 				id: teacherTable.id,
 				shortName: teacherTable.shortName,
 				fullName: teacherTable.fullName,
+				departmentId: teacherTable.departmentId,
 			})
 			.from(eventTable)
 			.innerJoin(

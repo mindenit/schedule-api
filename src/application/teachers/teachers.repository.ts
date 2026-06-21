@@ -1,10 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, getTableColumns, SQL } from 'drizzle-orm'
+import { asc, eq, SQL } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
 import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
-import { Subject } from 'src/core/cist/dtos'
+import { Auditorium, Group, Subject, Teacher } from 'src/core/cist/dtos'
 import {
 	academicGroupTable,
 	auditoriumTable,
@@ -15,9 +15,7 @@ import {
 	teacherTable,
 } from 'src/db/schema'
 
-import { PublicAditorium } from '../auditoriums/auditoriums.schema'
-import { PublicGroup } from '../groups/groups.schema'
-import { GetTeacherScheduleFilters, PublicTeacher } from './teachers.schemas'
+import { GetTeacherScheduleFilters } from './teachers.schemas'
 import { getTeacherFiltersQuery } from './utils/filters-query.util'
 
 @Injectable()
@@ -29,20 +27,21 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 		super(db)
 	}
 
-	async findAll(): Promise<PublicTeacher[]> {
-		const { departmentId, ...rest } = getTableColumns(teacherTable)
-
+	async findAll(): Promise<Teacher[]> {
 		return this.db
-			.select(rest)
+			.select()
 			.from(teacherTable)
 			.orderBy(asc(teacherTable.shortName))
 	}
 
-	async findTeacherAuditoriums(teacherId: number): Promise<PublicAditorium[]> {
+	async findTeacherAuditoriums(teacherId: number): Promise<Auditorium[]> {
 		return this.db
 			.selectDistinct({
 				id: auditoriumTable.id,
 				name: auditoriumTable.name,
+				buildingId: auditoriumTable.buildingId,
+				floor: auditoriumTable.floor,
+				hasPower: auditoriumTable.hasPower,
 			})
 			.from(eventTable)
 			.innerJoin(
@@ -57,11 +56,13 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 			.orderBy(auditoriumTable.name)
 	}
 
-	async findTeacherGroups(teacherId: number): Promise<PublicGroup[]> {
+	async findTeacherGroups(teacherId: number): Promise<Group[]> {
 		return this.db
 			.selectDistinct({
 				id: academicGroupTable.id,
 				name: academicGroupTable.name,
+				directionId: academicGroupTable.directionId,
+				specialityId: academicGroupTable.specialityId,
 			})
 			.from(eventTable)
 			.innerJoin(

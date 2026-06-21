@@ -1,10 +1,5 @@
 import { QueryParamUtils } from 'src/common/utils/query-param'
-import { GroupSchema } from 'src/core/cist/dtos'
 import z from 'zod'
-
-const PublicGroupSchema = GroupSchema.pick({ id: true, name: true })
-
-type PublicGroup = z.infer<typeof PublicGroupSchema>
 
 const GetGroupScheduleFiltersSchema = z
 	.object({
@@ -50,5 +45,5 @@ const GetGroupScheduleFiltersSchema = z
 
 type GetGroupScheduleFilters = z.infer<typeof GetGroupScheduleFiltersSchema>
 
-export { GetGroupScheduleFiltersSchema, PublicGroupSchema }
-export type { GetGroupScheduleFilters, PublicGroup }
+export { GetGroupScheduleFiltersSchema }
+export type { GetGroupScheduleFilters }

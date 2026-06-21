@@ -1,9 +1,7 @@
 import { Controller, Get, HttpStatus, Param, Query } from '@nestjs/common'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
-import { Subject } from 'src/core/cist/dtos'
 
-import { PublicAditorium } from '../auditoriums/auditoriums.schema'
 import {
 	GetTeacherParamsDto,
 	TeacherAuditoriumsResponseDto,
@@ -14,7 +12,6 @@ import {
 	TeacherSubjectsResponseDto,
 } from './dtos/teachers.dto'
 import { TeachersRepository } from './teachers.repository'
-import { PublicTeacher } from './teachers.schemas'
 
 @ApiTags('Teachers')
 @Controller('teachers')
@@ -31,7 +28,7 @@ export class TeachersController {
 		type: TeachersResponseDto,
 	})
 	@Get()
-	async findAll(): Promise<PublicTeacher[]> {
+	async findAll() {
 		return this.teachersRepository.findAll()
 	}
 
@@ -45,9 +42,7 @@ export class TeachersController {
 		type: TeacherAuditoriumsResponseDto,
 	})
 	@Get(':id/auditoriums')
-	async findTeacherAuditoriums(
-		@Param() params: GetTeacherParamsDto,
-	): Promise<PublicAditorium[]> {
+	async findTeacherAuditoriums(@Param() params: GetTeacherParamsDto) {
 		return this.teachersRepository.findTeacherAuditoriums(params.id)
 	}
 
@@ -61,9 +56,7 @@ export class TeachersController {
 		type: TeacherGroupsResponseDto,
 	})
 	@Get(':id/groups')
-	async findTeacherGroups(
-		@Param() params: GetTeacherParamsDto,
-	): Promise<PublicAditorium[]> {
+	async findTeacherGroups(@Param() params: GetTeacherParamsDto) {
 		return this.teachersRepository.findTeacherGroups(params.id)
 	}
 
@@ -77,9 +70,7 @@ export class TeachersController {
 		type: TeacherSubjectsResponseDto,
 	})
 	@Get(':id/subjects')
-	async findTeacherSubjects(
-		@Param() params: GetTeacherParamsDto,
-	): Promise<Subject[]> {
+	async findTeacherSubjects(@Param() params: GetTeacherParamsDto) {
 		return this.teachersRepository.findTeacherSubjects(params.id)
 	}
 

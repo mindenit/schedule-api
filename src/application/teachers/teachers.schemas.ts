@@ -1,10 +1,5 @@
 import { QueryParamUtils } from 'src/common/utils/query-param'
-import { TeacherSchema } from 'src/core/cist/dtos'
 import z from 'zod'
-
-const PublicTeacherSchema = TeacherSchema.omit({ departmentId: true })
-
-type PublicTeacher = z.infer<typeof PublicTeacherSchema>
 
 const GetTeacherScheduleFiltersSchema = z
 	.object({
@@ -46,5 +41,5 @@ const GetTeacherScheduleFiltersSchema = z
 
 type GetTeacherScheduleFilters = z.infer<typeof GetTeacherScheduleFiltersSchema>
 
-export { GetTeacherScheduleFiltersSchema, PublicTeacherSchema }
-export type { GetTeacherScheduleFilters, PublicTeacher }
+export { GetTeacherScheduleFiltersSchema }
+export type { GetTeacherScheduleFilters }

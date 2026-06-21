@@ -4,7 +4,7 @@ import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
 import { scheduleAliases } from 'src/common/utils/schedule/schedule'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
-import { Group, Subject } from 'src/core/cist/dtos'
+import { Auditorium, Group, Subject, Teacher } from 'src/core/cist/dtos'
 import {
 	academicGroupTable,
 	auditoriumTable,
@@ -15,8 +15,6 @@ import {
 	teacherTable,
 } from 'src/db/schema'
 
-import { PublicAditorium } from '../auditoriums/auditoriums.schema'
-import { PublicTeacher } from '../teachers/teachers.schemas'
 import { GetGroupScheduleFilters } from './groups.schema'
 import { getGroupFiltersQuery } from './utils/filters-query.util'
 
@@ -46,11 +44,14 @@ export class GroupsRepository extends ScheduleRepository<GetGroupScheduleFilters
 			.orderBy(asc(academicGroupTable.name))
 	}
 
-	async findGroupAuditoriums(groupId: number): Promise<PublicAditorium[]> {
+	async findGroupAuditoriums(groupId: number): Promise<Auditorium[]> {
 		return this.db
 			.selectDistinct({
 				id: auditoriumTable.id,
 				name: auditoriumTable.name,
+				buildingId: auditoriumTable.buildingId,
+				floor: auditoriumTable.floor,
+				hasPower: auditoriumTable.hasPower,
 			})
 			.from(eventTable)
 			.innerJoin(
@@ -82,12 +83,13 @@ export class GroupsRepository extends ScheduleRepository<GetGroupScheduleFilters
 			.orderBy(subjectTable.brief)
 	}
 
-	async findGroupTeachers(groupId: number): Promise<PublicTeacher[]> {
+	async findGroupTeachers(groupId: number): Promise<Teacher[]> {
 		return this.db
 			.selectDistinct({
 				id: teacherTable.id,
 				shortName: teacherTable.shortName,
 				fullName: teacherTable.fullName,
+				departmentId: teacherTable.departmentId,
 			})
 			.from(eventTable)
 			.innerJoin(
