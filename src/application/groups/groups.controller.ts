@@ -74,7 +74,7 @@ export class GroupsController {
 	})
 	@Get(':id/teachers')
 	async findGroupTeachers(@Param() params: GetGroupParamsDto) {
-		return this.groupsRepository.findGroupSubjects(params.id)
+		return this.groupsRepository.findGroupTeachers(params.id)
 	}
 
 	@ApiOperation({

@@ -29,7 +29,12 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 
 	async findAll(): Promise<Teacher[]> {
 		return this.db
-			.select()
+			.select({
+				id: teacherTable.id,
+				fullName: teacherTable.fullName,
+				shortName: teacherTable.shortName,
+				departmentId: teacherTable.departmentId,
+			})
 			.from(teacherTable)
 			.orderBy(asc(teacherTable.shortName))
 	}

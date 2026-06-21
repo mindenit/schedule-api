@@ -27,7 +27,7 @@ export class TransformInterceptor implements NestInterceptor<unknown, unknown> {
 				}
 
 				if (!this.isResult(data)) {
-					return { data }
+					return { success: true, data, error: null }
 				}
 
 				if (data.isErr()) {
