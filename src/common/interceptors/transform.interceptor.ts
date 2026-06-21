@@ -34,7 +34,7 @@ export class TransformInterceptor implements NestInterceptor<unknown, unknown> {
 					throw data.error
 				}
 
-				return { success: true, data: data.unwrap() }
+				return { success: true, data: data.unwrap(), error: null }
 			}),
 		)
 	}
