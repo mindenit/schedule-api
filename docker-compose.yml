@@ -1,7 +1,9 @@
 version: '3.8'
+
 networks:
   dev:
     driver: bridge
+
 services:
   db:
     container_name: schedule-db
@@ -92,6 +94,13 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      cache:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:${PORT}/api/docs || curl -fs http://localhost:${PORT}/api/docs > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - dev
     logging:
@@ -122,6 +131,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost/misc/ping || curl -fs http://localhost/misc/ping > /dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     logging:
       driver: 'json-file'
       options:
