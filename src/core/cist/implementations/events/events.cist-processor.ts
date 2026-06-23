@@ -14,6 +14,7 @@ import {
 	eventToTeacherTable,
 	subjectTable,
 	subjectToTeacherTable,
+	teacherTable,
 } from 'src/db/schema'
 
 import { CistAbstractProcessor, UploadJob } from '../../abstract.cist-processor'
@@ -142,29 +143,41 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 				.returning({ id: eventTable.id })
 
 			if (event.teachers.length) {
-				await tx
-					.insert(eventToTeacherTable)
-					.values(event.teachers.map((t) => ({ eventId, teacherId: t.id })))
-					.onConflictDoNothing()
+				const existingTeachers = await tx
+					.select({ id: teacherTable.id })
+					.from(teacherTable)
+					.where(inArray(teacherTable.id, event.teachers.map((t) => t.id)))
 
-				for (const teacher of event.teachers) {
-					const hour = hours.find(
-						(h) =>
-							h.subjectId === event.subject.id &&
-							h.teacherId === teacher.id &&
-							h.teacherId !== null,
-					)
+				const existingTeacherIds = new Set(existingTeachers.map((t) => t.id))
+				const knownTeachers = event.teachers.filter((t) =>
+					existingTeacherIds.has(t.id),
+				)
 
-					if (hour?.teacherId) {
-						await tx
-							.insert(subjectToTeacherTable)
-							.values({
-								subjectId: hour.subjectId,
-								teacherId: hour.teacherId,
-								hours: hour.hours,
-								type: hour.type,
-							})
-							.onConflictDoNothing()
+				if (knownTeachers.length) {
+					await tx
+						.insert(eventToTeacherTable)
+						.values(knownTeachers.map((t) => ({ eventId, teacherId: t.id })))
+						.onConflictDoNothing()
+
+					for (const teacher of knownTeachers) {
+						const hour = hours.find(
+							(h) =>
+								h.subjectId === event.subject.id &&
+								h.teacherId === teacher.id &&
+								h.teacherId !== null,
+						)
+
+						if (hour?.teacherId) {
+							await tx
+								.insert(subjectToTeacherTable)
+								.values({
+									subjectId: hour.subjectId,
+									teacherId: hour.teacherId,
+									hours: hour.hours,
+									type: hour.type,
+								})
+								.onConflictDoNothing()
+						}
 					}
 				}
 			}
