@@ -9,8 +9,11 @@ const queryParamToArray = (param: string | null): string[] => {
 }
 
 export const transformEventTypes = (param: string | null): string[] => {
-	// eslint-disable-next-line @typescript-eslint/unbound-method
-	return queryParamToArray(param).filter(eventTypeEnum.enumValues.includes)
+	return queryParamToArray(param).filter((value) =>
+		eventTypeEnum.enumValues.includes(
+			value as (typeof eventTypeEnum.enumValues)[number],
+		),
+	)
 }
 
 export const transformIds = (param: string | null): number[] => {
