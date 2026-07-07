@@ -11,6 +11,7 @@ import { apiReference } from '@scalar/nestjs-api-reference'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod'
+import qs from 'qs'
 
 import { AppModule } from './app.module'
 import { ScheduleService } from './application/schedule/schedule.service'
@@ -78,7 +79,13 @@ async function bootstrap() {
 
 	const app = await NestFactory.create<NestFastifyApplication>(
 		AppModule,
-		new FastifyAdapter(),
+		new FastifyAdapter({
+			// Restore nested querystring parsing (e.g. `?filters[teachers]=1,2`)
+			// for schedule route filters. The schedule query schema nests filter
+			// fields under a `filters` key, which Fastify's default parser cannot
+			// build. This matches the pre-NestJS Fastify configuration.
+			querystringParser: (str) => qs.parse(str),
+		}),
 		{
 			logger,
 			bufferLogs: true,
@@ -98,6 +105,10 @@ async function bootstrap() {
 	const { port } = configService.get('server')
 
 	app.useGlobalFilters(new GlobalExceptionFilter())
+	// Interceptor registration order matters: NestJS runs interceptors in reverse
+	// registration order on the response path (last registered = innermost).
+	// TransformInterceptor must wrap the raw value into {success,data,error} BEFORE
+	// ZodSerializerInterceptor validates it against the envelope DTO schema.
 	app.useGlobalInterceptors(new ZodSerializerInterceptor(app.get(Reflector)))
 	app.useGlobalInterceptors(new ErrorsInterceptor())
 	app.useGlobalInterceptors(new TransformInterceptor())
