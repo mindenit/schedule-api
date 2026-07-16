@@ -7,6 +7,7 @@ import {
 	Post,
 	Req,
 } from '@nestjs/common'
+import { RouteConfig } from '@nestjs/platform-fastify'
 import { ApiOperation, ApiTags } from '@nestjs/swagger'
 import type { FastifyRequest } from 'fastify'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
@@ -64,6 +65,9 @@ export class LinksController {
 		description: 'Sharable link created',
 		type: CreateSharableLinkResponseDto,
 	})
+	// Opt this route into the global @fastify/rate-limit plugin (registered with
+	// global: false in main.ts). All other routes remain unlimited.
+	@RouteConfig({ rateLimit: {} })
 	@Post('sharable-links')
 	async createSharableLink(
 		@Req() req: FastifyRequest,
