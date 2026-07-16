@@ -47,10 +47,11 @@ interface Accumulator {
 }
 
 @Injectable()
-export class CistEventsParser
-	implements
-		CistParser<PairsParserOutput, CistCrawlerException, PairsParserArgs>
-{
+export class CistEventsParser implements CistParser<
+	PairsParserOutput,
+	CistCrawlerException,
+	PairsParserArgs
+> {
 	private readonly eventMapper = new EventMapper()
 	private readonly subjectMapper = new SubjectMapper()
 	private readonly subjectHourMapper = new SubjectHourMapper()

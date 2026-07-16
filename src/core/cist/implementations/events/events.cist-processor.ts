@@ -146,7 +146,12 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 				const existingTeachers = await tx
 					.select({ id: teacherTable.id })
 					.from(teacherTable)
-					.where(inArray(teacherTable.id, event.teachers.map((t) => t.id)))
+					.where(
+						inArray(
+							teacherTable.id,
+							event.teachers.map((t) => t.id),
+						),
+					)
 
 				const existingTeacherIds = new Set(existingTeachers.map((t) => t.id))
 				const knownTeachers = event.teachers.filter((t) =>

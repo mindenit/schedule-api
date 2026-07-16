@@ -34,9 +34,10 @@ interface Accumulator {
 type CistSpeciality = Omit<CistDirection, 'specialities'>
 
 @Injectable()
-export class CistGroupsParser
-	implements CistParser<GroupsParserOutput, CistCrawlerException>
-{
+export class CistGroupsParser implements CistParser<
+	GroupsParserOutput,
+	CistCrawlerException
+> {
 	private readonly directionMapper = new DirectionMapper()
 	private readonly facultyMapper = new FacultyMapper()
 	private readonly groupMapper = new GroupMapper()
