@@ -19,8 +19,7 @@ export abstract class CistAbstractProcessor<
 	T extends object,
 	E extends AppException<string>,
 	A = never,
-> implements CistProcessor<T, E, A>
-{
+> implements CistProcessor<T, E, A> {
 	protected constructor(protected readonly db: PostgresJsDatabase) {}
 
 	abstract process(args: A): PromiseResult<T, E>

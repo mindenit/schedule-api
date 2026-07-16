@@ -3,6 +3,7 @@ import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'
 
 import { AudtoriumsModule } from './application/auditoriums/auditoriums.module'
 import { GroupsModule } from './application/groups/groups.module'
+import { LinksModule } from './application/links/links.module'
 import { ScheduleModule } from './application/schedule/schedule.module'
 import { TeachersModule } from './application/teachers/teachers.module'
 import { CacheModule } from './components/cache/cache.module'
@@ -25,6 +26,7 @@ import { LoggerModule } from './components/logger/logger.module'
 		// Application
 		AudtoriumsModule,
 		GroupsModule,
+		LinksModule,
 		ScheduleModule,
 		TeachersModule,
 	],

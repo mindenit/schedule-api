@@ -29,9 +29,10 @@ interface Accumulator {
 }
 
 @Injectable()
-export class CistTeachersParser
-	implements CistParser<TeachersParserOutput, CistCrawlerException>
-{
+export class CistTeachersParser implements CistParser<
+	TeachersParserOutput,
+	CistCrawlerException
+> {
 	private readonly logger = new Logger(CistTeachersParser.name)
 
 	private readonly facultyMapper = new FacultyMapper()

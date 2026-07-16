@@ -1,6 +1,8 @@
 import 'dotenv/config'
 
-import { INestApplication } from '@nestjs/common'
+import fastifyCors from '@fastify/cors'
+import fastifyRateLimit from '@fastify/rate-limit'
+import { HttpStatus, INestApplication } from '@nestjs/common'
 import { NestFactory, Reflector } from '@nestjs/core'
 import {
 	FastifyAdapter,
@@ -9,6 +11,7 @@ import {
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { apiReference } from '@scalar/nestjs-api-reference'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import { FastifyRequest } from 'fastify'
 import Redis from 'ioredis'
 import { ZodSerializerInterceptor, ZodValidationPipe } from 'nestjs-zod'
 
@@ -18,6 +21,7 @@ import {
 	IS_UPDATE_IN_PROGRESS_KEY,
 	UPDATE_STATUS,
 } from './common/constants/health-status'
+import { LinksErrorCodes } from './common/exceptions/error-codes'
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ErrorsInterceptor } from './common/interceptors/error.interceptor'
 import { TransformInterceptor } from './common/interceptors/transform.interceptor'
@@ -33,12 +37,6 @@ const useSwagger = (app: INestApplication) => {
 		.setDescription('API for Mindenit Hub application')
 		.setVersion('1.0.0')
 		.addTag('API')
-		.addSecurity('access-token', {
-			type: 'apiKey',
-			in: 'cookie',
-			name: 'schedule-client-id',
-		})
-		.addSecurityRequirements('access-token')
 		.build()
 
 	const document = SwaggerModule.createDocument(app, config)
@@ -82,20 +80,45 @@ async function bootstrap() {
 		{
 			logger,
 			bufferLogs: true,
-			cors: {
-				credentials: true,
-				methods: ['GET', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-				maxAge: 86_400,
-			},
 		},
 	)
 
 	app.setGlobalPrefix('api')
 
-	useSwagger(app)
-
 	const configService = app.get(ConfigService)
 	const { port } = configService.get('server')
+
+	// All routes are public — no credentials, no origin allowlist needed.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+	await app.register(fastifyCors as any, {
+		origin: '*',
+		credentials: false,
+		methods: ['GET', 'POST', 'OPTIONS'],
+		maxAge: 86_400,
+	})
+
+	// Rate-limit bundle creation: 10 POST /api/sharable-links per hour per IP.
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
+	await app.register(fastifyRateLimit as any, {
+		max: 10,
+		timeWindow: '1 hour',
+		keyGenerator: (req: FastifyRequest) => req.ip,
+		// Apply only to POST /api/sharable-links
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		hook: 'preHandler' as any,
+
+		skipOnError: false,
+		errorResponseBuilder: () => ({
+			success: false,
+			error: {
+				code: LinksErrorCodes.SHARABLE_LINKS_RATE_LIMIT_EXCEEDED,
+				message: 'You may create at most 10 sharable links per hour',
+				statusCode: HttpStatus.TOO_MANY_REQUESTS,
+			},
+		}),
+	})
+
+	useSwagger(app)
 
 	app.useGlobalFilters(new GlobalExceptionFilter())
 	app.useGlobalInterceptors(new ZodSerializerInterceptor(app.get(Reflector)))
