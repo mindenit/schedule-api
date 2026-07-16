@@ -7,15 +7,12 @@ export const MAX_LINKS_PER_BUNDLE = 100
 const sanitizeName = (val: string) => val.replace(/\p{Cc}/gu, '').trim()
 
 export const BundleLinkSchema = z.object({
-	id: z.string().uuid(),
+	id: z.uuidv4(),
 	name: z
 		.string()
 		.transform(sanitizeName)
 		.pipe(z.string().min(1, 'name cannot be empty').max(64)),
-	url: z
-		.string()
-		.url()
-		.refine((val) => /^https?:\/\//i.test(val), 'url must use http or https'),
+	url: z.url({ protocol: /^https?$/, hostname: z.regexes.domain }),
 })
 
 export type BundleLink = z.infer<typeof BundleLinkSchema>
@@ -78,14 +75,14 @@ export const CreateSharableLinkSchema = z
 export type CreateSharableLink = z.infer<typeof CreateSharableLinkSchema>
 
 export const SharableLinkSchema = z.object({
-	id: z.string().uuid(),
+	id: z.uuidv4(),
 	links: CreateSharableLinkSchema,
 })
 
 export type SharableLink = z.infer<typeof SharableLinkSchema>
 
 export const LinkIdParamSchema = z.object({
-	id: z.string().uuid(),
+	id: z.uuidv4(),
 })
 
 export type LinkIdParam = z.infer<typeof LinkIdParamSchema>
