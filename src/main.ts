@@ -22,6 +22,7 @@ import {
 	IS_UPDATE_IN_PROGRESS_KEY,
 	UPDATE_STATUS,
 } from './common/constants/health-status'
+import { AppException } from './common/exceptions/app.exception'
 import { LinksErrorCodes } from './common/exceptions/error-codes'
 import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import { ErrorsInterceptor } from './common/interceptors/error.interceptor'
@@ -83,6 +84,10 @@ async function bootstrap() {
 			// fields under a `filters` key, which Fastify's default parser cannot
 			// build. This matches the pre-NestJS Fastify configuration.
 			querystringParser: (str) => qs.parse(str),
+			// Trust the X-Forwarded-For header set by the Caddy reverse proxy so
+			// that req.ip reflects the real client IP, not the proxy address.
+			// Without this the rate limiter counts all traffic as one IP.
+			trustProxy: true,
 		}),
 		{
 			logger,
@@ -104,25 +109,22 @@ async function bootstrap() {
 		maxAge: 86_400,
 	})
 
-	// Rate-limit bundle creation: 10 POST /api/sharable-links per hour per IP.
+	// Rate-limit POST /api/sharable-links: 10 creations per hour per IP.
+	// global: false means the limiter is inactive by default; routes opt in via
+	// their Fastify route config (see @RouteConfig in links.controller.ts).
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
 	await app.register(fastifyRateLimit as any, {
+		global: false,
 		max: 10,
 		timeWindow: '1 hour',
 		keyGenerator: (req: FastifyRequest) => req.ip,
-		// Apply only to POST /api/sharable-links
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		hook: 'preHandler' as any,
-
 		skipOnError: false,
-		errorResponseBuilder: () => ({
-			success: false,
-			error: {
-				code: LinksErrorCodes.SHARABLE_LINKS_RATE_LIMIT_EXCEEDED,
-				message: 'You may create at most 10 sharable links per hour',
-				statusCode: HttpStatus.TOO_MANY_REQUESTS,
-			},
-		}),
+		errorResponseBuilder: () =>
+			new AppException(
+				LinksErrorCodes.SHARABLE_LINKS_RATE_LIMIT_EXCEEDED,
+				'You may create at most 10 sharable links per hour',
+				HttpStatus.TOO_MANY_REQUESTS,
+			),
 	})
 
 	useSwagger(app)
