@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, timestamp } from 'drizzle-orm/pg-core'
+import { pgEnum, pgTable, primaryKey, timestamp } from 'drizzle-orm/pg-core'
 
 import { referencialIntegrityOptions } from '../utils'
 import { academicGroupTable } from './academic-group'
@@ -25,5 +25,5 @@ export const syncRunGroupTable = pgTable(
 		error: t.text(),
 		finishedAt: timestamp({ withTimezone: true }).notNull(),
 	}),
-	(t) => [index('sync_run_group_run_id_idx').on(t.runId)],
+	(t) => [primaryKey({ columns: [t.runId, t.groupId] })],
 )

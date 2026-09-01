@@ -21,11 +21,14 @@ export class DashKeyGuard implements CanActivate {
 
 	canActivate(context: ExecutionContext): boolean {
 		const request = context.switchToHttp().getRequest<{
-			headers: Record<string, string | undefined>
+			headers: Record<string, string | string[] | undefined>
 		}>()
 		const provided = request.headers['x-dash-key']
 
-		if (!provided || !timingSafeEqual(hash(provided), this.expected)) {
+		if (
+			typeof provided !== 'string' ||
+			!timingSafeEqual(hash(provided), this.expected)
+		) {
 			throw new UnauthorizedException('Invalid or missing dash key')
 		}
 

@@ -38,6 +38,8 @@ const CIST_DELAY_MS = 8_000
 
 @Injectable()
 export class ScheduleService {
+	private running = false
+
 	constructor(
 		@Inject(DATABASE_CONNECTION_TOKEN)
 		private readonly db: PostgresJsDatabase,
@@ -57,16 +59,13 @@ export class ScheduleService {
 		timeZone: 'Europe/Kyiv',
 	})
 	async processSchedule(trigger: SyncRunTrigger = 'cron') {
+		if (this.running) {
+			this.logger.log(`${LOG_PREFIX}|skipped-overlapping-run`, { trigger })
+			return
+		}
+		this.running = true
+
 		const runId = Date.now()
-
-		await Promise.all([
-			this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.UPDATING),
-			this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.IN_PROGRESS),
-		])
-
-		await this.syncRunsService.open(runId, trigger)
-
-		this.logger.log('Start CIST Postman')
 
 		const steps = {
 			auditoriums: { ok: false, count: 0 } as StepResult,
@@ -74,7 +73,18 @@ export class ScheduleService {
 			teachers: { ok: false, count: 0 } as StepResult,
 		}
 
+		let totalGroups = 0
+		const failedGroupIds: number[] = []
+
 		try {
+			await Promise.all([
+				this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.UPDATING),
+				this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.IN_PROGRESS),
+			])
+
+			await this.syncRunsService.open(runId, trigger)
+
+			this.logger.log('Start CIST Postman')
 			// Run sequentially instead of in parallel to reduce peak CPU/DB pressure
 			// during a seed run and keep the event loop responsive for HTTP handlers.
 			const auditoriumsResult = await this.auditoriumsProcessor.process()
@@ -130,8 +140,7 @@ export class ScheduleService {
 
 			const existingGroups = await this.db.select().from(academicGroupTable)
 			const groups = groupsResult.unwrapOr(existingGroups)
-			const totalGroups = groups.length
-			const failedGroupIds: number[] = []
+			totalGroups = groups.length
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -216,14 +225,16 @@ export class ScheduleService {
 				this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
 				this.syncRunsService.close(runId, {
 					status: 'failed',
-					totalGroups: 0,
-					failedGroups: 0,
+					totalGroups,
+					failedGroups: failedGroupIds.length,
 					removedEvents: 0,
 					totalEvents: 0,
 					steps,
 				}),
 			])
 			throw err
+		} finally {
+			this.running = false
 		}
 	}
 

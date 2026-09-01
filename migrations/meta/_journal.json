@@ -43,6 +43,13 @@
 			"when": 1788289525908,
 			"tag": "0005_confused_sue_storm",
 			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1788291112729,
+			"tag": "0006_spooky_barracuda",
+			"breakpoints": true
 		}
 	]
 }

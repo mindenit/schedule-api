@@ -23,7 +23,7 @@ const EnvSchema = z.object({
 	WEBHOOKS_ENABLED: z.stringbool().default(false),
 	DISCORD_WEBHOOK_URL: z.url(),
 
-	DASH_API_KEY: z.string().nonempty(),
+	DASH_API_KEY: z.string().min(32),
 })
 
 type Env = z.infer<typeof EnvSchema>

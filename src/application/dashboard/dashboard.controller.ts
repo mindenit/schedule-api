@@ -7,7 +7,7 @@ import {
 	Query,
 	UseGuards,
 } from '@nestjs/common'
-import { ApiExcludeController, ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiExcludeController, ApiOperation } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
 import { DashKeyGuard } from 'src/common/guards/dash-key.guard'
 
@@ -21,7 +21,6 @@ import {
 } from './dtos/dashboard.dto'
 
 @ApiExcludeController()
-@ApiTags('Dashboard')
 @UseGuards(DashKeyGuard)
 @Controller('dash')
 export class DashboardController {

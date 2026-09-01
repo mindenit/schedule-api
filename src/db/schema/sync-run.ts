@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, timestamp } from 'drizzle-orm/pg-core'
+import { pgEnum, pgTable, timestamp } from 'drizzle-orm/pg-core'
 
 export const syncRunStatusEnum = pgEnum('sync_run_status', [
 	'running',
@@ -22,5 +22,5 @@ export const syncRunTable = pgTable('sync_run', (t) => ({
 	failedGroups: t.integer().notNull().default(0),
 	removedEvents: t.integer().notNull().default(0),
 	totalEvents: t.integer().notNull().default(0),
-	stepsJson: text().notNull().default('{}'),
+	steps: t.jsonb().notNull().default({}),
 }))

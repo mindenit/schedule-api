@@ -41,23 +41,11 @@ const getNextCronAt = (): string => {
 	return next.toISOString()
 }
 
-const parseSteps = (raw: string): SyncSteps => {
-	try {
-		return JSON.parse(raw) as SyncSteps
-	} catch {
-		return {
-			auditoriums: { ok: false, count: 0 },
-			groups: { ok: false, count: 0 },
-			teachers: { ok: false, count: 0 },
-		}
-	}
-}
-
 const toRunDto = (row: typeof syncRunTable.$inferSelect): SyncRunDto => ({
 	...row,
 	startedAt: row.startedAt.toISOString(),
 	finishedAt: row.finishedAt?.toISOString() ?? null,
-	steps: parseSteps(row.stepsJson),
+	steps: row.steps as SyncSteps,
 })
 
 @Injectable()
@@ -118,8 +106,9 @@ export class DashboardService {
 		}
 	}
 
-	async getRuns(limit = 20): Promise<SyncRunDto[]> {
-		const rows = await this.syncRunsService.getRuns(limit)
+	async getRuns(limit?: number): Promise<SyncRunDto[]> {
+		const n = Math.min(Math.max(limit ?? 20, 1), 100)
+		const rows = await this.syncRunsService.getRuns(n)
 		return rows.map(toRunDto)
 	}
 
@@ -169,7 +158,8 @@ export class DashboardService {
 		}))
 	}
 
-	async getFailures(limit = 50): Promise<FailedGroupEntryDto[]> {
+	async getFailures(limit?: number): Promise<FailedGroupEntryDto[]> {
+		const n = Math.min(Math.max(limit ?? 50, 1), 100)
 		const rows = await this.db.execute<{
 			run_id: number
 			group_id: number
@@ -180,7 +170,7 @@ export class DashboardService {
 			FROM sync_run_group
 			WHERE status = 'failed'
 			ORDER BY finished_at DESC
-			LIMIT ${limit}
+			LIMIT ${n}
 		`)
 
 		return rows.map((r) => ({
@@ -199,12 +189,11 @@ export class DashboardService {
 			size_bytes: number
 		}>(sql`
 			SELECT
-				t.relname AS table_name,
-				t.n_live_tup AS row_count,
-				pg_size_pretty(pg_total_relation_size(c.oid)) AS size_pretty,
-				pg_total_relation_size(c.oid) AS size_bytes
-			FROM pg_stat_user_tables t
-			JOIN pg_class c ON c.relname = t.relname
+				relname AS table_name,
+				n_live_tup AS row_count,
+				pg_size_pretty(pg_total_relation_size(relid)) AS size_pretty,
+				pg_total_relation_size(relid) AS size_bytes
+			FROM pg_stat_user_tables
 			ORDER BY size_bytes DESC
 		`)
 

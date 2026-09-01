@@ -57,7 +57,7 @@ export class SyncRunsService {
 				failedGroups: opts.failedGroups,
 				removedEvents: opts.removedEvents,
 				totalEvents: opts.totalEvents,
-				stepsJson: JSON.stringify(opts.steps),
+				steps: opts.steps,
 			})
 			.where(eq(syncRunTable.id, runId))
 	}
@@ -68,14 +68,25 @@ export class SyncRunsService {
 		opts: { eventsCount: number; error?: string },
 	): Promise<void> {
 		const status = opts.error ? 'failed' : 'success'
-		await this.db.insert(syncRunGroupTable).values({
-			runId,
-			groupId,
-			status,
-			eventsCount: opts.eventsCount,
-			error: opts.error ?? null,
-			finishedAt: new Date(),
-		})
+		await this.db
+			.insert(syncRunGroupTable)
+			.values({
+				runId,
+				groupId,
+				status,
+				eventsCount: opts.eventsCount,
+				error: opts.error ?? null,
+				finishedAt: new Date(),
+			})
+			.onConflictDoUpdate({
+				target: [syncRunGroupTable.runId, syncRunGroupTable.groupId],
+				set: {
+					status,
+					eventsCount: opts.eventsCount,
+					error: opts.error ?? null,
+					finishedAt: new Date(),
+				},
+			})
 	}
 
 	async getRuns(limit = 20): Promise<(typeof syncRunTable.$inferSelect)[]> {
@@ -84,15 +95,6 @@ export class SyncRunsService {
 			.from(syncRunTable)
 			.orderBy(desc(syncRunTable.startedAt))
 			.limit(limit)
-	}
-
-	async getRunGroups(
-		runId: number,
-	): Promise<(typeof syncRunGroupTable.$inferSelect)[]> {
-		return this.db
-			.select()
-			.from(syncRunGroupTable)
-			.where(eq(syncRunGroupTable.runId, runId))
 	}
 
 	async purgeOldRuns(): Promise<number> {
