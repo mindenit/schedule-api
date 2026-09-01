@@ -24,22 +24,44 @@ export const syncRunSchema = z.object({
 	totalGroups: z.number().int(),
 	failedGroups: z.number().int(),
 	removedEvents: z.number().int(),
+	totalEvents: z.number().int(),
 	steps: stepsSchema,
 })
 
 export type SyncRunDto = z.infer<typeof syncRunSchema>
 
-// Sync run group row
+// Sync run group row (with delta vs previous run)
 export const syncRunGroupSchema = z.object({
 	runId: z.number(),
 	groupId: z.number(),
 	status: z.enum(['success', 'failed']),
 	eventsCount: z.number().int(),
+	prevEventsCount: z.number().int().nullable(),
 	error: z.string().nullable(),
 	finishedAt: z.iso.datetime(),
 })
 
 export type SyncRunGroupDto = z.infer<typeof syncRunGroupSchema>
+
+// Failed group entry (across runs)
+export const failedGroupEntrySchema = z.object({
+	runId: z.number(),
+	groupId: z.number(),
+	error: z.string().nullable(),
+	finishedAt: z.iso.datetime(),
+})
+
+export type FailedGroupEntryDto = z.infer<typeof failedGroupEntrySchema>
+
+// Table size entry
+export const tableSizeEntrySchema = z.object({
+	tableName: z.string(),
+	rowCount: z.number().int(),
+	sizePretty: z.string(),
+	sizeBytes: z.number().int(),
+})
+
+export type TableSizeEntryDto = z.infer<typeof tableSizeEntrySchema>
 
 // Summary
 export const dashSummarySchema = z.object({
@@ -80,6 +102,22 @@ export class DashRunGroupsResponseDto extends createZodDto(
 	z.object({
 		success: z.literal(true),
 		data: z.array(syncRunGroupSchema),
+		error: z.null(),
+	}),
+) {}
+
+export class DashFailuresResponseDto extends createZodDto(
+	z.object({
+		success: z.literal(true),
+		data: z.array(failedGroupEntrySchema),
+		error: z.null(),
+	}),
+) {}
+
+export class DashTableSizesResponseDto extends createZodDto(
+	z.object({
+		success: z.literal(true),
+		data: z.array(tableSizeEntrySchema),
 		error: z.null(),
 	}),
 ) {}

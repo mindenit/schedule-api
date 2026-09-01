@@ -2,6 +2,7 @@ import { setTimeout } from 'node:timers/promises'
 
 import { Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
+import { sql as drizzleSql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
 import {
@@ -27,7 +28,7 @@ import { SCHEDULE_TYPE } from 'src/core/cist/implementations/events/events.cist-
 import { CistEventsProcessor } from 'src/core/cist/implementations/events/events.cist-processor'
 import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups.cist-processor'
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
-import { academicGroupTable } from 'src/db/schema'
+import { academicGroupTable, eventTable } from 'src/db/schema'
 
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 
@@ -175,6 +176,10 @@ export class ScheduleService {
 				failedGroupIds,
 			)
 
+			const [{ totalEvents }] = await this.db
+				.select({ totalEvents: drizzleSql<number>`count(*)::int` })
+				.from(eventTable)
+
 			const finalStatus =
 				failedGroupIds.length === 0
 					? 'success'
@@ -191,6 +196,7 @@ export class ScheduleService {
 					totalGroups,
 					failedGroups: failedGroupIds.length,
 					removedEvents: removedCount,
+					totalEvents,
 					steps,
 				}),
 				this.syncRunsService.purgeOldRuns(),
@@ -213,6 +219,7 @@ export class ScheduleService {
 					totalGroups: 0,
 					failedGroups: 0,
 					removedEvents: 0,
+					totalEvents: 0,
 					steps,
 				}),
 			])

@@ -21,5 +21,6 @@ export const syncRunTable = pgTable('sync_run', (t) => ({
 	totalGroups: t.integer().notNull().default(0),
 	failedGroups: t.integer().notNull().default(0),
 	removedEvents: t.integer().notNull().default(0),
+	totalEvents: t.integer().notNull().default(0),
 	stepsJson: text().notNull().default('{}'),
 }))

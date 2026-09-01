@@ -16,15 +16,29 @@ import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 
 import {
 	DashSummaryDto,
+	FailedGroupEntryDto,
 	SyncRunDto,
 	SyncRunGroupDto,
+	TableSizeEntryDto,
 } from './dtos/dashboard.dto'
 
-// ponytail: next cron is always 12h from epoch-aligned boundary, not from now
+// Cron fires at 00:00 and 12:00 Europe/Kyiv. Compute next boundary by
+// checking current Kyiv hour; next boundary is at the next 0 or 12 in Kyiv.
 const getNextCronAt = (): string => {
-	const now = Date.now()
-	const interval = 12 * 60 * 60 * 1000
-	return new Date(Math.ceil(now / interval) * interval).toISOString()
+	const now = new Date()
+	const kyivHour = Number(
+		now.toLocaleString('en-US', {
+			hour: 'numeric',
+			hour12: false,
+			timeZone: 'Europe/Kyiv',
+		}),
+	)
+	const kyivHoursUntilNext = kyivHour < 12 ? 12 - kyivHour : 24 - kyivHour
+	// Build the next boundary: floor to current Kyiv hour, add hours-until-next
+	const next = new Date(now)
+	next.setMinutes(0, 0, 0)
+	next.setTime(next.getTime() + kyivHoursUntilNext * 60 * 60 * 1000)
+	return next.toISOString()
 }
 
 const parseSteps = (raw: string): SyncSteps => {
@@ -110,7 +124,95 @@ export class DashboardService {
 	}
 
 	async getRunGroups(runId: number): Promise<SyncRunGroupDto[]> {
-		const rows = await this.syncRunsService.getRunGroups(runId)
-		return rows.map((r) => ({ ...r, finishedAt: r.finishedAt.toISOString() }))
+		// Join current run's groups with their events_count from the previous run
+		// for the same group_id (the most recent run before this one per group).
+		const rows = await this.db.execute<{
+			run_id: number
+			group_id: number
+			status: 'success' | 'failed'
+			events_count: number
+			prev_events_count: number | null
+			error: string | null
+			finished_at: Date
+		}>(sql`
+			SELECT
+				g.run_id,
+				g.group_id,
+				g.status,
+				g.events_count,
+				g.error,
+				g.finished_at,
+				prev.events_count AS prev_events_count
+			FROM sync_run_group g
+			LEFT JOIN LATERAL (
+				SELECT p.events_count
+				FROM sync_run_group p
+				JOIN sync_run r ON r.id = p.run_id
+				WHERE p.group_id = g.group_id
+					AND p.run_id < g.run_id
+					AND r.status IN ('success', 'partial')
+				ORDER BY p.run_id DESC
+				LIMIT 1
+			) prev ON true
+			WHERE g.run_id = ${runId}
+		`)
+
+		return rows.map((r) => ({
+			runId: Number(r.run_id),
+			groupId: Number(r.group_id),
+			status: r.status,
+			eventsCount: Number(r.events_count),
+			prevEventsCount:
+				r.prev_events_count !== null ? Number(r.prev_events_count) : null,
+			error: r.error,
+			finishedAt: new Date(r.finished_at).toISOString(),
+		}))
+	}
+
+	async getFailures(limit = 50): Promise<FailedGroupEntryDto[]> {
+		const rows = await this.db.execute<{
+			run_id: number
+			group_id: number
+			error: string | null
+			finished_at: Date
+		}>(sql`
+			SELECT run_id, group_id, error, finished_at
+			FROM sync_run_group
+			WHERE status = 'failed'
+			ORDER BY finished_at DESC
+			LIMIT ${limit}
+		`)
+
+		return rows.map((r) => ({
+			runId: Number(r.run_id),
+			groupId: Number(r.group_id),
+			error: r.error,
+			finishedAt: new Date(r.finished_at).toISOString(),
+		}))
+	}
+
+	async getTableSizes(): Promise<TableSizeEntryDto[]> {
+		const rows = await this.db.execute<{
+			table_name: string
+			row_count: number
+			size_pretty: string
+			size_bytes: number
+		}>(sql`
+			SELECT
+				t.relname AS table_name,
+				t.n_live_tup AS row_count,
+				pg_size_pretty(pg_total_relation_size(c.oid)) AS size_pretty,
+				pg_total_relation_size(c.oid) AS size_bytes
+			FROM pg_stat_user_tables t
+			JOIN pg_class c ON c.relname = t.relname
+			ORDER BY size_bytes DESC
+		`)
+
+		return rows.map((r) => ({
+			tableName: r.table_name,
+			rowCount: Number(r.row_count),
+			sizePretty: r.size_pretty,
+			sizeBytes: Number(r.size_bytes),
+		}))
 	}
 }

@@ -44,6 +44,7 @@ export class SyncRunsService {
 			totalGroups: number
 			failedGroups: number
 			removedEvents: number
+			totalEvents: number
 			steps: SyncSteps
 		},
 	): Promise<void> {
@@ -55,6 +56,7 @@ export class SyncRunsService {
 				totalGroups: opts.totalGroups,
 				failedGroups: opts.failedGroups,
 				removedEvents: opts.removedEvents,
+				totalEvents: opts.totalEvents,
 				stepsJson: JSON.stringify(opts.steps),
 			})
 			.where(eq(syncRunTable.id, runId))
