@@ -22,6 +22,34 @@
 			"when": 1781959629490,
 			"tag": "0002_add_teachers_key_to_event_natural_key",
 			"breakpoints": true
+		},
+		{
+			"idx": 3,
+			"version": "7",
+			"when": 1788268867453,
+			"tag": "0003_neat_george_stacy",
+			"breakpoints": true
+		},
+		{
+			"idx": 4,
+			"version": "7",
+			"when": 1788272263385,
+			"tag": "0004_strong_morlun",
+			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1788289525908,
+			"tag": "0005_confused_sue_storm",
+			"breakpoints": true
+		},
+		{
+			"idx": 6,
+			"version": "7",
+			"when": 1788291112729,
+			"tag": "0006_spooky_barracuda",
+			"breakpoints": true
 		}
 	]
 }

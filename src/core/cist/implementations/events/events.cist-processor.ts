@@ -83,12 +83,15 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 	async removeExtraEvents(
 		runId: number,
 		failedGroupIds: number[] = [],
-	): Promise<void> {
+	): Promise<number> {
 		const isStale = lt(eventTable.lastSeenAt, runId)
 
 		if (!failedGroupIds.length) {
-			await this.db.delete(eventTable).where(isStale)
-			return
+			const deleted = await this.db
+				.delete(eventTable)
+				.where(isStale)
+				.returning({ id: eventTable.id })
+			return deleted.length
 		}
 
 		const eventsOfFailedGroups = this.db
@@ -96,9 +99,11 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 			.from(eventToAcademicGroupTable)
 			.where(inArray(eventToAcademicGroupTable.groudId, failedGroupIds))
 
-		await this.db
+		const deleted = await this.db
 			.delete(eventTable)
 			.where(and(isStale, notInArray(eventTable.id, eventsOfFailedGroups)))
+			.returning({ id: eventTable.id })
+		return deleted.length
 	}
 
 	private async processEvent(
@@ -181,7 +186,14 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 									hours: hour.hours,
 									type: hour.type,
 								})
-								.onConflictDoNothing()
+								.onConflictDoUpdate({
+									target: [
+										subjectToTeacherTable.subjectId,
+										subjectToTeacherTable.teacherId,
+										subjectToTeacherTable.type,
+									],
+									set: { hours: hour.hours },
+								})
 						}
 					}
 				}

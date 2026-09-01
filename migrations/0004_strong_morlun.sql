@@ -1,0 +1,1 @@
+ALTER TABLE "sync_run" ADD COLUMN "total_events" integer DEFAULT 0 NOT NULL;
