@@ -5,9 +5,11 @@ import {
 	Param,
 	ParseIntPipe,
 	Query,
+	UseGuards,
 } from '@nestjs/common'
-import { ApiOperation, ApiTags } from '@nestjs/swagger'
+import { ApiExcludeController, ApiOperation, ApiTags } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
+import { DashKeyGuard } from 'src/common/guards/dash-key.guard'
 
 import { DashboardService } from './dashboard.service'
 import {
@@ -18,7 +20,9 @@ import {
 	DashTableSizesResponseDto,
 } from './dtos/dashboard.dto'
 
+@ApiExcludeController()
 @ApiTags('Dashboard')
+@UseGuards(DashKeyGuard)
 @Controller('dash')
 export class DashboardController {
 	constructor(private readonly dashboardService: DashboardService) {}

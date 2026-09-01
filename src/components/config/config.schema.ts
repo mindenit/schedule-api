@@ -22,6 +22,8 @@ const EnvSchema = z.object({
 
 	WEBHOOKS_ENABLED: z.stringbool().default(false),
 	DISCORD_WEBHOOK_URL: z.url(),
+
+	DASH_API_KEY: z.string().nonempty(),
 })
 
 type Env = z.infer<typeof EnvSchema>
@@ -56,6 +58,9 @@ const toConfig = (env: Env) => ({
 	webhooks: {
 		enabled: env.WEBHOOKS_ENABLED,
 		webhookUrl: env.DISCORD_WEBHOOK_URL,
+	},
+	dash: {
+		apiKey: env.DASH_API_KEY,
 	},
 })
 
