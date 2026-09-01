@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { ScheduleModule as NestScheduleModule } from '@nestjs/schedule'
 
 import { AudtoriumsModule } from './application/auditoriums/auditoriums.module'
+import { DashboardModule } from './application/dashboard/dashboard.module'
 import { GroupsModule } from './application/groups/groups.module'
 import { LinksModule } from './application/links/links.module'
 import { ScheduleModule } from './application/schedule/schedule.module'
@@ -25,6 +26,7 @@ import { LoggerModule } from './components/logger/logger.module'
 
 		// Application
 		AudtoriumsModule,
+		DashboardModule,
 		GroupsModule,
 		LinksModule,
 		ScheduleModule,
