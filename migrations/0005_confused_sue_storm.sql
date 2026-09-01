@@ -1,0 +1,1 @@
+ALTER TABLE "subject_to_teacher" ADD CONSTRAINT "subject_to_teacher_natural_key" UNIQUE NULLS NOT DISTINCT("subject_id","teacher_id","type");

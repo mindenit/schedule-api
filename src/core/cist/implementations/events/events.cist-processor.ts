@@ -186,7 +186,14 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 									hours: hour.hours,
 									type: hour.type,
 								})
-								.onConflictDoNothing()
+								.onConflictDoUpdate({
+									target: [
+										subjectToTeacherTable.subjectId,
+										subjectToTeacherTable.teacherId,
+										subjectToTeacherTable.type,
+									],
+									set: { hours: hour.hours },
+								})
 						}
 					}
 				}
