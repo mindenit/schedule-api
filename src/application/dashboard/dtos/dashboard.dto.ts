@@ -9,9 +9,9 @@ const stepResultSchema = z.object({
 })
 
 const stepsSchema = z.object({
-	auditoriums: stepResultSchema,
-	groups: stepResultSchema,
-	teachers: stepResultSchema,
+	auditoriums: stepResultSchema.optional(),
+	groups: stepResultSchema.optional(),
+	teachers: stepResultSchema.optional(),
 })
 
 // Sync run row
