@@ -155,7 +155,7 @@ async function bootstrap() {
 		// Seeding runs in the background so Caddy / the reverse proxy never
 		// sees the server as unavailable during a potentially long seed run.
 		setImmediate(() => {
-			scheduleService.processSchedule().catch((err: unknown) => {
+			scheduleService.processSchedule('bootstrap').catch((err: unknown) => {
 				logger.error('bootstrap-seed-failed', { err })
 			})
 		})

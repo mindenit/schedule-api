@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common'
 import { CacheModule } from 'src/components/cache/cache.module'
 import { DatabaseModule } from 'src/components/database/database.module'
 import { LoggerModule } from 'src/components/logger/logger.module'
+import { SyncRunsModule } from 'src/components/sync-runs/sync-runs.module'
 import { WebhooksModule } from 'src/components/webhooks/webhooks.module'
 import { CistModule } from 'src/core/cist/cist.module'
 
@@ -13,6 +14,7 @@ import { ScheduleService } from './schedule.service'
 		CistModule,
 		DatabaseModule,
 		LoggerModule,
+		SyncRunsModule,
 		WebhooksModule,
 	],
 	providers: [ScheduleService],
