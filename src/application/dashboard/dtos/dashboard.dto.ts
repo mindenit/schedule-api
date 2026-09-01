@@ -17,8 +17,8 @@ const stepsSchema = z.object({
 // Sync run row
 export const syncRunSchema = z.object({
 	id: z.number(),
-	startedAt: z.date(),
-	finishedAt: z.date().nullable(),
+	startedAt: z.iso.datetime(),
+	finishedAt: z.iso.datetime().nullable(),
 	status: z.enum(['running', 'success', 'partial', 'failed']),
 	trigger: z.enum(['cron', 'bootstrap']),
 	totalGroups: z.number().int(),
@@ -36,7 +36,7 @@ export const syncRunGroupSchema = z.object({
 	status: z.enum(['success', 'failed']),
 	eventsCount: z.number().int(),
 	error: z.string().nullable(),
-	finishedAt: z.date(),
+	finishedAt: z.iso.datetime(),
 })
 
 export type SyncRunGroupDto = z.infer<typeof syncRunGroupSchema>
@@ -47,7 +47,7 @@ export const dashSummarySchema = z.object({
 	isRunning: z.boolean(),
 	lastRun: syncRunSchema.nullable(),
 	lastSuccessfulRun: syncRunSchema.nullable(),
-	nextCronAt: z.date().nullable(),
+	nextCronAt: z.iso.datetime().nullable(),
 	totalRuns: z.number().int(),
 	progress: z
 		.object({

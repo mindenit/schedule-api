@@ -21,10 +21,10 @@ import {
 } from './dtos/dashboard.dto'
 
 // ponytail: next cron is always 12h from epoch-aligned boundary, not from now
-const getNextCronAt = (): Date => {
+const getNextCronAt = (): string => {
 	const now = Date.now()
 	const interval = 12 * 60 * 60 * 1000
-	return new Date(Math.ceil(now / interval) * interval)
+	return new Date(Math.ceil(now / interval) * interval).toISOString()
 }
 
 const parseSteps = (raw: string): SyncSteps => {
@@ -41,6 +41,8 @@ const parseSteps = (raw: string): SyncSteps => {
 
 const toRunDto = (row: typeof syncRunTable.$inferSelect): SyncRunDto => ({
 	...row,
+	startedAt: row.startedAt.toISOString(),
+	finishedAt: row.finishedAt?.toISOString() ?? null,
 	steps: parseSteps(row.stepsJson),
 })
 
@@ -109,6 +111,6 @@ export class DashboardService {
 
 	async getRunGroups(runId: number): Promise<SyncRunGroupDto[]> {
 		const rows = await this.syncRunsService.getRunGroups(runId)
-		return rows.map((r) => ({ ...r }))
+		return rows.map((r) => ({ ...r, finishedAt: r.finishedAt.toISOString() }))
 	}
 }
