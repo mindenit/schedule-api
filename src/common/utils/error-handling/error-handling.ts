@@ -39,9 +39,19 @@ export const stringifyErrorCause = (cause: unknown): string => {
 		return cause
 	}
 
+	if (cause === undefined) {
+		return 'undefined'
+	}
+
+	if (cause === null) {
+		return 'null'
+	}
+
 	try {
-		return JSON.stringify(cause)
+		// JSON.stringify(undefined) returns the value undefined, not a string
+		const json = JSON.stringify(cause)
+		return json ?? '[non-serializable]'
 	} catch {
-		return String(cause)
+		return '[non-serializable]'
 	}
 }
