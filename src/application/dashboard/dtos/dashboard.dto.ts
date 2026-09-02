@@ -34,6 +34,7 @@ export type SyncRunDto = z.infer<typeof syncRunSchema>
 export const syncRunGroupSchema = z.object({
 	runId: z.number(),
 	groupId: z.number(),
+	groupName: z.string().nullable(),
 	status: z.enum(['success', 'failed']),
 	eventsCount: z.number().int(),
 	prevEventsCount: z.number().int().nullable(),
@@ -47,6 +48,7 @@ export type SyncRunGroupDto = z.infer<typeof syncRunGroupSchema>
 export const failedGroupEntrySchema = z.object({
 	runId: z.number(),
 	groupId: z.number(),
+	groupName: z.string().nullable(),
 	error: z.string().nullable(),
 	finishedAt: z.iso.datetime(),
 })

@@ -118,6 +118,7 @@ export class DashboardService {
 		const rows = await this.db.execute<{
 			run_id: number
 			group_id: number
+			group_name: string | null
 			status: 'success' | 'failed'
 			events_count: number
 			prev_events_count: number | null
@@ -127,12 +128,14 @@ export class DashboardService {
 			SELECT
 				g.run_id,
 				g.group_id,
+				ag.name AS group_name,
 				g.status,
 				g.events_count,
 				g.error,
 				g.finished_at,
 				prev.events_count AS prev_events_count
 			FROM sync_run_group g
+			LEFT JOIN academic_group ag ON ag.id = g.group_id
 			LEFT JOIN LATERAL (
 				SELECT p.events_count
 				FROM sync_run_group p
@@ -149,6 +152,7 @@ export class DashboardService {
 		return rows.map((r) => ({
 			runId: Number(r.run_id),
 			groupId: Number(r.group_id),
+			groupName: r.group_name,
 			status: r.status,
 			eventsCount: Number(r.events_count),
 			prevEventsCount:
@@ -163,19 +167,22 @@ export class DashboardService {
 		const rows = await this.db.execute<{
 			run_id: number
 			group_id: number
+			group_name: string | null
 			error: string | null
 			finished_at: Date
 		}>(sql`
-			SELECT run_id, group_id, error, finished_at
-			FROM sync_run_group
-			WHERE status = 'failed'
-			ORDER BY finished_at DESC
+			SELECT g.run_id, g.group_id, ag.name AS group_name, g.error, g.finished_at
+			FROM sync_run_group g
+			LEFT JOIN academic_group ag ON ag.id = g.group_id
+			WHERE g.status = 'failed'
+			ORDER BY g.finished_at DESC
 			LIMIT ${n}
 		`)
 
 		return rows.map((r) => ({
 			runId: Number(r.run_id),
 			groupId: Number(r.group_id),
+			groupName: r.group_name,
 			error: r.error,
 			finishedAt: new Date(r.finished_at).toISOString(),
 		}))
