@@ -13,7 +13,6 @@ import {
 	UPDATE_STATUS,
 } from 'src/common/constants/health-status'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
-import { stringifyErrorCause } from 'src/common/utils/error-handling'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
@@ -75,6 +74,7 @@ export class ScheduleService {
 
 		let totalGroups = 0
 		const failedGroupIds: number[] = []
+		let syncRunClosed = false
 
 		try {
 			await Promise.all([
@@ -98,7 +98,7 @@ export class ScheduleService {
 				steps.auditoriums = {
 					ok: false,
 					count: 0,
-					error: stringifyErrorCause(auditoriumsResult.error.cause),
+					error: auditoriumsResult.error.message,
 				}
 				await this.logProcessingException(
 					SCHEDULE_ENTITY.AUDITORIUM,
@@ -112,7 +112,7 @@ export class ScheduleService {
 				steps.teachers = {
 					ok: false,
 					count: 0,
-					error: stringifyErrorCause(teachersResult.error.cause),
+					error: teachersResult.error.message,
 				}
 				await this.logProcessingException(
 					SCHEDULE_ENTITY.TEACHER,
@@ -126,7 +126,7 @@ export class ScheduleService {
 				steps.groups = {
 					ok: false,
 					count: 0,
-					error: stringifyErrorCause(groupsResult.error.cause),
+					error: groupsResult.error.message,
 				}
 				await this.logProcessingException(
 					SCHEDULE_ENTITY.GROUP,
@@ -141,6 +141,7 @@ export class ScheduleService {
 			const existingGroups = await this.db.select().from(academicGroupTable)
 			const groups = groupsResult.unwrapOr(existingGroups)
 			totalGroups = groups.length
+			await this.syncRunsService.setTotalGroups(runId, totalGroups)
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -159,17 +160,18 @@ export class ScheduleService {
 
 				if (result.isErr()) {
 					failedGroupIds.push(group.id)
-					const error = stringifyErrorCause(result.error.cause)
 					this.logger.log(`${LOG_PREFIX}|group-schedule-processing-failed`, {
 						groupId: group.id,
-						originalError: result.error.cause,
+						error: result.error.message,
 					})
 					await this.syncRunsService.recordGroup(runId, group.id, {
+						status: 'failed',
 						eventsCount: 0,
-						error,
+						error: result.error.message,
 					})
 				} else {
 					await this.syncRunsService.recordGroup(runId, group.id, {
+						status: 'success',
 						eventsCount: result.value.length,
 					})
 				}
@@ -196,7 +198,16 @@ export class ScheduleService {
 						? 'failed'
 						: 'partial'
 
-			await Promise.all([
+			// Use allSettled so one failure doesn't hide the others, then rethrow.
+			const TAIL_NAMES = [
+				'cache:health',
+				'cache:in-progress',
+				'cache:last-update',
+				'db:close',
+				'db:purge',
+			] as const
+
+			const tailPromises: Promise<unknown>[] = [
 				this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.HEALTHY),
 				this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
 				this.cache.set(LAST_UPDATE_KEY, new Date().toISOString()),
@@ -209,7 +220,25 @@ export class ScheduleService {
 					steps,
 				}),
 				this.syncRunsService.purgeOldRuns(),
-			])
+			]
+
+			const settled = await Promise.allSettled(tailPromises)
+			const failures = settled
+				.map((r, i): { step: string; reason: unknown } | null =>
+					r.status === 'rejected'
+						? { step: TAIL_NAMES[i] ?? `step-${i}`, reason: r.reason } // eslint-disable-line security/detect-object-injection
+						: null,
+				)
+				.filter((x): x is { step: string; reason: unknown } => x !== null)
+
+			if (failures.length) {
+				this.logger.error(`${LOG_PREFIX}|tail-step-failures`, { failures })
+				// mark run as closed so catch block won't clobber the db:close result
+				if (settled[3].status === 'fulfilled') syncRunClosed = true
+				throw failures[0].reason
+			}
+
+			syncRunClosed = true
 
 			if (failedGroupIds.length) {
 				await this.webhookService.ping(
@@ -217,21 +246,31 @@ export class ScheduleService {
 				)
 			}
 
-			this.logger.log('Job completed sucessfully')
+			this.logger.log('Job completed successfully')
 		} catch (err: unknown) {
 			this.logger.error(`${LOG_PREFIX}|unexpected-failure`, { err })
-			await Promise.all([
-				this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.FAILED),
-				this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
-				this.syncRunsService.close(runId, {
-					status: 'failed',
-					totalGroups,
-					failedGroups: failedGroupIds.length,
-					removedEvents: 0,
-					totalEvents: 0,
-					steps,
-				}),
-			])
+			// Only write failed status if close() hasn't already recorded a result.
+			// This prevents the catch from clobbering a valid partial/success row.
+			if (!syncRunClosed) {
+				await Promise.allSettled([
+					this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.FAILED),
+					this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
+					this.syncRunsService.close(runId, {
+						status: 'failed',
+						totalGroups,
+						failedGroups: failedGroupIds.length,
+						removedEvents: 0,
+						totalEvents: 0,
+						steps,
+					}),
+				])
+			} else {
+				// close() succeeded but another tail step failed; still mark cache
+				await Promise.allSettled([
+					this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.FAILED),
+					this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
+				])
+			}
 			throw err
 		} finally {
 			this.running = false
@@ -243,10 +282,10 @@ export class ScheduleService {
 		exception: CistCrawlerException,
 	): Promise<void> {
 		const plural = `${entity}s`
-		const errMessage = `:warning: ${plural} processing failed!\n\`\`\`${stringifyErrorCause(exception.cause)}\`\`\``
+		const errMessage = `:warning: ${plural} processing failed!\n\`\`\`${exception.message}\`\`\``
 
 		this.logger.log(`${LOG_PREFIX}|${plural}-processing-failed`, {
-			originalError: exception.cause,
+			error: exception.message,
 		})
 
 		await this.webhookService.ping(errMessage)

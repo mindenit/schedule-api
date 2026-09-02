@@ -29,12 +29,24 @@ export class SyncRunsService {
 	) {}
 
 	async open(runId: number, trigger: SyncRunTrigger): Promise<void> {
+		// Reconcile any orphaned 'running' rows left by a crashed/restarted container.
+		await this.db
+			.update(syncRunTable)
+			.set({ status: 'failed', finishedAt: new Date() })
+			.where(eq(syncRunTable.status, 'running'))
 		await this.db.insert(syncRunTable).values({
 			id: runId,
 			startedAt: new Date(runId),
 			status: 'running',
 			trigger,
 		})
+	}
+
+	async setTotalGroups(runId: number, totalGroups: number): Promise<void> {
+		await this.db
+			.update(syncRunTable)
+			.set({ totalGroups })
+			.where(eq(syncRunTable.id, runId))
 	}
 
 	async close(
@@ -65,9 +77,9 @@ export class SyncRunsService {
 	async recordGroup(
 		runId: number,
 		groupId: number,
-		opts: { eventsCount: number; error?: string },
+		opts: { status: 'success' | 'failed'; eventsCount: number; error?: string },
 	): Promise<void> {
-		const status = opts.error ? 'failed' : 'success'
+		const status = opts.status
 		await this.db
 			.insert(syncRunGroupTable)
 			.values({
