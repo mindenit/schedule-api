@@ -5,12 +5,13 @@ import { ConsoleLogger, Injectable, LogLevel, Scope } from '@nestjs/common'
 const errorReplacer = (_key: string, value: unknown): unknown => {
 	if (value instanceof Error) {
 		return {
+			// own enumerable props first (e.g. AppException.code, AppException.statusCode)
+			...value,
+			// non-enumerable Error fields override any accidental own-prop conflicts
 			name: value.name,
 			message: value.message,
 			stack: value.stack,
 			...(value.cause !== undefined && { cause: value.cause }),
-			// own enumerable props (e.g. AppException.code, AppException.statusCode)
-			...value,
 		}
 	}
 	return value
