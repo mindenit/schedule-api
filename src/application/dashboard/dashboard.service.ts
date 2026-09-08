@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common'
+import { Inject, Injectable, NotFoundException } from '@nestjs/common'
 import { desc, eq, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
@@ -16,6 +16,7 @@ import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 
 import {
 	DashSummaryDto,
+	DismissFailureDto,
 	FailedGroupEntryDto,
 	SyncRunDto,
 	SyncRunGroupDto,
@@ -175,14 +176,14 @@ export class DashboardService {
 		}>(sql`
 			WITH latest_per_group AS (
 				SELECT DISTINCT ON (g.group_id)
-					g.run_id, g.group_id, g.status, g.error, g.finished_at
+					g.run_id, g.group_id, g.status, g.error, g.finished_at, g.dismissed
 				FROM sync_run_group g
 				ORDER BY g.group_id, g.run_id DESC
 			)
 			SELECT l.run_id, l.group_id, ag.name AS group_name, l.error, l.finished_at
 			FROM latest_per_group l
 			LEFT JOIN academic_group ag ON ag.id = l.group_id
-			WHERE l.status = 'failed'
+			WHERE l.status = 'failed' AND l.dismissed = false
 			ORDER BY l.finished_at DESC
 			LIMIT ${n}
 		`)
@@ -194,6 +195,24 @@ export class DashboardService {
 			error: r.error,
 			finishedAt: new Date(r.finished_at).toISOString(),
 		}))
+	}
+
+	async dismissFailure(
+		runId: number,
+		groupId: number,
+	): Promise<DismissFailureDto> {
+		const dismissed = await this.syncRunsService.dismissGroupFailure(
+			runId,
+			groupId,
+		)
+
+		if (!dismissed) {
+			throw new NotFoundException(
+				`No failed entry found for run ${runId} / group ${groupId}`,
+			)
+		}
+
+		return { dismissed }
 	}
 
 	async getTableSizes(): Promise<TableSizeEntryDto[]> {

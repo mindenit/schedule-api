@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
@@ -99,6 +99,21 @@ export class SyncRunsService {
 					finishedAt: new Date(),
 				},
 			})
+	}
+
+	async dismissGroupFailure(runId: number, groupId: number): Promise<boolean> {
+		const result = await this.db
+			.update(syncRunGroupTable)
+			.set({ dismissed: true })
+			.where(
+				and(
+					eq(syncRunGroupTable.runId, runId),
+					eq(syncRunGroupTable.groupId, groupId),
+					eq(syncRunGroupTable.status, 'failed'),
+				),
+			)
+			.returning({ runId: syncRunGroupTable.runId })
+		return result.length > 0
 	}
 
 	async getRuns(limit = 20): Promise<(typeof syncRunTable.$inferSelect)[]> {
