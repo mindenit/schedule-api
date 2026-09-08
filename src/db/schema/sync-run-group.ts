@@ -24,6 +24,7 @@ export const syncRunGroupTable = pgTable(
 		eventsCount: t.integer().notNull().default(0),
 		error: t.text(),
 		finishedAt: timestamp({ withTimezone: true }).notNull(),
+		dismissed: t.boolean().notNull().default(false),
 	}),
 	(t) => [primaryKey({ columns: [t.runId, t.groupId] })],
 )
