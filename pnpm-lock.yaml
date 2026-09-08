@@ -33,8 +33,8 @@ importers:
         specifier: ^9.4.2
         version: 9.5.1
       '@mindenit/cist-crawler':
-        specifier: ^0.1.4
-        version: 0.1.4
+        specifier: ^1.0.0
+        version: 1.0.0
       '@nestjs/common':
         specifier: ^11.1.19
         version: 11.1.19(class-validator@0.15.1)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -1243,8 +1243,8 @@ packages:
   '@microsoft/tsdoc@0.16.0':
     resolution: {integrity: sha512-xgAyonlVVS+q7Vc7qLW0UrJU7rSFcETRWsqdXZtjzRU8dF+6CkozTK4V4y1LwOX7j8r/vHphjDeMeGI4tNGeGA==}
 
-  '@mindenit/cist-crawler@0.1.4':
-    resolution: {integrity: sha512-BLxII1akKjidYZVWWfOhQRZtr4oybHS3BD+q3FPzUOvPzTK35GRnjNFezQCd7039SAo1RgqnUlpdk/dPl0MXUw==}
+  '@mindenit/cist-crawler@1.0.0':
+    resolution: {integrity: sha512-j2Z67ybJJmhgXJES6Inqvl7FJjNpiD19xATUXIQaOfqJRumev1RAopGJyOZ0QsfxVhsAdTYYmasB0ClQSUHUHg==}
     engines: {node: '>= 22.x'}
 
   '@napi-rs/nice-android-arm-eabi@1.1.1':
@@ -6818,7 +6818,7 @@ snapshots:
 
   '@microsoft/tsdoc@0.16.0': {}
 
-  '@mindenit/cist-crawler@0.1.4': {}
+  '@mindenit/cist-crawler@1.0.0': {}
 
   '@napi-rs/nice-android-arm-eabi@1.1.1':
     optional: true
