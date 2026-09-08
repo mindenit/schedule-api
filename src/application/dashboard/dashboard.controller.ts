@@ -4,6 +4,7 @@ import {
 	HttpStatus,
 	Param,
 	ParseIntPipe,
+	Patch,
 	Query,
 	UseGuards,
 } from '@nestjs/common'
@@ -13,6 +14,7 @@ import { DashKeyGuard } from 'src/common/guards/dash-key.guard'
 
 import { DashboardService } from './dashboard.service'
 import {
+	DashDismissFailureResponseDto,
 	DashFailuresResponseDto,
 	DashRunGroupsResponseDto,
 	DashRunsResponseDto,
@@ -56,6 +58,19 @@ export class DashboardController {
 		@Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
 	) {
 		return this.dashboardService.getFailures(limit)
+	}
+
+	@ApiOperation({ summary: 'Dismiss a specific failed group entry' })
+	@ZodResultResponse({
+		status: HttpStatus.OK,
+		type: DashDismissFailureResponseDto,
+	})
+	@Patch('failures/:runId/:groupId/dismiss')
+	dismissFailure(
+		@Param('runId', ParseIntPipe) runId: number,
+		@Param('groupId', ParseIntPipe) groupId: number,
+	) {
+		return this.dashboardService.dismissFailure(runId, groupId)
 	}
 
 	@ApiOperation({ summary: 'Postgres table sizes and row counts' })

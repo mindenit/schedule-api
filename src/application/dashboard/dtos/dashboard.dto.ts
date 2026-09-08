@@ -55,6 +55,13 @@ export const failedGroupEntrySchema = z.object({
 
 export type FailedGroupEntryDto = z.infer<typeof failedGroupEntrySchema>
 
+// Dismiss failure result
+export const dismissFailureSchema = z.object({
+	dismissed: z.boolean(),
+})
+
+export type DismissFailureDto = z.infer<typeof dismissFailureSchema>
+
 // Table size entry
 export const tableSizeEntrySchema = z.object({
 	tableName: z.string(),
@@ -112,6 +119,14 @@ export class DashFailuresResponseDto extends createZodDto(
 	z.object({
 		success: z.literal(true),
 		data: z.array(failedGroupEntrySchema),
+		error: z.null(),
+	}),
+) {}
+
+export class DashDismissFailureResponseDto extends createZodDto(
+	z.object({
+		success: z.literal(true),
+		data: dismissFailureSchema,
 		error: z.null(),
 	}),
 ) {}

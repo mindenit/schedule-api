@@ -1,0 +1,1 @@
+CREATE INDEX "sync_run_group_group_id_run_id_idx" ON "sync_run_group" USING btree ("group_id","run_id" DESC NULLS LAST);

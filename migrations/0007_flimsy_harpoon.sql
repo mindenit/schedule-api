@@ -1,0 +1,1 @@
+ALTER TABLE "sync_run_group" ADD COLUMN "dismissed" boolean DEFAULT false NOT NULL;

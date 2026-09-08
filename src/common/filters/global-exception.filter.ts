@@ -4,6 +4,7 @@ import {
 	ExceptionFilter,
 	HttpException,
 	HttpStatus,
+	Logger,
 } from '@nestjs/common'
 import type { FastifyReply, FastifyRequest } from 'fastify'
 import { ZodSerializationException } from 'nestjs-zod'
@@ -15,6 +16,8 @@ import { CommonErrorCodes } from '../exceptions/error-codes'
 
 @Catch()
 export class GlobalExceptionFilter<T> implements ExceptionFilter<T> {
+	private readonly logger = new Logger(GlobalExceptionFilter.name)
+
 	catch(exception: T, host: ArgumentsHost) {
 		const ctx = host.switchToHttp()
 		const request = ctx.getRequest<FastifyRequest>()
@@ -147,16 +150,20 @@ export class GlobalExceptionFilter<T> implements ExceptionFilter<T> {
 		reply: FastifyReply,
 		request: FastifyRequest,
 	): void {
-		const message =
-			exception instanceof Error ? exception.message : 'Internal Server Error'
-		const details =
-			exception instanceof Error ? { stack: exception.stack } : undefined
+		// This path is normally unreachable — ErrorsInterceptor already
+		// sanitizes generic Errors into an HttpException before they get
+		// here. It only fires for errors thrown outside that interceptor's
+		// scope. Full detail (including the stack) is logged server-side
+		// only; clients never see anything beyond a generic message.
+		this.logger.error('unhandled-exception', {
+			path: request.url,
+			error: exception,
+		})
 
 		const errorResponse = {
 			success: false,
 			error: {
-				message,
-				details,
+				message: 'Internal Server Error',
 				timestamp: Temporal.Now.plainDateISO(),
 				path: request.url,
 			},
