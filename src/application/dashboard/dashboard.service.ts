@@ -164,6 +164,8 @@ export class DashboardService {
 
 	async getFailures(limit?: number): Promise<FailedGroupEntryDto[]> {
 		const n = Math.min(Math.max(limit ?? 50, 1), 100)
+		// Only the *latest* run per group is considered: a group that failed
+		// before but has since succeeded should not keep showing up here.
 		const rows = await this.db.execute<{
 			run_id: number
 			group_id: number
@@ -171,11 +173,17 @@ export class DashboardService {
 			error: string | null
 			finished_at: Date
 		}>(sql`
-			SELECT g.run_id, g.group_id, ag.name AS group_name, g.error, g.finished_at
-			FROM sync_run_group g
-			LEFT JOIN academic_group ag ON ag.id = g.group_id
-			WHERE g.status = 'failed'
-			ORDER BY g.finished_at DESC
+			WITH latest_per_group AS (
+				SELECT DISTINCT ON (g.group_id)
+					g.run_id, g.group_id, g.status, g.error, g.finished_at
+				FROM sync_run_group g
+				ORDER BY g.group_id, g.run_id DESC
+			)
+			SELECT l.run_id, l.group_id, ag.name AS group_name, l.error, l.finished_at
+			FROM latest_per_group l
+			LEFT JOIN academic_group ag ON ag.id = l.group_id
+			WHERE l.status = 'failed'
+			ORDER BY l.finished_at DESC
 			LIMIT ${n}
 		`)
 
