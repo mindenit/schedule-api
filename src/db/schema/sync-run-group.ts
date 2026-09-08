@@ -1,4 +1,10 @@
-import { pgEnum, pgTable, primaryKey, timestamp } from 'drizzle-orm/pg-core'
+import {
+	index,
+	pgEnum,
+	pgTable,
+	primaryKey,
+	timestamp,
+} from 'drizzle-orm/pg-core'
 
 import { referencialIntegrityOptions } from '../utils'
 import { academicGroupTable } from './academic-group'
@@ -26,5 +32,11 @@ export const syncRunGroupTable = pgTable(
 		finishedAt: timestamp({ withTimezone: true }).notNull(),
 		dismissed: t.boolean().notNull().default(false),
 	}),
-	(t) => [primaryKey({ columns: [t.runId, t.groupId] })],
+	(t) => [
+		primaryKey({ columns: [t.runId, t.groupId] }),
+		// Supports the "latest run per group" lookup used by the dashboard's
+		// failures list and the run-groups delta join — both scan for the
+		// most recent run_id per group_id.
+		index('sync_run_group_group_id_run_id_idx').on(t.groupId, t.runId.desc()),
+	],
 )
