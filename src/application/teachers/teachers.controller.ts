@@ -8,6 +8,7 @@ import {
 	TeacherGroupsResponseDto,
 	TeacherScheduleQueryDto,
 	TeacherScheduleResponseDto,
+	TeachersListQueryDto,
 	TeachersResponseDto,
 	TeacherSubjectsResponseDto,
 } from './dtos/teachers.dto'
@@ -20,7 +21,9 @@ export class TeachersController {
 
 	@ApiOperation({
 		summary: 'Get teachers',
-		description: 'Get list of teachers',
+		description:
+			'Get list of teachers. Set hasEvents=true to exclude teachers ' +
+			'CIST reports but that never have a schedule.',
 	})
 	@ZodResultResponse({
 		status: HttpStatus.OK,
@@ -28,8 +31,8 @@ export class TeachersController {
 		type: TeachersResponseDto,
 	})
 	@Get()
-	async findAll() {
-		return this.teachersRepository.findAll()
+	async findAll(@Query() query: TeachersListQueryDto) {
+		return this.teachersRepository.findAll(query.hasEvents)
 	}
 
 	@ApiOperation({

@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { HasEventsQuerySchema } from 'src/common/schemas/list-query.schema'
 import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
 import { getSuccessResponseSchema } from 'src/common/schemas/response.schema'
 import {
@@ -16,6 +17,10 @@ import { GetAuditoriumScheduleFiltersSchema } from '../auditoriums.schema'
 
 export class AuditoriumsResponseDto extends createZodDto(
 	getSuccessResponseSchema(AuditoriumSchema.array()),
+) {}
+
+export class AuditoriumsListQueryDto extends createZodDto(
+	HasEventsQuerySchema,
 ) {}
 
 export class GetAuditoriumParamsDto extends createZodDto(GetByIdParamSchema) {}

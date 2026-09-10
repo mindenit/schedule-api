@@ -5,6 +5,7 @@ import { ZodResultResponse } from 'src/common/decorators/zod-result-response.dec
 import { AuditoriumsRepository } from './auditoriums.repository'
 import {
 	AuditoriumGroupsResponseDto,
+	AuditoriumsListQueryDto,
 	AuditoriumsResponseDto,
 	AuditoriumsScheduleResponseDto,
 	AuditoriumSubjectsResponseDto,
@@ -20,7 +21,9 @@ export class AuditoriumsController {
 
 	@ApiOperation({
 		summary: 'Get auditoriums',
-		description: 'Get list of auditoriums',
+		description:
+			'Get list of auditoriums. Set hasEvents=true to exclude ' +
+			'auditoriums CIST reports but that never have a schedule.',
 	})
 	@ZodResultResponse({
 		status: HttpStatus.OK,
@@ -28,8 +31,8 @@ export class AuditoriumsController {
 		type: AuditoriumsResponseDto,
 	})
 	@Get()
-	async findAll() {
-		return this.auditoriumsRepository.findAll()
+	async findAll(@Query() query: AuditoriumsListQueryDto) {
+		return this.auditoriumsRepository.findAll(query.hasEvents)
 	}
 
 	@ApiOperation({

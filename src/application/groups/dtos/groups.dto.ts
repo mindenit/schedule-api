@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { HasEventsQuerySchema } from 'src/common/schemas/list-query.schema'
 import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
 import { getSuccessResponseSchema } from 'src/common/schemas/response.schema'
 import {
@@ -17,6 +18,8 @@ import { GetGroupScheduleFiltersSchema } from '../groups.schema'
 export class GroupsResponseDto extends createZodDto(
 	getSuccessResponseSchema(GroupSchema.array()),
 ) {}
+
+export class GroupsListQueryDto extends createZodDto(HasEventsQuerySchema) {}
 
 export class GetGroupParamsDto extends createZodDto(GetByIdParamSchema) {}
 

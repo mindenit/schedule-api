@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, SQL } from 'drizzle-orm'
+import { asc, eq, exists, SQL, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
 import { scheduleAliases } from 'src/common/utils/schedule/schedule'
@@ -27,8 +27,8 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 		super(db)
 	}
 
-	async findAll(): Promise<Teacher[]> {
-		return this.db
+	async findAll(hasEvents = false): Promise<Teacher[]> {
+		const query = this.db
 			.select({
 				id: teacherTable.id,
 				fullName: teacherTable.fullName,
@@ -36,7 +36,19 @@ export class TeachersRepository extends ScheduleRepository<GetTeacherScheduleFil
 				departmentId: teacherTable.departmentId,
 			})
 			.from(teacherTable)
-			.orderBy(asc(teacherTable.shortName))
+
+		if (hasEvents) {
+			query.where(
+				exists(
+					this.db
+						.select({ one: sql`1` })
+						.from(eventToTeacherTable)
+						.where(eq(eventToTeacherTable.teacherId, teacherTable.id)),
+				),
+			)
+		}
+
+		return query.orderBy(asc(teacherTable.shortName))
 	}
 
 	async findTeacherAuditoriums(teacherId: number): Promise<Auditorium[]> {

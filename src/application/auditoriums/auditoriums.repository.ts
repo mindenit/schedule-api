@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, notLike, SQL } from 'drizzle-orm'
+import { and, asc, eq, exists, notLike, SQL, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
 import { scheduleAliases } from 'src/common/utils/schedule/schedule'
@@ -37,11 +37,24 @@ export class AuditoriumsRepository extends ScheduleRepository<GetAuditoriumSched
 		return getAuditoriumFiltersQuery(filters)
 	}
 
-	async findAll(): Promise<Auditorium[]> {
+	async findAll(hasEvents = false): Promise<Auditorium[]> {
+		const notDl = notLike(auditoriumTable.name, 'DL%')
+		const where = hasEvents
+			? and(
+					notDl,
+					exists(
+						this.db
+							.select({ one: sql`1` })
+							.from(eventTable)
+							.where(eq(eventTable.auditoriumId, auditoriumTable.id)),
+					),
+				)
+			: notDl
+
 		return this.db
 			.select()
 			.from(auditoriumTable)
-			.where(notLike(auditoriumTable.name, 'DL%'))
+			.where(where)
 			.orderBy(asc(auditoriumTable.name))
 	}
 
