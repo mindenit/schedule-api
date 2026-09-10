@@ -23,6 +23,8 @@ const EnvSchema = z.object({
 	WEBHOOKS_ENABLED: z.stringbool().default(false),
 	DISCORD_WEBHOOK_URL: z.url(),
 
+	PHANTOM_SKIP_ENABLED: z.stringbool().default(false),
+
 	DASH_API_KEY: z.string().min(32),
 })
 
@@ -58,6 +60,9 @@ const toConfig = (env: Env) => ({
 	webhooks: {
 		enabled: env.WEBHOOKS_ENABLED,
 		webhookUrl: env.DISCORD_WEBHOOK_URL,
+	},
+	phantomSkip: {
+		enabled: env.PHANTOM_SKIP_ENABLED,
 	},
 	dash: {
 		apiKey: env.DASH_API_KEY,
