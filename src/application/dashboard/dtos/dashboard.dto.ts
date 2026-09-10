@@ -20,7 +20,7 @@ export const syncRunSchema = z.object({
 	startedAt: z.iso.datetime(),
 	finishedAt: z.iso.datetime().nullable(),
 	status: z.enum(['running', 'success', 'partial', 'failed']),
-	trigger: z.enum(['cron', 'bootstrap']),
+	trigger: z.enum(['cron', 'bootstrap', 'manual']),
 	totalGroups: z.number().int(),
 	failedGroups: z.number().int(),
 	removedEvents: z.number().int(),

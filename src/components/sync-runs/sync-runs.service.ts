@@ -7,7 +7,7 @@ import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 // Constants
 const RETENTION_DAYS = 30
 
-export type SyncRunTrigger = 'cron' | 'bootstrap'
+export type SyncRunTrigger = 'cron' | 'bootstrap' | 'manual'
 
 export interface StepResult {
 	ok: boolean

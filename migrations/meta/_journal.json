@@ -64,6 +64,13 @@
 			"when": 1788863277340,
 			"tag": "0008_pretty_vertigo",
 			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1789061736862,
+			"tag": "0009_fixed_goblin_queen",
+			"breakpoints": true
 		}
 	]
 }
