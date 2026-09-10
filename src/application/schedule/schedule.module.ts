@@ -6,6 +6,7 @@ import { SyncRunsModule } from 'src/components/sync-runs/sync-runs.module'
 import { WebhooksModule } from 'src/components/webhooks/webhooks.module'
 import { CistModule } from 'src/core/cist/cist.module'
 
+import { PhantomSkipService } from './phantom-skip.service'
 import { ScheduleService } from './schedule.service'
 
 @Module({
@@ -17,7 +18,7 @@ import { ScheduleService } from './schedule.service'
 		SyncRunsModule,
 		WebhooksModule,
 	],
-	providers: [ScheduleService],
+	providers: [ScheduleService, PhantomSkipService],
 	exports: [ScheduleService],
 })
 export class ScheduleModule {}
