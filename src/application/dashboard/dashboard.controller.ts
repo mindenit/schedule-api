@@ -5,6 +5,7 @@ import {
 	Param,
 	ParseIntPipe,
 	Patch,
+	Post,
 	Query,
 	UseGuards,
 } from '@nestjs/common'
@@ -16,6 +17,7 @@ import { DashboardService } from './dashboard.service'
 import {
 	DashDismissFailureResponseDto,
 	DashFailuresResponseDto,
+	DashRefetchResponseDto,
 	DashRunGroupsResponseDto,
 	DashRunsResponseDto,
 	DashSummaryResponseDto,
@@ -71,6 +73,20 @@ export class DashboardController {
 		@Param('groupId', ParseIntPipe) groupId: number,
 	) {
 		return this.dashboardService.dismissFailure(runId, groupId)
+	}
+
+	@ApiOperation({ summary: "Manually refetch a single group's schedule" })
+	@ZodResultResponse({ status: HttpStatus.OK, type: DashRefetchResponseDto })
+	@Post('refetch/groups/:groupId')
+	refetchGroup(@Param('groupId', ParseIntPipe) groupId: number) {
+		return this.dashboardService.refetchGroup(groupId)
+	}
+
+	@ApiOperation({ summary: "Manually refetch a single teacher's schedule" })
+	@ZodResultResponse({ status: HttpStatus.OK, type: DashRefetchResponseDto })
+	@Post('refetch/teachers/:teacherId')
+	refetchTeacher(@Param('teacherId', ParseIntPipe) teacherId: number) {
+		return this.dashboardService.refetchTeacher(teacherId)
 	}
 
 	@ApiOperation({ summary: 'Postgres table sizes and row counts' })

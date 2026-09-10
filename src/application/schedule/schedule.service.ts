@@ -27,7 +27,10 @@ import {
 } from 'src/components/sync-runs/sync-runs.service'
 import { WebhooksService } from 'src/components/webhooks/webhooks.service'
 import { CistAuditoriumProcessor } from 'src/core/cist/implementations/auditoriums/auditoriums.cist-processor'
-import { SCHEDULE_TYPE } from 'src/core/cist/implementations/events/events.cist-parser'
+import {
+	SCHEDULE_TYPE,
+	ScheduleType,
+} from 'src/core/cist/implementations/events/events.cist-parser'
 import { CistEventsProcessor } from 'src/core/cist/implementations/events/events.cist-processor'
 import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups.cist-processor'
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
@@ -388,6 +391,50 @@ export class ScheduleService {
 		} finally {
 			this.running = false
 		}
+	}
+
+	/*
+	 * On-demand refetch of a single group or teacher's schedule, outside the
+	 * normal cron cycle. Reuses sync_run (trigger='manual') for audit trail
+	 * visibility in the dashboard, but doesn't touch sync_run_group -- that
+	 * table's FK is bound to academic_group, so it can't represent a
+	 * teacher refetch. Both entity types are recorded uniformly in
+	 * steps.manualRefetch instead.
+	 */
+	async refetchEntity(
+		type: ScheduleType,
+		id: number,
+	): Promise<{ ok: boolean; eventsCount: number; error?: string }> {
+		const runId = Date.now()
+		const entityType = type === SCHEDULE_TYPE.GROUP ? 'group' : 'teacher'
+
+		await this.syncRunsService.open(runId, 'manual')
+
+		const result = await this.eventsProcessor.process({ id, type, runId })
+		const ok = !result.isErr()
+		const eventsCount = result.isErr() ? 0 : result.value.length
+		const error = result.isErr() ? result.error.message : undefined
+
+		this.logger.log(`${LOG_PREFIX}|manual-refetch`, {
+			entityType,
+			entityId: id,
+			ok,
+			eventsCount,
+			error,
+		})
+
+		await this.syncRunsService.close(runId, {
+			status: ok ? 'success' : 'failed',
+			totalGroups: 1,
+			failedGroups: ok ? 0 : 1,
+			removedEvents: 0,
+			totalEvents: eventsCount,
+			steps: {
+				manualRefetch: { entityType, entityId: id, ok, eventsCount, error },
+			},
+		})
+
+		return { ok, eventsCount, error }
 	}
 
 	private async logProcessingException(

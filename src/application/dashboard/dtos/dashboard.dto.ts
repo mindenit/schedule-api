@@ -13,6 +13,15 @@ const stepsSchema = z.object({
 	groups: stepResultSchema.optional(),
 	teachers: stepResultSchema.optional(),
 	phantomSkip: z.object({ count: z.number().int().nonnegative() }).optional(),
+	manualRefetch: z
+		.object({
+			entityType: z.enum(['group', 'teacher']),
+			entityId: z.number().int(),
+			ok: z.boolean(),
+			eventsCount: z.number().int().nonnegative(),
+			error: z.string().optional(),
+		})
+		.optional(),
 })
 
 // Sync run row
@@ -72,6 +81,15 @@ export const tableSizeEntrySchema = z.object({
 })
 
 export type TableSizeEntryDto = z.infer<typeof tableSizeEntrySchema>
+
+// Manual refetch result
+export const refetchResultSchema = z.object({
+	ok: z.boolean(),
+	eventsCount: z.number().int().nonnegative(),
+	error: z.string().optional(),
+})
+
+export type RefetchResultDto = z.infer<typeof refetchResultSchema>
 
 // Summary
 export const dashSummarySchema = z.object({
@@ -136,6 +154,14 @@ export class DashTableSizesResponseDto extends createZodDto(
 	z.object({
 		success: z.literal(true),
 		data: z.array(tableSizeEntrySchema),
+		error: z.null(),
+	}),
+) {}
+
+export class DashRefetchResponseDto extends createZodDto(
+	z.object({
+		success: z.literal(true),
+		data: refetchResultSchema,
 		error: z.null(),
 	}),
 ) {}

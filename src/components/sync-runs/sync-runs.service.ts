@@ -16,10 +16,17 @@ export interface StepResult {
 }
 
 export interface SyncSteps {
-	auditoriums: StepResult
-	groups: StepResult
-	teachers: StepResult
+	auditoriums?: StepResult
+	groups?: StepResult
+	teachers?: StepResult
 	phantomSkip?: { count: number }
+	manualRefetch?: {
+		entityType: 'group' | 'teacher'
+		entityId: number
+		ok: boolean
+		eventsCount: number
+		error?: string
+	}
 }
 
 @Injectable()
