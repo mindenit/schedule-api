@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises'
 
-import { Inject, Injectable } from '@nestjs/common'
+import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { sql as drizzleSql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
@@ -101,6 +101,12 @@ export class ScheduleService {
 
 			await this.syncRunsService.open(runId, trigger)
 
+			// Evaluated up-front, before auditoriums/groups/teachers processing --
+			// if checked later, a long-running earlier step could push execution
+			// past the Sunday-00:00 boundary and silently skip that week's
+			// full recheck.
+			const isFullRecheck = this.phantomSkipService.isFullRecheckRun()
+
 			this.logger.log('Start CIST Postman')
 			// Run sequentially instead of in parallel to reduce peak CPU/DB pressure
 			// during a seed run and keep the event loop responsive for HTTP handlers.
@@ -160,7 +166,6 @@ export class ScheduleService {
 
 			const { enabled: phantomSkipEnabled } =
 				this.configService.get('phantomSkip')
-			const isFullRecheck = this.phantomSkipService.isFullRecheckRun()
 			const skipSet =
 				phantomSkipEnabled && !isFullRecheck
 					? await this.phantomSkipService.getSkipSet()
@@ -298,10 +303,14 @@ export class ScheduleService {
 				}
 			}
 
-			const removedCount = await this.eventsProcessor.removeExtraEvents(
-				runId,
-				failedGroupIds,
-			)
+			// Phantom-skipped groups weren't fetched this run, so their events'
+			// lastSeenAt wasn't refreshed either -- without protecting them here
+			// the same way failed groups are, removeExtraEvents would delete
+			// their real events on the very first phantom-skip run.
+			const removedCount = await this.eventsProcessor.removeExtraEvents(runId, [
+				...failedGroupIds,
+				...skipSet,
+			])
 
 			const [{ totalEvents }] = await this.db
 				.select({ totalEvents: drizzleSql<number>`count(*)::int` })
@@ -400,41 +409,88 @@ export class ScheduleService {
 	 * table's FK is bound to academic_group, so it can't represent a
 	 * teacher refetch. Both entity types are recorded uniformly in
 	 * steps.manualRefetch instead.
+	 *
+	 * Shares the `running` guard with processSchedule(): open() reconciles
+	 * any 'running' sync_run row as a crash-recovery measure, which would
+	 * otherwise incorrectly flip a genuinely in-flight cron run to 'failed'
+	 * if triggered concurrently. Also guards against two manual refetches
+	 * racing each other.
 	 */
 	async refetchEntity(
 		type: ScheduleType,
 		id: number,
 	): Promise<{ ok: boolean; eventsCount: number; error?: string }> {
+		if (this.running) {
+			throw new ConflictException(
+				'A sync is already in progress; try again once it finishes',
+			)
+		}
+		this.running = true
+
 		const runId = Date.now()
 		const entityType = type === SCHEDULE_TYPE.GROUP ? 'group' : 'teacher'
+		let syncRunClosed = false
 
-		await this.syncRunsService.open(runId, 'manual')
+		try {
+			await this.syncRunsService.open(runId, 'manual')
 
-		const result = await this.eventsProcessor.process({ id, type, runId })
-		const ok = !result.isErr()
-		const eventsCount = result.isErr() ? 0 : result.value.length
-		const error = result.isErr() ? result.error.message : undefined
+			const result = await this.eventsProcessor.process({ id, type, runId })
+			const ok = !result.isErr()
+			const eventsCount = result.isErr() ? 0 : result.value.length
+			const error = result.isErr() ? result.error.message : undefined
 
-		this.logger.log(`${LOG_PREFIX}|manual-refetch`, {
-			entityType,
-			entityId: id,
-			ok,
-			eventsCount,
-			error,
-		})
+			this.logger.log(`${LOG_PREFIX}|manual-refetch`, {
+				entityType,
+				entityId: id,
+				ok,
+				eventsCount,
+				error,
+			})
 
-		await this.syncRunsService.close(runId, {
-			status: ok ? 'success' : 'failed',
-			totalGroups: 1,
-			failedGroups: ok ? 0 : 1,
-			removedEvents: 0,
-			totalEvents: eventsCount,
-			steps: {
-				manualRefetch: { entityType, entityId: id, ok, eventsCount, error },
-			},
-		})
+			await this.syncRunsService.close(runId, {
+				status: ok ? 'success' : 'failed',
+				totalGroups: 1,
+				failedGroups: ok ? 0 : 1,
+				removedEvents: 0,
+				totalEvents: eventsCount,
+				steps: {
+					manualRefetch: { entityType, entityId: id, ok, eventsCount, error },
+				},
+			})
+			syncRunClosed = true
 
-		return { ok, eventsCount, error }
+			return { ok, eventsCount, error }
+		} catch (err: unknown) {
+			this.logger.error(`${LOG_PREFIX}|manual-refetch-unexpected-failure`, {
+				entityType,
+				entityId: id,
+				err,
+			})
+
+			if (!syncRunClosed) {
+				const error = err instanceof Error ? err.message : 'Unexpected error'
+				await this.syncRunsService.close(runId, {
+					status: 'failed',
+					totalGroups: 1,
+					failedGroups: 1,
+					removedEvents: 0,
+					totalEvents: 0,
+					steps: {
+						manualRefetch: {
+							entityType,
+							entityId: id,
+							ok: false,
+							eventsCount: 0,
+							error,
+						},
+					},
+				})
+			}
+
+			throw err
+		} finally {
+			this.running = false
+		}
 	}
 
 	private async logProcessingException(

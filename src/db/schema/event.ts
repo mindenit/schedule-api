@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { bigint, check, pgTable, uniqueIndex } from 'drizzle-orm/pg-core'
+import { bigint, check, index, pgTable, uniqueIndex } from 'drizzle-orm/pg-core'
 
 import { referencialIntegrityOptions } from '../utils'
 import { auditoriumTable } from './auditorium'
@@ -36,5 +36,9 @@ export const eventTable = pgTable(
 			t.numberPair,
 			t.teachersKey,
 		),
+		// auditoriumId is a non-leading column in the composite unique index
+		// above, not usable for a plain `WHERE auditorium_id = X` lookup --
+		// findAuditoriumGroups/Teachers and the hasEvents=true filter need it.
+		index('event_auditorium_id_idx').on(t.auditoriumId),
 	],
 )

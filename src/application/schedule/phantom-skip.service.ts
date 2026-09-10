@@ -7,9 +7,13 @@ import { academicGroupTable, directionTable, facultyTable } from 'src/db/schema'
 // Constants
 // Administrative units that structurally never have a degree-track class
 // schedule (postgrad/PhD studies, pre-university prep courses, continuing
-// education). Confirmed via analysis of a 9-day production window: 211 of
-// 211 groups under these faculties were empty in every observed run.
-const DEAD_FACULTY_SHORT_NAMES = ['Аспірантура', 'ЦДП', 'ЦПО', 'ФЗН']
+// education). Confirmed via analysis of a 9-day production window: 210 of
+// 210 groups under these faculties were empty in every observed run.
+// ФЗН (correspondence/distance education) deliberately excluded -- only 1
+// group observed under it in that window, and correspondence programs are
+// exactly the session-based/bursty-schedule pattern that makes a permanent
+// static rule unsafe elsewhere in this file (see EMPTY_STREAK_THRESHOLD).
+const DEAD_FACULTY_SHORT_NAMES = ['Аспірантура', 'ЦДП', 'ЦПО']
 
 // A group needs this many consecutive confirmed-empty *successful* fetches
 // before it's demoted to the weekly full-recheck only. Deliberately

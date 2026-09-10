@@ -8,6 +8,7 @@ import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
 import { Event, SubjectHour } from 'src/core/cist/dtos'
 import {
+	academicGroupTable,
 	auditoriumTable,
 	eventTable,
 	eventToAcademicGroupTable,
@@ -200,10 +201,27 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 			}
 
 			if (event.groups.length) {
-				await tx
-					.insert(eventToAcademicGroupTable)
-					.values(event.groups.map((g) => ({ eventId, groudId: g.id })))
-					.onConflictDoNothing()
+				const existingGroups = await tx
+					.select({ id: academicGroupTable.id })
+					.from(academicGroupTable)
+					.where(
+						inArray(
+							academicGroupTable.id,
+							event.groups.map((g) => g.id),
+						),
+					)
+
+				const existingGroupIds = new Set(existingGroups.map((g) => g.id))
+				const knownGroups = event.groups.filter((g) =>
+					existingGroupIds.has(g.id),
+				)
+
+				if (knownGroups.length) {
+					await tx
+						.insert(eventToAcademicGroupTable)
+						.values(knownGroups.map((g) => ({ eventId, groudId: g.id })))
+						.onConflictDoNothing()
+				}
 			}
 		})
 	}
