@@ -17,12 +17,13 @@ import {
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
+import { ConfigService } from 'src/components/config/config.service'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
 import {
-	StepResult,
 	SyncRunsService,
 	SyncRunTrigger,
+	SyncSteps,
 } from 'src/components/sync-runs/sync-runs.service'
 import { WebhooksService } from 'src/components/webhooks/webhooks.service'
 import { CistAuditoriumProcessor } from 'src/core/cist/implementations/auditoriums/auditoriums.cist-processor'
@@ -32,6 +33,7 @@ import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
 import { academicGroupTable, eventTable } from 'src/db/schema'
 
+import { PhantomSkipService } from './phantom-skip.service'
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 
 // Constants
@@ -61,6 +63,8 @@ export class ScheduleService {
 		private readonly syncRunsService: SyncRunsService,
 		private readonly webhookService: WebhooksService,
 		private readonly logger: LoggerService,
+		private readonly configService: ConfigService,
+		private readonly phantomSkipService: PhantomSkipService,
 	) {}
 
 	@Cron('0 */12 * * *', {
@@ -76,10 +80,10 @@ export class ScheduleService {
 
 		const runId = Date.now()
 
-		const steps = {
-			auditoriums: { ok: false, count: 0 } as StepResult,
-			groups: { ok: false, count: 0 } as StepResult,
-			teachers: { ok: false, count: 0 } as StepResult,
+		const steps: SyncSteps = {
+			auditoriums: { ok: false, count: 0 },
+			groups: { ok: false, count: 0 },
+			teachers: { ok: false, count: 0 },
 		}
 
 		let totalGroups = 0
@@ -149,7 +153,29 @@ export class ScheduleService {
 			this.logger.log('Start filling schedule')
 
 			const existingGroups = await this.db.select().from(academicGroupTable)
-			const groups = groupsResult.unwrapOr(existingGroups)
+			const allGroups = groupsResult.unwrapOr(existingGroups)
+
+			const { enabled: phantomSkipEnabled } =
+				this.configService.get('phantomSkip')
+			const isFullRecheck = this.phantomSkipService.isFullRecheckRun()
+			const skipSet =
+				phantomSkipEnabled && !isFullRecheck
+					? await this.phantomSkipService.getSkipSet()
+					: new Set<number>()
+
+			const groups = skipSet.size
+				? allGroups.filter((g) => !skipSet.has(g.id))
+				: allGroups
+
+			if (skipSet.size) {
+				const skippedCount = allGroups.length - groups.length
+				steps.phantomSkip = { count: skippedCount }
+				this.logger.log(`${LOG_PREFIX}|phantom-skip-applied`, {
+					skipped: skippedCount,
+					totalKnownGroups: allGroups.length,
+				})
+			}
+
 			totalGroups = groups.length
 			await this.syncRunsService.setTotalGroups(runId, totalGroups)
 

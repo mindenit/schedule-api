@@ -19,6 +19,7 @@ export interface SyncSteps {
 	auditoriums: StepResult
 	groups: StepResult
 	teachers: StepResult
+	phantomSkip?: { count: number }
 }
 
 @Injectable()

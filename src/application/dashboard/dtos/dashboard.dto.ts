@@ -12,6 +12,7 @@ const stepsSchema = z.object({
 	auditoriums: stepResultSchema.optional(),
 	groups: stepResultSchema.optional(),
 	teachers: stepResultSchema.optional(),
+	phantomSkip: z.object({ count: z.number().int().nonnegative() }).optional(),
 })
 
 // Sync run row

@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { CacheModule } from 'src/components/cache/cache.module'
+import { ConfigModule } from 'src/components/config/config.module'
 import { DatabaseModule } from 'src/components/database/database.module'
 import { LoggerModule } from 'src/components/logger/logger.module'
 import { SyncRunsModule } from 'src/components/sync-runs/sync-runs.module'
@@ -13,6 +14,7 @@ import { ScheduleService } from './schedule.service'
 	imports: [
 		CacheModule,
 		CistModule,
+		ConfigModule,
 		DatabaseModule,
 		LoggerModule,
 		SyncRunsModule,
