@@ -12,7 +12,10 @@ import {
 	SYSTEM_HEALTH_STATUS,
 	UPDATE_STATUS,
 } from 'src/common/constants/health-status'
-import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
+import {
+	CistCrawlerErrorCodes,
+	CistCrawlerException,
+} from 'src/common/exceptions/cist-crawler.exception'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
@@ -34,6 +37,13 @@ import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 // Constants
 const LOG_PREFIX = 'schedule-service'
 const CIST_DELAY_MS = 8_000
+// CIST has a recurring brief (~5-10min) outage window some nights. A group
+// that fails with a FETCH_FAILED (network/server-availability) error is
+// deferred and retried once more after the main loop finishes, by which
+// point the outage has almost always passed. If more than this fraction of
+// groups end up deferred, it's not a brief blip anymore — skip the retry
+// pass rather than double the total run time chasing a real outage.
+const MAX_DEFERRED_RATIO = 0.2
 
 @Injectable()
 export class ScheduleService {
@@ -143,6 +153,11 @@ export class ScheduleService {
 			totalGroups = groups.length
 			await this.syncRunsService.setTotalGroups(runId, totalGroups)
 
+			const deferredGroups: {
+				group: (typeof groups)[number]
+				error: CistCrawlerException
+			}[] = []
+
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
 
@@ -159,16 +174,27 @@ export class ScheduleService {
 				})
 
 				if (result.isErr()) {
-					failedGroupIds.push(group.id)
-					this.logger.log(`${LOG_PREFIX}|group-schedule-processing-failed`, {
-						groupId: group.id,
-						error: result.error.message,
-					})
-					await this.syncRunsService.recordGroup(runId, group.id, {
-						status: 'failed',
-						eventsCount: 0,
-						error: result.error.message,
-					})
+					if (result.error.code === CistCrawlerErrorCodes.FETCH_FAILED) {
+						// Likely transient (CIST server unavailable, not a data problem
+						// with this specific group) — retry later in this same run
+						// instead of recording it as failed right away.
+						deferredGroups.push({ group, error: result.error })
+						this.logger.log(`${LOG_PREFIX}|group-schedule-deferred`, {
+							groupId: group.id,
+							error: result.error.message,
+						})
+					} else {
+						failedGroupIds.push(group.id)
+						this.logger.log(`${LOG_PREFIX}|group-schedule-processing-failed`, {
+							groupId: group.id,
+							error: result.error.message,
+						})
+						await this.syncRunsService.recordGroup(runId, group.id, {
+							status: 'failed',
+							eventsCount: 0,
+							error: result.error.message,
+						})
+					}
 				} else {
 					await this.syncRunsService.recordGroup(runId, group.id, {
 						status: 'success',
@@ -180,6 +206,67 @@ export class ScheduleService {
 				// service pending HTTP requests even on a CPU-constrained container.
 				await new Promise(setImmediate)
 				await setTimeout(CIST_DELAY_MS)
+			}
+
+			if (deferredGroups.length) {
+				const withinRetryBudget =
+					deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
+
+				if (withinRetryBudget) {
+					this.logger.log(`${LOG_PREFIX}|retrying-deferred-groups`, {
+						count: deferredGroups.length,
+						totalGroups,
+					})
+
+					for (const { group } of deferredGroups) {
+						const retryResult = await this.eventsProcessor.process({
+							id: group.id,
+							type: SCHEDULE_TYPE.GROUP,
+							runId,
+						})
+
+						if (retryResult.isErr()) {
+							failedGroupIds.push(group.id)
+							this.logger.log(`${LOG_PREFIX}|group-schedule-retry-failed`, {
+								groupId: group.id,
+								error: retryResult.error.message,
+							})
+							await this.syncRunsService.recordGroup(runId, group.id, {
+								status: 'failed',
+								eventsCount: 0,
+								error: retryResult.error.message,
+							})
+						} else {
+							this.logger.log(`${LOG_PREFIX}|group-schedule-retry-succeeded`, {
+								groupId: group.id,
+							})
+							await this.syncRunsService.recordGroup(runId, group.id, {
+								status: 'success',
+								eventsCount: retryResult.value.length,
+							})
+						}
+
+						await new Promise(setImmediate)
+						await setTimeout(CIST_DELAY_MS)
+					}
+				} else {
+					// Too many deferred groups to be a brief blip — record them as
+					// failed with their original error instead of doubling run time
+					// chasing what's likely a sustained outage.
+					this.logger.log(`${LOG_PREFIX}|skipping-deferred-retry`, {
+						count: deferredGroups.length,
+						totalGroups,
+					})
+
+					for (const { group, error } of deferredGroups) {
+						failedGroupIds.push(group.id)
+						await this.syncRunsService.recordGroup(runId, group.id, {
+							status: 'failed',
+							eventsCount: 0,
+							error: error.message,
+						})
+					}
+				}
 			}
 
 			const removedCount = await this.eventsProcessor.removeExtraEvents(
