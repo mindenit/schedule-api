@@ -5,16 +5,14 @@ import CistCrawler, {
 } from '@mindenit/cist-crawler'
 import { Inject, Injectable, Logger } from '@nestjs/common'
 import { Result } from 'better-result'
-import {
-	CistCrawlerErrorCodes,
-	CistCrawlerException,
-} from 'src/common/exceptions/cist-crawler.exception'
+import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
 
 import { TeachersParserOutput } from '../../cist.types'
 import { Department, Faculty, Teacher } from '../../dtos'
+import { classifyCrawlerError } from '../../helpers/classify-crawler-error.helper'
 import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
 import { DepartmentMapper } from '../../mappers/department.mapper'
@@ -47,11 +45,7 @@ export class CistTeachersParser implements CistParser<
 	async parse(): PromiseResult<TeachersParserOutput, CistCrawlerException> {
 		const responseResult = await Result.tryPromise({
 			try: () => this.cistCrawler.getTeachers(),
-			catch: (e) =>
-				new CistCrawlerException(
-					CistCrawlerErrorCodes.FETCH_FAILED,
-					e instanceof Error ? e.message : 'Failed to fetch teachers',
-				),
+			catch: (e) => classifyCrawlerError(e, 'Failed to fetch teachers'),
 		})
 
 		if (responseResult.isErr()) {

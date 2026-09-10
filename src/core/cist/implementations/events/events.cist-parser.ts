@@ -6,13 +6,11 @@ import CistCrawler, {
 } from '@mindenit/cist-crawler'
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
-import {
-	CistCrawlerErrorCodes,
-	CistCrawlerException,
-} from 'src/common/exceptions/cist-crawler.exception'
+import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+import { LoggerService } from 'src/components/logger/logger.service'
 
 import { PairsParserOutput } from '../../cist.types'
 import {
@@ -22,6 +20,7 @@ import {
 	Subject,
 	SubjectHour,
 } from '../../dtos'
+import { classifyCrawlerError } from '../../helpers/classify-crawler-error.helper'
 import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
 import { EventMapper, SubjectHourMapper, SubjectMapper } from '../../mappers'
@@ -59,6 +58,7 @@ export class CistEventsParser implements CistParser<
 	constructor(
 		@Inject(CIST_CRAWLER_TOKEN)
 		private readonly cistCrawler: CistCrawler,
+		private readonly logger: LoggerService,
 	) {}
 
 	async parse({
@@ -67,11 +67,7 @@ export class CistEventsParser implements CistParser<
 	}: PairsParserArgs): PromiseResult<PairsParserOutput, CistCrawlerException> {
 		const responseResult = await Result.tryPromise({
 			try: () => this.cistCrawler.getSchedule(type, id),
-			catch: (e) =>
-				new CistCrawlerException(
-					CistCrawlerErrorCodes.FETCH_FAILED,
-					e instanceof Error ? e.message : 'Failed to fetch schedule',
-				),
+			catch: (e) => classifyCrawlerError(e, 'Failed to fetch schedule'),
 		})
 
 		if (responseResult.isErr()) {
@@ -87,6 +83,15 @@ export class CistEventsParser implements CistParser<
 		const response = responseResult.unwrap()
 
 		if (!Object.hasOwn(response, 'events')) {
+			// CIST's normal shape for "no schedule" omits `events` entirely, but
+			// an unexpected/malformed response shape would look identical here
+			// -- log it so a genuine anomaly is distinguishable from a real
+			// empty schedule after the fact, rather than silently counting as
+			// a confirmed-empty success (which PHANTOM_SKIP's streak relies on).
+			this.logger.log('events-parser|response-missing-events-key', {
+				entityType: type === SCHEDULE_TYPE.GROUP ? 'group' : 'teacher',
+				entityId: id,
+			})
 			return Result.ok(acc)
 		}
 

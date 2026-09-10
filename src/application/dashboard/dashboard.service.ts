@@ -12,12 +12,20 @@ import {
 	SyncRunsService,
 	SyncSteps,
 } from 'src/components/sync-runs/sync-runs.service'
-import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
+import { SCHEDULE_TYPE } from 'src/core/cist/implementations/events/events.cist-parser'
+import {
+	academicGroupTable,
+	syncRunGroupTable,
+	syncRunTable,
+	teacherTable,
+} from 'src/db/schema'
 
+import { ScheduleService } from '../schedule/schedule.service'
 import {
 	DashSummaryDto,
 	DismissFailureDto,
 	FailedGroupEntryDto,
+	RefetchResultDto,
 	SyncRunDto,
 	SyncRunGroupDto,
 	TableSizeEntryDto,
@@ -57,6 +65,7 @@ export class DashboardService {
 		@Inject(CACHE_CONNECTION_TOKEN)
 		private readonly cache: Redis,
 		private readonly syncRunsService: SyncRunsService,
+		private readonly scheduleService: ScheduleService,
 	) {}
 
 	async getSummary(): Promise<DashSummaryDto> {
@@ -213,6 +222,32 @@ export class DashboardService {
 		}
 
 		return { dismissed }
+	}
+
+	async refetchGroup(groupId: number): Promise<RefetchResultDto> {
+		const [group] = await this.db
+			.select({ id: academicGroupTable.id })
+			.from(academicGroupTable)
+			.where(eq(academicGroupTable.id, groupId))
+
+		if (!group) {
+			throw new NotFoundException(`Group ${groupId} not found`)
+		}
+
+		return this.scheduleService.refetchEntity(SCHEDULE_TYPE.GROUP, groupId)
+	}
+
+	async refetchTeacher(teacherId: number): Promise<RefetchResultDto> {
+		const [teacher] = await this.db
+			.select({ id: teacherTable.id })
+			.from(teacherTable)
+			.where(eq(teacherTable.id, teacherId))
+
+		if (!teacher) {
+			throw new NotFoundException(`Teacher ${teacherId} not found`)
+		}
+
+		return this.scheduleService.refetchEntity(SCHEDULE_TYPE.TEACHER, teacherId)
 	}
 
 	async getTableSizes(): Promise<TableSizeEntryDto[]> {

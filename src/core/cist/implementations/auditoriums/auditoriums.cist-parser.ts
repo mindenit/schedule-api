@@ -4,10 +4,7 @@ import CistCrawler, {
 } from '@mindenit/cist-crawler'
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
-import {
-	CistCrawlerErrorCodes,
-	CistCrawlerException,
-} from 'src/common/exceptions/cist-crawler.exception'
+import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
@@ -15,6 +12,7 @@ import { Auditorium, AuditoriumType } from 'src/core/cist/dtos/auditorium.dto'
 
 import { AuditoriumParserOutput } from '../../cist.types'
 import { Building } from '../../dtos/builder.dto'
+import { classifyCrawlerError } from '../../helpers/classify-crawler-error.helper'
 import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
 import {
@@ -46,11 +44,7 @@ export class CistAuditoriumParser implements CistParser<
 	async parse(): PromiseResult<AuditoriumParserOutput, CistCrawlerException> {
 		const responseResult = await Result.tryPromise({
 			try: () => this.cistCrawler.getAuditories(),
-			catch: (e) =>
-				new CistCrawlerException(
-					CistCrawlerErrorCodes.FETCH_FAILED,
-					e instanceof Error ? e.message : 'Failed to fetch auditories',
-				),
+			catch: (e) => classifyCrawlerError(e, 'Failed to fetch auditories'),
 		})
 
 		if (responseResult.isErr()) {

@@ -10,6 +10,7 @@ export const syncRunStatusEnum = pgEnum('sync_run_status', [
 export const syncRunTriggerEnum = pgEnum('sync_run_trigger', [
 	'cron',
 	'bootstrap',
+	'manual',
 ])
 
 export const syncRunTable = pgTable('sync_run', (t) => ({

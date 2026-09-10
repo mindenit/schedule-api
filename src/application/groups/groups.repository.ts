@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { asc, eq, SQL } from 'drizzle-orm'
+import { asc, eq, exists, SQL, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { ScheduleRepository } from 'src/common/repositories/schedule.repository'
 import { scheduleAliases } from 'src/common/utils/schedule/schedule'
@@ -37,11 +37,23 @@ export class GroupsRepository extends ScheduleRepository<GetGroupScheduleFilters
 		return getGroupFiltersQuery(filters)
 	}
 
-	async findAll(): Promise<Group[]> {
-		return this.db
-			.select()
-			.from(academicGroupTable)
-			.orderBy(asc(academicGroupTable.name))
+	async findAll(hasEvents = false): Promise<Group[]> {
+		const query = this.db.select().from(academicGroupTable)
+
+		if (hasEvents) {
+			query.where(
+				exists(
+					this.db
+						.select({ one: sql`1` })
+						.from(eventToAcademicGroupTable)
+						.where(
+							eq(eventToAcademicGroupTable.groudId, academicGroupTable.id),
+						),
+				),
+			)
+		}
+
+		return query.orderBy(asc(academicGroupTable.name))
 	}
 
 	async findGroupAuditoriums(groupId: number): Promise<Auditorium[]> {

@@ -7,7 +7,7 @@ import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 // Constants
 const RETENTION_DAYS = 30
 
-export type SyncRunTrigger = 'cron' | 'bootstrap'
+export type SyncRunTrigger = 'cron' | 'bootstrap' | 'manual'
 
 export interface StepResult {
 	ok: boolean
@@ -16,9 +16,17 @@ export interface StepResult {
 }
 
 export interface SyncSteps {
-	auditoriums: StepResult
-	groups: StepResult
-	teachers: StepResult
+	auditoriums?: StepResult
+	groups?: StepResult
+	teachers?: StepResult
+	phantomSkip?: { count: number }
+	manualRefetch?: {
+		entityType: 'group' | 'teacher'
+		entityId: number
+		ok: boolean
+		eventsCount: number
+		error?: string
+	}
 }
 
 @Injectable()

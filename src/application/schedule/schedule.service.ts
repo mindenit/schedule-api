@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises'
 
-import { Inject, Injectable } from '@nestjs/common'
+import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
 import { sql as drizzleSql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
@@ -12,28 +12,43 @@ import {
 	SYSTEM_HEALTH_STATUS,
 	UPDATE_STATUS,
 } from 'src/common/constants/health-status'
-import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
+import {
+	CistCrawlerErrorCodes,
+	CistCrawlerException,
+} from 'src/common/exceptions/cist-crawler.exception'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
+import { ConfigService } from 'src/components/config/config.service'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
 import {
-	StepResult,
 	SyncRunsService,
 	SyncRunTrigger,
+	SyncSteps,
 } from 'src/components/sync-runs/sync-runs.service'
 import { WebhooksService } from 'src/components/webhooks/webhooks.service'
 import { CistAuditoriumProcessor } from 'src/core/cist/implementations/auditoriums/auditoriums.cist-processor'
-import { SCHEDULE_TYPE } from 'src/core/cist/implementations/events/events.cist-parser'
+import {
+	SCHEDULE_TYPE,
+	ScheduleType,
+} from 'src/core/cist/implementations/events/events.cist-parser'
 import { CistEventsProcessor } from 'src/core/cist/implementations/events/events.cist-processor'
 import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups.cist-processor'
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
 import { academicGroupTable, eventTable } from 'src/db/schema'
 
+import { PhantomSkipService } from './phantom-skip.service'
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 
 // Constants
 const LOG_PREFIX = 'schedule-service'
 const CIST_DELAY_MS = 8_000
+// CIST has a recurring brief (~5-10min) outage window some nights. A group
+// that fails with a FETCH_FAILED (network/server-availability) error is
+// deferred and retried once more after the main loop finishes, by which
+// point the outage has almost always passed. If more than this fraction of
+// groups end up deferred, it's not a brief blip anymore — skip the retry
+// pass rather than double the total run time chasing a real outage.
+const MAX_DEFERRED_RATIO = 0.2
 
 @Injectable()
 export class ScheduleService {
@@ -51,6 +66,8 @@ export class ScheduleService {
 		private readonly syncRunsService: SyncRunsService,
 		private readonly webhookService: WebhooksService,
 		private readonly logger: LoggerService,
+		private readonly configService: ConfigService,
+		private readonly phantomSkipService: PhantomSkipService,
 	) {}
 
 	@Cron('0 */12 * * *', {
@@ -66,10 +83,10 @@ export class ScheduleService {
 
 		const runId = Date.now()
 
-		const steps = {
-			auditoriums: { ok: false, count: 0 } as StepResult,
-			groups: { ok: false, count: 0 } as StepResult,
-			teachers: { ok: false, count: 0 } as StepResult,
+		const steps: SyncSteps = {
+			auditoriums: { ok: false, count: 0 },
+			groups: { ok: false, count: 0 },
+			teachers: { ok: false, count: 0 },
 		}
 
 		let totalGroups = 0
@@ -83,6 +100,12 @@ export class ScheduleService {
 			])
 
 			await this.syncRunsService.open(runId, trigger)
+
+			// Evaluated up-front, before auditoriums/groups/teachers processing --
+			// if checked later, a long-running earlier step could push execution
+			// past the Sunday-00:00 boundary and silently skip that week's
+			// full recheck.
+			const isFullRecheck = this.phantomSkipService.isFullRecheckRun()
 
 			this.logger.log('Start CIST Postman')
 			// Run sequentially instead of in parallel to reduce peak CPU/DB pressure
@@ -139,9 +162,35 @@ export class ScheduleService {
 			this.logger.log('Start filling schedule')
 
 			const existingGroups = await this.db.select().from(academicGroupTable)
-			const groups = groupsResult.unwrapOr(existingGroups)
+			const allGroups = groupsResult.unwrapOr(existingGroups)
+
+			const { enabled: phantomSkipEnabled } =
+				this.configService.get('phantomSkip')
+			const skipSet =
+				phantomSkipEnabled && !isFullRecheck
+					? await this.phantomSkipService.getSkipSet()
+					: new Set<number>()
+
+			const groups = skipSet.size
+				? allGroups.filter((g) => !skipSet.has(g.id))
+				: allGroups
+
+			if (skipSet.size) {
+				const skippedCount = allGroups.length - groups.length
+				steps.phantomSkip = { count: skippedCount }
+				this.logger.log(`${LOG_PREFIX}|phantom-skip-applied`, {
+					skipped: skippedCount,
+					totalKnownGroups: allGroups.length,
+				})
+			}
+
 			totalGroups = groups.length
 			await this.syncRunsService.setTotalGroups(runId, totalGroups)
+
+			const deferredGroups: {
+				group: (typeof groups)[number]
+				error: CistCrawlerException
+			}[] = []
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -159,16 +208,27 @@ export class ScheduleService {
 				})
 
 				if (result.isErr()) {
-					failedGroupIds.push(group.id)
-					this.logger.log(`${LOG_PREFIX}|group-schedule-processing-failed`, {
-						groupId: group.id,
-						error: result.error.message,
-					})
-					await this.syncRunsService.recordGroup(runId, group.id, {
-						status: 'failed',
-						eventsCount: 0,
-						error: result.error.message,
-					})
+					if (result.error.code === CistCrawlerErrorCodes.FETCH_FAILED) {
+						// Likely transient (CIST server unavailable, not a data problem
+						// with this specific group) — retry later in this same run
+						// instead of recording it as failed right away.
+						deferredGroups.push({ group, error: result.error })
+						this.logger.log(`${LOG_PREFIX}|group-schedule-deferred`, {
+							groupId: group.id,
+							error: result.error.message,
+						})
+					} else {
+						failedGroupIds.push(group.id)
+						this.logger.log(`${LOG_PREFIX}|group-schedule-processing-failed`, {
+							groupId: group.id,
+							error: result.error.message,
+						})
+						await this.syncRunsService.recordGroup(runId, group.id, {
+							status: 'failed',
+							eventsCount: 0,
+							error: result.error.message,
+						})
+					}
 				} else {
 					await this.syncRunsService.recordGroup(runId, group.id, {
 						status: 'success',
@@ -182,10 +242,75 @@ export class ScheduleService {
 				await setTimeout(CIST_DELAY_MS)
 			}
 
-			const removedCount = await this.eventsProcessor.removeExtraEvents(
-				runId,
-				failedGroupIds,
-			)
+			if (deferredGroups.length) {
+				const withinRetryBudget =
+					deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
+
+				if (withinRetryBudget) {
+					this.logger.log(`${LOG_PREFIX}|retrying-deferred-groups`, {
+						count: deferredGroups.length,
+						totalGroups,
+					})
+
+					for (const { group } of deferredGroups) {
+						const retryResult = await this.eventsProcessor.process({
+							id: group.id,
+							type: SCHEDULE_TYPE.GROUP,
+							runId,
+						})
+
+						if (retryResult.isErr()) {
+							failedGroupIds.push(group.id)
+							this.logger.log(`${LOG_PREFIX}|group-schedule-retry-failed`, {
+								groupId: group.id,
+								error: retryResult.error.message,
+							})
+							await this.syncRunsService.recordGroup(runId, group.id, {
+								status: 'failed',
+								eventsCount: 0,
+								error: retryResult.error.message,
+							})
+						} else {
+							this.logger.log(`${LOG_PREFIX}|group-schedule-retry-succeeded`, {
+								groupId: group.id,
+							})
+							await this.syncRunsService.recordGroup(runId, group.id, {
+								status: 'success',
+								eventsCount: retryResult.value.length,
+							})
+						}
+
+						await new Promise(setImmediate)
+						await setTimeout(CIST_DELAY_MS)
+					}
+				} else {
+					// Too many deferred groups to be a brief blip — record them as
+					// failed with their original error instead of doubling run time
+					// chasing what's likely a sustained outage.
+					this.logger.log(`${LOG_PREFIX}|skipping-deferred-retry`, {
+						count: deferredGroups.length,
+						totalGroups,
+					})
+
+					for (const { group, error } of deferredGroups) {
+						failedGroupIds.push(group.id)
+						await this.syncRunsService.recordGroup(runId, group.id, {
+							status: 'failed',
+							eventsCount: 0,
+							error: error.message,
+						})
+					}
+				}
+			}
+
+			// Phantom-skipped groups weren't fetched this run, so their events'
+			// lastSeenAt wasn't refreshed either -- without protecting them here
+			// the same way failed groups are, removeExtraEvents would delete
+			// their real events on the very first phantom-skip run.
+			const removedCount = await this.eventsProcessor.removeExtraEvents(runId, [
+				...failedGroupIds,
+				...skipSet,
+			])
 
 			const [{ totalEvents }] = await this.db
 				.select({ totalEvents: drizzleSql<number>`count(*)::int` })
@@ -271,6 +396,97 @@ export class ScheduleService {
 					this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
 				])
 			}
+			throw err
+		} finally {
+			this.running = false
+		}
+	}
+
+	/*
+	 * On-demand refetch of a single group or teacher's schedule, outside the
+	 * normal cron cycle. Reuses sync_run (trigger='manual') for audit trail
+	 * visibility in the dashboard, but doesn't touch sync_run_group -- that
+	 * table's FK is bound to academic_group, so it can't represent a
+	 * teacher refetch. Both entity types are recorded uniformly in
+	 * steps.manualRefetch instead.
+	 *
+	 * Shares the `running` guard with processSchedule(): open() reconciles
+	 * any 'running' sync_run row as a crash-recovery measure, which would
+	 * otherwise incorrectly flip a genuinely in-flight cron run to 'failed'
+	 * if triggered concurrently. Also guards against two manual refetches
+	 * racing each other.
+	 */
+	async refetchEntity(
+		type: ScheduleType,
+		id: number,
+	): Promise<{ ok: boolean; eventsCount: number; error?: string }> {
+		if (this.running) {
+			throw new ConflictException(
+				'A sync is already in progress; try again once it finishes',
+			)
+		}
+		this.running = true
+
+		const runId = Date.now()
+		const entityType = type === SCHEDULE_TYPE.GROUP ? 'group' : 'teacher'
+		let syncRunClosed = false
+
+		try {
+			await this.syncRunsService.open(runId, 'manual')
+
+			const result = await this.eventsProcessor.process({ id, type, runId })
+			const ok = !result.isErr()
+			const eventsCount = result.isErr() ? 0 : result.value.length
+			const error = result.isErr() ? result.error.message : undefined
+
+			this.logger.log(`${LOG_PREFIX}|manual-refetch`, {
+				entityType,
+				entityId: id,
+				ok,
+				eventsCount,
+				error,
+			})
+
+			await this.syncRunsService.close(runId, {
+				status: ok ? 'success' : 'failed',
+				totalGroups: 1,
+				failedGroups: ok ? 0 : 1,
+				removedEvents: 0,
+				totalEvents: eventsCount,
+				steps: {
+					manualRefetch: { entityType, entityId: id, ok, eventsCount, error },
+				},
+			})
+			syncRunClosed = true
+
+			return { ok, eventsCount, error }
+		} catch (err: unknown) {
+			this.logger.error(`${LOG_PREFIX}|manual-refetch-unexpected-failure`, {
+				entityType,
+				entityId: id,
+				err,
+			})
+
+			if (!syncRunClosed) {
+				const error = err instanceof Error ? err.message : 'Unexpected error'
+				await this.syncRunsService.close(runId, {
+					status: 'failed',
+					totalGroups: 1,
+					failedGroups: 1,
+					removedEvents: 0,
+					totalEvents: 0,
+					steps: {
+						manualRefetch: {
+							entityType,
+							entityId: id,
+							ok: false,
+							eventsCount: 0,
+							error,
+						},
+					},
+				})
+			}
+
 			throw err
 		} finally {
 			this.running = false

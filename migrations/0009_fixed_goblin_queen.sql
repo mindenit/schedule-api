@@ -1,0 +1,1 @@
+ALTER TYPE "public"."sync_run_trigger" ADD VALUE 'manual';

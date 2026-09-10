@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { HasEventsQuerySchema } from 'src/common/schemas/list-query.schema'
 import { GetByIdParamSchema } from 'src/common/schemas/params.schema'
 import { getSuccessResponseSchema } from 'src/common/schemas/response.schema'
 import {
@@ -17,6 +18,8 @@ import { GetTeacherScheduleFiltersSchema } from '../teachers.schemas'
 export class TeachersResponseDto extends createZodDto(
 	getSuccessResponseSchema(TeacherSchema.array()),
 ) {}
+
+export class TeachersListQueryDto extends createZodDto(HasEventsQuerySchema) {}
 
 export class GetTeacherParamsDto extends createZodDto(GetByIdParamSchema) {}
 

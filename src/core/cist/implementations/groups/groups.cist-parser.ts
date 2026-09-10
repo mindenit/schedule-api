@@ -4,16 +4,14 @@ import CistCrawler, {
 } from '@mindenit/cist-crawler'
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
-import {
-	CistCrawlerErrorCodes,
-	CistCrawlerException,
-} from 'src/common/exceptions/cist-crawler.exception'
+import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
 import { Array } from 'src/common/utils/array'
 import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
 
 import { GroupsParserOutput } from '../../cist.types'
 import { Direction, Faculty, Group, Speciality } from '../../dtos'
+import { classifyCrawlerError } from '../../helpers/classify-crawler-error.helper'
 import { collectEntity } from '../../helpers/collect-entity.helper'
 import { CistParser } from '../../interfaces/parser.interface'
 import {
@@ -51,11 +49,7 @@ export class CistGroupsParser implements CistParser<
 	async parse(): PromiseResult<GroupsParserOutput, CistCrawlerException> {
 		const responseResult = await Result.tryPromise({
 			try: () => this.cistCrawler.getGroups(),
-			catch: (e) =>
-				new CistCrawlerException(
-					CistCrawlerErrorCodes.FETCH_FAILED,
-					e instanceof Error ? e.message : 'Failed to fetch groups',
-				),
+			catch: (e) => classifyCrawlerError(e, 'Failed to fetch groups'),
 		})
 
 		if (responseResult.isErr()) {

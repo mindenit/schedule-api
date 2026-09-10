@@ -7,6 +7,7 @@ import {
 	GroupAuditoriumsResponseDto,
 	GroupScheduleQueryDto,
 	GroupScheduleResponseDto,
+	GroupsListQueryDto,
 	GroupsResponseDto,
 	GroupSubjectsResponseDto,
 	GroupTeachersResponseDto,
@@ -20,7 +21,10 @@ export class GroupsController {
 
 	@ApiOperation({
 		summary: 'Get groups',
-		description: 'Get list of groups',
+		description:
+			'Get list of groups. Set hasEvents=true to exclude groups CIST ' +
+			'reports but that never have a schedule (graduated cohorts, ' +
+			'admin/internal entities).',
 	})
 	@ZodResultResponse({
 		status: HttpStatus.OK,
@@ -28,8 +32,8 @@ export class GroupsController {
 		type: GroupsResponseDto,
 	})
 	@Get()
-	async findAll() {
-		return this.groupsRepository.findAll()
+	async findAll(@Query() query: GroupsListQueryDto) {
+		return this.groupsRepository.findAll(query.hasEvents)
 	}
 
 	@ApiOperation({

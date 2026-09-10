@@ -1,4 +1,4 @@
-import { pgTable, primaryKey } from 'drizzle-orm/pg-core'
+import { index, pgTable, primaryKey } from 'drizzle-orm/pg-core'
 
 import { referencialIntegrityOptions } from '../utils'
 import { eventTable } from './event'
@@ -16,5 +16,11 @@ export const eventToTeacherTable = pgTable(
 			.notNull()
 			.references(() => teacherTable.id, referencialIntegrityOptions),
 	}),
-	(t) => [primaryKey({ columns: [t.eventId, t.teacherId] })],
+	(t) => [
+		primaryKey({ columns: [t.eventId, t.teacherId] }),
+		// teacherId is the second column of the composite PK, not independently
+		// indexed -- reverse lookups (findTeacherAuditoriums/Groups/Subjects,
+		// the hasEvents=true filter) all query by teacherId alone.
+		index('event_to_teacher_teacher_id_idx').on(t.teacherId),
+	],
 )
