@@ -73,9 +73,25 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 			return Result.ok([])
 		}
 
+		const groupId = type === 1 ? id : null
+		const seenEventIds = new Set<number>()
+
 		for (const event of events) {
-			await this.processEvent(event, runId, hours)
+			const eventId = await this.processEvent(event, runId, hours, groupId)
+			if (eventId !== null) seenEventIds.add(eventId)
 			await new Promise(setImmediate)
+		}
+
+		// Events skipped for unknown auditorium are unseen, so their links go too
+		if (groupId !== null && seenEventIds.size) {
+			await this.db
+				.delete(eventToAcademicGroupTable)
+				.where(
+					and(
+						eq(eventToAcademicGroupTable.groudId, groupId),
+						notInArray(eventToAcademicGroupTable.eventId, [...seenEventIds]),
+					),
+				)
 		}
 
 		return Result.ok(events)
@@ -111,15 +127,16 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 		event: Event,
 		runId: number,
 		hours: SubjectHour[],
-	): Promise<void> {
-		await this.db.transaction(async (tx) => {
+		groupId: number | null,
+	): Promise<number | null> {
+		return this.db.transaction(async (tx) => {
 			const [auditorium] = await tx
 				.select({ id: auditoriumTable.id })
 				.from(auditoriumTable)
 				.where(eq(auditoriumTable.name, event.auditoriumName))
 
 			if (!auditorium) {
-				return
+				return null
 			}
 
 			const [{ id: eventId }] = await tx
@@ -200,21 +217,22 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 				}
 			}
 
-			if (event.groups.length) {
+			// A group's own fetch is the only source of its links
+			const groups = groupId === null ? event.groups : [{ id: groupId }]
+
+			if (groups.length) {
 				const existingGroups = await tx
 					.select({ id: academicGroupTable.id })
 					.from(academicGroupTable)
 					.where(
 						inArray(
 							academicGroupTable.id,
-							event.groups.map((g) => g.id),
+							groups.map((g) => g.id),
 						),
 					)
 
 				const existingGroupIds = new Set(existingGroups.map((g) => g.id))
-				const knownGroups = event.groups.filter((g) =>
-					existingGroupIds.has(g.id),
-				)
+				const knownGroups = groups.filter((g) => existingGroupIds.has(g.id))
 
 				if (knownGroups.length) {
 					await tx
@@ -223,6 +241,8 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 						.onConflictDoNothing()
 				}
 			}
+
+			return eventId
 		})
 	}
 }
