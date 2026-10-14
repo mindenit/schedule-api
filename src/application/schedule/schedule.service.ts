@@ -303,6 +303,19 @@ export class ScheduleService {
 				}
 			}
 
+			// Must run before removeExtraEvents so events left without links are swept.
+			// Independent of PHANTOM_SKIP_ENABLED: the streak comes from sync history.
+			const emptyGroupIds =
+				await this.phantomSkipService.getHistoricallyEmptyGroupIds()
+			const emptyGroupLinksRemoved =
+				await this.eventsProcessor.removeLinksOfGroups(emptyGroupIds)
+			if (emptyGroupLinksRemoved) {
+				this.logger.log(`${LOG_PREFIX}|empty-group-links-removed`, {
+					groups: emptyGroupIds.length,
+					links: emptyGroupLinksRemoved,
+				})
+			}
+
 			// Phantom-skipped groups weren't fetched this run, so their events'
 			// lastSeenAt wasn't refreshed either -- without protecting them here
 			// the same way failed groups are, removeExtraEvents would delete

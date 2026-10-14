@@ -84,7 +84,7 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 
 		// Events skipped for unknown auditorium are unseen, so their links go too
 		if (groupId !== null && seenEventIds.size) {
-			await this.db
+			const pruned = await this.db
 				.delete(eventToAcademicGroupTable)
 				.where(
 					and(
@@ -92,9 +92,29 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 						notInArray(eventToAcademicGroupTable.eventId, [...seenEventIds]),
 					),
 				)
+				.returning({ eventId: eventToAcademicGroupTable.eventId })
+
+			if (pruned.length) {
+				this.logger.log(`${LOG_PREFIX}|stale-group-links-pruned`, {
+					groupId,
+					count: pruned.length,
+				})
+			}
 		}
 
 		return Result.ok(events)
+	}
+
+	// For groups whose feed stayed empty for a long streak: an empty feed prunes
+	// nothing in process(), so their old links would otherwise live forever.
+	async removeLinksOfGroups(groupIds: number[]): Promise<number> {
+		if (!groupIds.length) return 0
+
+		const deleted = await this.db
+			.delete(eventToAcademicGroupTable)
+			.where(inArray(eventToAcademicGroupTable.groudId, groupIds))
+			.returning({ eventId: eventToAcademicGroupTable.eventId })
+		return deleted.length
 	}
 
 	async removeExtraEvents(
