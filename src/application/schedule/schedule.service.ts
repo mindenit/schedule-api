@@ -221,6 +221,7 @@ export class ScheduleService {
 				error: CistCrawlerException
 			}[] = []
 			let fetchFailureStreak = 0
+			let aborted = false
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -273,6 +274,7 @@ export class ScheduleService {
 				)
 				if (fetchFailureStreak >= CIRCUIT_BREAKER_CONSECUTIVE_FAILURES) {
 					// Remaining groups stay unrecorded: they were never attempted.
+					aborted = true
 					steps.circuitBreaker = { unprocessedGroups: totalGroups - i - 1 }
 					this.logger.warn(`${LOG_PREFIX}|circuit-breaker-open`, {
 						consecutiveFailures: fetchFailureStreak,
@@ -291,8 +293,7 @@ export class ScheduleService {
 			if (deferredGroups.length) {
 				// After a breaker abort CIST is down; a retry pass would only fail again.
 				const withinRetryBudget =
-					!steps.circuitBreaker &&
-					deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
+					!aborted && deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
 
 				if (withinRetryBudget) {
 					this.logger.log(`${LOG_PREFIX}|retrying-deferred-groups`, {
@@ -364,36 +365,39 @@ export class ScheduleService {
 				})
 			}
 
-			// Phantom-skipped groups weren't fetched this run, so their events'
-			// lastSeenAt wasn't refreshed either -- without protecting them here
-			// the same way failed groups are, removeExtraEvents would delete
-			// their real events on the very first phantom-skip run.
-			const protectedGroupIds = [...failedGroupIds, ...skipSet]
-			const [staleEvents, eventsBeforeDelete] = await Promise.all([
-				this.eventsProcessor.countExtraEvents(runId, protectedGroupIds),
-				this.countEvents(),
-			])
-
+			// After an abort, unprocessed groups' events only look unseen: neither
+			// count them as stale nor delete them.
 			let removedCount = 0
-			if (exceedsDeleteRatio(staleEvents, eventsBeforeDelete)) {
-				steps.deleteSkipped = { staleEvents, totalEvents: eventsBeforeDelete }
-				this.logger.warn(`${LOG_PREFIX}|remove-extra-events-skipped`, {
-					staleEvents,
-					totalEvents: eventsBeforeDelete,
-					maxRatio: DELETE_MAX_RATIO,
-				})
-			} else if (!steps.circuitBreaker) {
-				// After an abort, unprocessed groups' events only look unseen.
-				removedCount = await this.eventsProcessor.removeExtraEvents(
-					runId,
-					protectedGroupIds,
-				)
+			if (!aborted) {
+				// Phantom-skipped groups weren't fetched this run, so their events'
+				// lastSeenAt wasn't refreshed either -- without protecting them here
+				// the same way failed groups are, removeExtraEvents would delete
+				// their real events on the very first phantom-skip run.
+				const protectedGroupIds = [...failedGroupIds, ...skipSet]
+				const [staleEvents, eventsBeforeDelete] = await Promise.all([
+					this.eventsProcessor.countExtraEvents(runId, protectedGroupIds),
+					this.countEvents(),
+				])
+
+				if (exceedsDeleteRatio(staleEvents, eventsBeforeDelete)) {
+					steps.deleteSkipped = { staleEvents, totalEvents: eventsBeforeDelete }
+					this.logger.warn(`${LOG_PREFIX}|remove-extra-events-skipped`, {
+						staleEvents,
+						totalEvents: eventsBeforeDelete,
+						maxRatio: DELETE_MAX_RATIO,
+					})
+				} else {
+					removedCount = await this.eventsProcessor.removeExtraEvents(
+						runId,
+						protectedGroupIds,
+					)
+				}
 			}
 
 			const totalEvents = await this.countEvents()
 
 			// An aborted run never reached most groups, so it can't count as good.
-			const finalStatus = steps.circuitBreaker
+			const finalStatus = aborted
 				? 'failed'
 				: failedGroupIds.length === 0
 					? 'success'
@@ -445,9 +449,9 @@ export class ScheduleService {
 
 			syncRunClosed = true
 
-			if (steps.circuitBreaker) {
+			if (aborted) {
 				await this.webhookService.ping(
-					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker.unprocessedGroups}/${totalGroups} not processed; events were kept.`,
+					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker!.unprocessedGroups}/${totalGroups} not processed; events were kept.`,
 				)
 			} else if (failedGroupIds.length) {
 				await this.webhookService.ping(
@@ -456,6 +460,8 @@ export class ScheduleService {
 			}
 
 			if (steps.deleteSkipped) {
+				const { staleEvents, totalEvents: eventsBeforeDelete } =
+					steps.deleteSkipped
 				await this.webhookService.ping(
 					`:warning: schedule sync skipped removing ${staleEvents}/${eventsBeforeDelete} unseen event(s) (over ${DELETE_MAX_RATIO * 100}%); they are kept until CIST lists them again or they are removed manually.`,
 				)
