@@ -21,6 +21,7 @@ export interface SyncSteps {
 	teachers?: StepResult
 	phantomSkip?: { count: number }
 	deleteSkipped?: { staleEvents: number; totalEvents: number }
+	circuitBreaker?: { unprocessedGroups: number }
 	manualRefetch?: {
 		entityType: 'group' | 'teacher'
 		entityId: number

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { exceedsDeleteRatio, getGroupsListError } from './sync-guards.helper'
+import {
+	CIRCUIT_BREAKER_CONSECUTIVE_FAILURES,
+	exceedsDeleteRatio,
+	getGroupsListError,
+	nextFetchFailureStreak,
+} from './sync-guards.helper'
 
 describe('getGroupsListError', () => {
 	it('rejects an empty list with or without a previous run', () => {
@@ -22,6 +27,27 @@ describe('getGroupsListError', () => {
 	it('accepts any non-empty list without a previous good run', () => {
 		expect(getGroupsListError(1, null)).toBeNull()
 		expect(getGroupsListError(1, 0)).toBeNull()
+	})
+})
+
+describe('nextFetchFailureStreak', () => {
+	const run = (outcomes: boolean[]) =>
+		outcomes.reduce(nextFetchFailureStreak, 0)
+
+	it('counts consecutive fetch failures up to the breaker threshold', () => {
+		const failures = Array<boolean>(CIRCUIT_BREAKER_CONSECUTIVE_FAILURES).fill(
+			true,
+		)
+
+		expect(run(failures.slice(1))).toBe(
+			CIRCUIT_BREAKER_CONSECUTIVE_FAILURES - 1,
+		)
+		expect(run(failures)).toBe(CIRCUIT_BREAKER_CONSECUTIVE_FAILURES)
+	})
+
+	it('resets on any other outcome', () => {
+		expect(run([true, true, false])).toBe(0)
+		expect(run([true, false, true])).toBe(1)
 	})
 })
 

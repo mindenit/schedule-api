@@ -38,9 +38,11 @@ import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/te
 import { academicGroupTable, eventTable } from 'src/db/schema'
 
 import {
+	CIRCUIT_BREAKER_CONSECUTIVE_FAILURES,
 	DELETE_MAX_RATIO,
 	exceedsDeleteRatio,
 	getGroupsListError,
+	nextFetchFailureStreak,
 } from './helpers/sync-guards.helper'
 import { PhantomSkipService } from './phantom-skip.service'
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
@@ -213,6 +215,7 @@ export class ScheduleService {
 				group: (typeof groups)[number]
 				error: CistCrawlerException
 			}[] = []
+			let fetchFailureStreak = 0
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -258,6 +261,22 @@ export class ScheduleService {
 					})
 				}
 
+				fetchFailureStreak = nextFetchFailureStreak(
+					fetchFailureStreak,
+					result.isErr() &&
+						result.error.code === CistCrawlerErrorCodes.FETCH_FAILED,
+				)
+				if (fetchFailureStreak >= CIRCUIT_BREAKER_CONSECUTIVE_FAILURES) {
+					// Remaining groups stay unrecorded: they were never attempted.
+					steps.circuitBreaker = { unprocessedGroups: totalGroups - i - 1 }
+					this.logger.warn(`${LOG_PREFIX}|circuit-breaker-open`, {
+						consecutiveFailures: fetchFailureStreak,
+						processedGroups: i + 1,
+						totalGroups,
+					})
+					break
+				}
+
 				// Yield to the I/O phase before the inter-group delay so Fastify can
 				// service pending HTTP requests even on a CPU-constrained container.
 				await new Promise(setImmediate)
@@ -265,7 +284,9 @@ export class ScheduleService {
 			}
 
 			if (deferredGroups.length) {
+				// After a breaker abort CIST is down; a retry pass would only fail again.
 				const withinRetryBudget =
+					!steps.circuitBreaker &&
 					deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
 
 				if (withinRetryBudget) {
@@ -356,7 +377,8 @@ export class ScheduleService {
 					totalEvents: eventsBeforeDelete,
 					maxRatio: DELETE_MAX_RATIO,
 				})
-			} else {
+			} else if (!steps.circuitBreaker) {
+				// After an abort, unprocessed groups' events only look unseen.
 				removedCount = await this.eventsProcessor.removeExtraEvents(
 					runId,
 					protectedGroupIds,
@@ -365,8 +387,10 @@ export class ScheduleService {
 
 			const totalEvents = await this.countEvents()
 
-			const finalStatus =
-				failedGroupIds.length === 0
+			// An aborted run never reached most groups, so it can't count as good.
+			const finalStatus = steps.circuitBreaker
+				? 'failed'
+				: failedGroupIds.length === 0
 					? 'success'
 					: failedGroupIds.length === totalGroups
 						? 'failed'
@@ -414,7 +438,11 @@ export class ScheduleService {
 
 			syncRunClosed = true
 
-			if (failedGroupIds.length) {
+			if (steps.circuitBreaker) {
+				await this.webhookService.ping(
+					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker.unprocessedGroups}/${totalGroups} not processed; events were kept.`,
+				)
+			} else if (failedGroupIds.length) {
 				await this.webhookService.ping(
 					`:warning: schedule sync finished with ${failedGroupIds.length}/${totalGroups} group(s) failed; their events were kept.`,
 				)

@@ -6,6 +6,17 @@ export const GROUPS_MIN_RATIO = 0.8
 // normal churn (~0.3%) and points to an incomplete fetch, not real removals.
 export const DELETE_MAX_RATIO = 0.2
 
+// This many FETCH_FAILED groups in a row means CIST is down, not flaky: stop
+// the run instead of hammering a dead upstream for hours (15.10: 4h17m).
+export const CIRCUIT_BREAKER_CONSECUTIVE_FAILURES = 100
+
+// Any outcome other than a fetch failure (success, parse error) proves CIST
+// answered, so it resets the streak.
+export const nextFetchFailureStreak = (
+	streak: number,
+	fetchFailed: boolean,
+): number => (fetchFailed ? streak + 1 : 0)
+
 // Returns an error message when the fetched groups list is too small to trust.
 // Without a previous good list only an empty one is rejected.
 export const getGroupsListError = (
