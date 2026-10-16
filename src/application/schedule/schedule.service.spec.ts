@@ -3,6 +3,7 @@ import {
 	CistCrawlerErrorCodes,
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
+import type { CistKeyStats } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import type { SyncRunsService } from 'src/components/sync-runs/sync-runs.service'
 import { academicGroupTable } from 'src/db/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -42,6 +43,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		ReturnType<typeof vi.fn>
 	>
 	let ping: ReturnType<typeof vi.fn>
+	let stats: CistKeyStats
 	let cache: Record<'set' | 'getdel', ReturnType<typeof vi.fn>>
 	let service: ScheduleService
 
@@ -81,7 +83,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 			set: vi.fn().mockResolvedValue('OK'),
 			getdel: vi.fn().mockResolvedValue(null),
 		}
-		const stats = {
+		stats = {
 			keySwitches: 0,
 			rejections: 0,
 			activeKey: 'k0:00000000',
@@ -140,10 +142,24 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		expect(closed().steps.deleteSkipped).toBeUndefined()
 		expect(ping).toHaveBeenCalledOnce()
 		expect(ping.mock.calls[0][0]).toContain('aborted')
+		expect(ping.mock.calls[0][0]).not.toContain('key rejections')
 
 		// The running guard is released: a next run starts normally.
 		await service.processSchedule()
 		expect(syncRuns.open).toHaveBeenCalledTimes(2)
+	})
+
+	it('mentions CIST key rejections in the abort alert', async () => {
+		existingGroups = groupsOf(400)
+		eventsProcessor.process.mockResolvedValue(fetchFailed())
+		stats.rejections = 7
+
+		await service.processSchedule()
+
+		expect(ping).toHaveBeenCalledOnce()
+		expect(ping.mock.calls[0][0]).toMatch(
+			/aborted.*CIST key rejections: 7 \(check keys\)$/,
+		)
 	})
 
 	it('keeps unseen events when they exceed the delete ratio', async () => {

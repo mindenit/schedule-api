@@ -470,8 +470,10 @@ export class ScheduleService {
 			syncRunClosed = true
 
 			if (aborted) {
+				// A rejected key looks like an outage here (deferred as FETCH_FAILED).
+				const rejections = steps.cist.rejections
 				await this.webhookService.ping(
-					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker!.unprocessedGroups}/${totalGroups} not processed; events were kept.`,
+					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker!.unprocessedGroups}/${totalGroups} not processed; events were kept.${rejections ? ` CIST key rejections: ${rejections} (check keys)` : ''}`,
 				)
 			} else if (failedGroupIds.length) {
 				await this.webhookService.ping(
