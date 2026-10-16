@@ -46,9 +46,18 @@ describe('MultiKeyCistCrawler', () => {
 		expect(crawler.getStats()).toEqual({
 			keySwitches: 0,
 			rejections: 0,
-			activeKey: fingerprintKey(KEYS[0], 0),
+			activeKeyIndex: 1,
 			keyCount: 1,
 		})
+	})
+
+	it('numbers keys from 1 and keeps fingerprints out of stats', () => {
+		const fingerprint = fingerprintKey(KEYS[0], 0)
+
+		expect(fingerprint).toMatch(/^k1:[0-9a-f]{8}$/)
+		expect(JSON.stringify(build(KEYS).getStats())).not.toContain(
+			fingerprint.split(':')[1],
+		)
 	})
 
 	it('is a CistCrawler so parsers keep their DI type', () => {
@@ -67,7 +76,7 @@ describe('MultiKeyCistCrawler', () => {
 		expect(crawler.getStats()).toMatchObject({
 			keySwitches: 1,
 			rejections: 1,
-			activeKey: fingerprintKey(KEYS[1], 1),
+			activeKeyIndex: 2,
 		})
 		expect(logger.log).toHaveBeenCalledWith('cist-keys|switched', {
 			from: fingerprintKey(KEYS[0], 0),
@@ -83,7 +92,7 @@ describe('MultiKeyCistCrawler', () => {
 
 		fake(KEYS[2]).mockRejectedValueOnce(rejected())
 		await expect(crawler.getSchedule(1, 2)).resolves.toEqual({ key: KEYS[0] })
-		expect(crawler.getStats().activeKey).toBe(fingerprintKey(KEYS[0], 0))
+		expect(crawler.getStats().activeKeyIndex).toBe(1)
 	})
 
 	it('rethrows other errors unchanged without trying other keys', async () => {
@@ -106,7 +115,7 @@ describe('MultiKeyCistCrawler', () => {
 			status: 502,
 		})
 		expect(fake(KEYS[2])).not.toHaveBeenCalled()
-		expect(crawler.getStats().activeKey).toBe(fingerprintKey(KEYS[0], 0))
+		expect(crawler.getStats().activeKeyIndex).toBe(1)
 	})
 
 	it('throws a deferrable error once every key was tried once', async () => {
@@ -120,7 +129,7 @@ describe('MultiKeyCistCrawler', () => {
 		expect(crawler.getStats()).toMatchObject({
 			keySwitches: 0,
 			rejections: 3,
-			activeKey: fingerprintKey(KEYS[0], 0),
+			activeKeyIndex: 1,
 		})
 
 		const classified = classifyCrawlerError(err, 'f')
@@ -156,7 +165,7 @@ describe('MultiKeyCistCrawler', () => {
 		expect(crawler.getStats()).toEqual({
 			keySwitches: 0,
 			rejections: 0,
-			activeKey: fingerprintKey(KEYS[1], 1),
+			activeKeyIndex: 2,
 			keyCount: 3,
 		})
 	})

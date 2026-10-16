@@ -86,7 +86,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		stats = {
 			keySwitches: 0,
 			rejections: 0,
-			activeKey: 'k0:00000000',
+			activeKeyIndex: 1,
 			keyCount: 1,
 		}
 

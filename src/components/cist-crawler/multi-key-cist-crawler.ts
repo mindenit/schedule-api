@@ -10,9 +10,10 @@ import { LoggerService } from '../logger/logger.service'
 const LOG_PREFIX = 'cist-keys'
 export const KEY_REJECTED_CODE = 'ORA-20001'
 
-// Server logs only: keys (and anything derived from them) stay out of HTTP responses.
+// Server logs only: keys (and anything derived from them) stay out of HTTP
+// responses and the DB. `index` is 0-based; the label is 1-based like the health route.
 export const fingerprintKey = (key: string, index: number): string =>
-	`k${index}:${createHash('sha256').update(key).digest('hex').slice(0, 8)}`
+	`k${index + 1}:${createHash('sha256').update(key).digest('hex').slice(0, 8)}`
 
 // No `.code` + 5xx status: classifyCrawlerError maps it to FETCH_FAILED, so the
 // group is deferred and retried (CIST auth glitches pass within minutes).
@@ -25,7 +26,8 @@ export class AllCistKeysRejectedError extends CistCrawlerError {
 export interface CistKeyStats {
 	keySwitches: number
 	rejections: number
-	activeKey: string
+	// 1-based position in CIST_CLIENT_ID
+	activeKeyIndex: number
 	keyCount: number
 }
 
@@ -103,7 +105,7 @@ export class MultiKeyCistCrawler extends CistCrawler {
 		return {
 			keySwitches: this.keySwitches,
 			rejections: this.rejections,
-			activeKey: this.fingerprints.at(this.activeIndex)!,
+			activeKeyIndex: this.activeIndex + 1,
 			keyCount: this.crawlers.length,
 		}
 	}
