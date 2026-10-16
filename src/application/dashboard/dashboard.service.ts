@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm'
+import { desc, eq, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
 import {
@@ -9,6 +9,7 @@ import {
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import {
+	goodScheduledRun,
 	SyncRunsService,
 	SyncSteps,
 } from 'src/components/sync-runs/sync-runs.service'
@@ -66,9 +67,7 @@ const latestGroupRunsCte = sql`
 	WITH boundary AS (
 		SELECT COALESCE(MAX(id), 0) AS run_id
 		FROM sync_run
-		WHERE trigger <> 'manual'
-			AND status IN ('success', 'partial')
-			AND total_groups > 0
+		WHERE ${goodScheduledRun}
 	),
 	latest_per_group AS (
 		SELECT DISTINCT ON (g.group_id)
@@ -104,12 +103,7 @@ export class DashboardService {
 		const [lastSuccessfulRun] = await this.db
 			.select()
 			.from(syncRunTable)
-			.where(
-				and(
-					ne(syncRunTable.trigger, 'manual'),
-					inArray(syncRunTable.status, ['success', 'partial']),
-				),
-			)
+			.where(goodScheduledRun)
 			.orderBy(desc(syncRunTable.startedAt))
 			.limit(1)
 

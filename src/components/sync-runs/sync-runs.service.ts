@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm'
+import { and, desc, eq, gt, inArray, ne, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import type { CistKeyStats } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
@@ -7,6 +7,14 @@ import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 
 // Constants
 const RETENTION_DAYS = 30
+
+// A finished scheduled run that actually processed groups: the reference for
+// the groups guard, the dashboard failure scope and lastSuccessfulRun.
+export const goodScheduledRun = and(
+	ne(syncRunTable.trigger, 'manual'),
+	inArray(syncRunTable.status, ['success', 'partial']),
+	gt(syncRunTable.totalGroups, 0),
+)!
 
 export type SyncRunTrigger = 'cron' | 'bootstrap' | 'manual'
 
@@ -140,8 +148,7 @@ export class SyncRunsService {
 			.from(syncRunTable)
 			.where(
 				and(
-					ne(syncRunTable.trigger, 'manual'),
-					inArray(syncRunTable.status, ['success', 'partial']),
+					goodScheduledRun,
 					sql`(${syncRunTable.steps}->'groups'->>'ok')::boolean`,
 				),
 			)

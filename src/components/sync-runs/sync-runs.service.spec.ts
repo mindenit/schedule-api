@@ -51,7 +51,8 @@ describe.skipIf(!url)(
 			 (2, to_timestamp(2), 'partial', 'cron', 1466, '{"groups":{"ok":false,"count":0,"error":"x"}}'),
 			 (3, to_timestamp(3), 'failed', 'cron', 1100, '{"groups":{"ok":true,"count":1100}}'),
 			 (4, to_timestamp(4), 'success', 'manual', 1, '{"manualRefetch":{}}'),
-			 (5, to_timestamp(5), 'running', 'cron', 0, '{}')`,
+			 (5, to_timestamp(5), 'running', 'cron', 0, '{}'),
+			 (6, to_timestamp(6), 'success', 'cron', 0, '{"groups":{"ok":true,"count":5}}')`,
 				async (service) => {
 					expect(await service.getLastGoodGroupsCount()).toBe(1000)
 				},
