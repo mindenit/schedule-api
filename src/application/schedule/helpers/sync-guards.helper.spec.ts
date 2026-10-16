@@ -3,8 +3,10 @@ import { describe, expect, it } from 'vitest'
 import {
 	CIRCUIT_BREAKER_CONSECUTIVE_FAILURES,
 	exceedsDeleteRatio,
+	exceedsRetryBudget,
 	getGroupsListError,
 	nextFetchFailureStreak,
+	shouldTripBreaker,
 } from './sync-guards.helper'
 
 describe('getGroupsListError', () => {
@@ -64,5 +66,30 @@ describe('exceedsDeleteRatio', () => {
 
 	it('never blocks when there are no events', () => {
 		expect(exceedsDeleteRatio(0, 0)).toBe(false)
+	})
+})
+
+describe('exceedsRetryBudget', () => {
+	it('allows retrying up to and including 20% of groups', () => {
+		expect(exceedsRetryBudget(200, 1000)).toBe(false)
+		expect(exceedsRetryBudget(201, 1000)).toBe(true)
+	})
+})
+
+describe('shouldTripBreaker', () => {
+	const streak = CIRCUIT_BREAKER_CONSECUTIVE_FAILURES
+
+	it('never trips below the streak threshold', () => {
+		expect(shouldTripBreaker(streak - 1, 900, 1000)).toBe(false)
+	})
+
+	it('does not trip while the deferred groups fit the retry budget', () => {
+		expect(shouldTripBreaker(streak, 100, 1000)).toBe(false)
+		expect(shouldTripBreaker(streak + 100, 200, 1000)).toBe(false)
+	})
+
+	it('trips once the streak is reached and the budget is exhausted', () => {
+		expect(shouldTripBreaker(streak, 201, 1000)).toBe(true)
+		expect(shouldTripBreaker(streak, 100, 400)).toBe(true)
 	})
 })

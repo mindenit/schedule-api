@@ -43,8 +43,10 @@ import {
 	CIRCUIT_BREAKER_CONSECUTIVE_FAILURES,
 	DELETE_MAX_RATIO,
 	exceedsDeleteRatio,
+	exceedsRetryBudget,
 	getGroupsListError,
 	nextFetchFailureStreak,
+	shouldTripBreaker,
 } from './helpers/sync-guards.helper'
 import { PhantomSkipService } from './phantom-skip.service'
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
@@ -52,13 +54,6 @@ import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 // Constants
 const LOG_PREFIX = 'schedule-service'
 const CIST_DELAY_MS = 8_000
-// CIST has a recurring brief (~5-10min) outage window some nights. A group
-// that fails with a FETCH_FAILED (network/server-availability) error is
-// deferred and retried once more after the main loop finishes, by which
-// point the outage has almost always passed. If more than this fraction of
-// groups end up deferred, it's not a brief blip anymore — skip the retry
-// pass rather than double the total run time chasing a real outage.
-const MAX_DEFERRED_RATIO = 0.2
 
 @Injectable()
 export class ScheduleService {
@@ -272,7 +267,13 @@ export class ScheduleService {
 					result.isErr() &&
 						result.error.code === CistCrawlerErrorCodes.FETCH_FAILED,
 				)
-				if (fetchFailureStreak >= CIRCUIT_BREAKER_CONSECUTIVE_FAILURES) {
+				if (
+					shouldTripBreaker(
+						fetchFailureStreak,
+						deferredGroups.length,
+						totalGroups,
+					)
+				) {
 					// Remaining groups stay unrecorded: they were never attempted.
 					aborted = true
 					steps.circuitBreaker = { unprocessedGroups: totalGroups - i - 1 }
@@ -293,7 +294,7 @@ export class ScheduleService {
 			if (deferredGroups.length) {
 				// After a breaker abort CIST is down; a retry pass would only fail again.
 				const withinRetryBudget =
-					!aborted && deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
+					!aborted && !exceedsRetryBudget(deferredGroups.length, totalGroups)
 
 				if (withinRetryBudget) {
 					this.logger.log(`${LOG_PREFIX}|retrying-deferred-groups`, {
