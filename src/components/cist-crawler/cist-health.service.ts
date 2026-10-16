@@ -128,9 +128,12 @@ export class CistHealthService {
 			bytes: body.length,
 			ms,
 			verdict: result.verdict,
-			...(!provesUp(result) && {
+			// ORA-20001's exact meaning is unconfirmed: keep a sample of every non-valid body.
+			...(result.verdict !== 'valid' && {
 				reason: result.reason,
-				body: redactClientId(body.slice(0, LOGGED_BODY_CHARS)),
+				body: redactClientId(body)
+					.replaceAll(key, '***')
+					.slice(0, LOGGED_BODY_CHARS),
 			}),
 		})
 

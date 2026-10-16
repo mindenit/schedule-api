@@ -92,6 +92,24 @@ describe('CistHealthService', () => {
 		expect(ambiguous).toBe(false)
 	})
 
+	it('logs a redacted body sample for every non-valid probe', async () => {
+		stubFetch((host, i) =>
+			host === MAIN
+				? { body: i === 0 ? VALID : `${REJECTED} ${KEYS[1]}` }
+				: { status: 500, body: 'x'.repeat(100) },
+		)
+
+		await build().check()
+
+		const bodies = logger.log.mock.calls.map(
+			([, meta]) => (meta as { body?: string }).body,
+		)
+		// Probes log as they settle, so compare order-free.
+		expect(bodies.toSorted()).toEqual(
+			[undefined, `${REJECTED} ***`, 'x'.repeat(60), 'x'.repeat(60)].toSorted(),
+		)
+	})
+
 	it('flags ambiguous when every key is rejected on every up server', async () => {
 		stubFetch((host) => (host === MAIN ? 'network' : { body: REJECTED }))
 
