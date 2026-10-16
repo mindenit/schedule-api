@@ -2,6 +2,7 @@ import { setTimeout } from 'node:timers/promises'
 
 import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
+import { Result } from 'better-result'
 import { sql as drizzleSql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
@@ -17,6 +18,8 @@ import {
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
+import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+import { MultiKeyCistCrawler } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import { ConfigService } from 'src/components/config/config.service'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
@@ -36,19 +39,25 @@ import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
 import { academicGroupTable, eventTable } from 'src/db/schema'
 
+import {
+	CIRCUIT_BREAKER_CONSECUTIVE_FAILURES,
+	DELETE_MAX_RATIO,
+	exceedsDeleteRatio,
+	exceedsRetryBudget,
+	getGroupsListError,
+	nextFetchFailureStreak,
+	shouldTripBreaker,
+} from './helpers/sync-guards.helper'
 import { PhantomSkipService } from './phantom-skip.service'
-import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
+import {
+	GUARD_OVERRIDE_KEY,
+	SCHEDULE_ENTITY,
+	ScheduleEntity,
+} from './schedule.constants'
 
 // Constants
 const LOG_PREFIX = 'schedule-service'
 const CIST_DELAY_MS = 8_000
-// CIST has a recurring brief (~5-10min) outage window some nights. A group
-// that fails with a FETCH_FAILED (network/server-availability) error is
-// deferred and retried once more after the main loop finishes, by which
-// point the outage has almost always passed. If more than this fraction of
-// groups end up deferred, it's not a brief blip anymore — skip the retry
-// pass rather than double the total run time chasing a real outage.
-const MAX_DEFERRED_RATIO = 0.2
 
 @Injectable()
 export class ScheduleService {
@@ -68,6 +77,8 @@ export class ScheduleService {
 		private readonly logger: LoggerService,
 		private readonly configService: ConfigService,
 		private readonly phantomSkipService: PhantomSkipService,
+		@Inject(CIST_CRAWLER_TOKEN)
+		private readonly cistCrawler: MultiKeyCistCrawler,
 	) {}
 
 	@Cron('0 */12 * * *', {
@@ -80,6 +91,7 @@ export class ScheduleService {
 			return
 		}
 		this.running = true
+		this.cistCrawler.resetStats()
 
 		const runId = Date.now()
 
@@ -101,6 +113,14 @@ export class ScheduleService {
 
 			await this.syncRunsService.open(runId, trigger)
 
+			// Consumed even if this run aborts, so it never outlives one run.
+			const guardsOverridden =
+				(await this.cache.getdel(GUARD_OVERRIDE_KEY)) !== null
+			if (guardsOverridden) {
+				steps.guardsOverridden = true
+				this.logger.warn(`${LOG_PREFIX}|guards-overridden`, { runId })
+			}
+
 			// Evaluated up-front, before auditoriums/groups/teachers processing --
 			// if checked later, a long-running earlier step could push execution
 			// past the Sunday-00:00 boundary and silently skip that week's
@@ -112,7 +132,27 @@ export class ScheduleService {
 			// during a seed run and keep the event loop responsive for HTTP handlers.
 			const auditoriumsResult = await this.auditoriumsProcessor.process()
 			await new Promise(setImmediate)
-			const groupsResult = await this.groupsProcessor.process()
+			const lastGoodGroupsCount =
+				await this.syncRunsService.getLastGoodGroupsCount()
+			// An empty/truncated list must take the same DB-fallback path as an
+			// error; otherwise every unlisted group's events get deleted below.
+			// The override skips only the ratio check: an empty list is never real.
+			const groupsResult = (await this.groupsProcessor.process()).andThen(
+				(groups) => {
+					const error = getGroupsListError(
+						groups.length,
+						guardsOverridden ? null : lastGoodGroupsCount,
+					)
+					return error
+						? Result.err(
+								new CistCrawlerException(
+									CistCrawlerErrorCodes.PARSE_FAILED,
+									error,
+								),
+							)
+						: Result.ok(groups)
+				},
+			)
 			await new Promise(setImmediate)
 			const teachersResult = await this.teachersProcessor.process()
 			await new Promise(setImmediate)
@@ -191,6 +231,8 @@ export class ScheduleService {
 				group: (typeof groups)[number]
 				error: CistCrawlerException
 			}[] = []
+			let fetchFailureStreak = 0
+			let aborted = false
 
 			for (let i = 0; i < totalGroups; i++) {
 				const group = groups.at(i)!
@@ -236,6 +278,29 @@ export class ScheduleService {
 					})
 				}
 
+				fetchFailureStreak = nextFetchFailureStreak(
+					fetchFailureStreak,
+					result.isErr() &&
+						result.error.code === CistCrawlerErrorCodes.FETCH_FAILED,
+				)
+				if (
+					shouldTripBreaker(
+						fetchFailureStreak,
+						deferredGroups.length,
+						totalGroups,
+					)
+				) {
+					// Remaining groups stay unrecorded: they were never attempted.
+					aborted = true
+					steps.circuitBreaker = { unprocessedGroups: totalGroups - i - 1 }
+					this.logger.warn(`${LOG_PREFIX}|circuit-breaker-open`, {
+						consecutiveFailures: fetchFailureStreak,
+						processedGroups: i + 1,
+						totalGroups,
+					})
+					break
+				}
+
 				// Yield to the I/O phase before the inter-group delay so Fastify can
 				// service pending HTTP requests even on a CPU-constrained container.
 				await new Promise(setImmediate)
@@ -243,8 +308,9 @@ export class ScheduleService {
 			}
 
 			if (deferredGroups.length) {
+				// After a breaker abort CIST is down; a retry pass would only fail again.
 				const withinRetryBudget =
-					deferredGroups.length <= totalGroups * MAX_DEFERRED_RATIO
+					!aborted && !exceedsRetryBudget(deferredGroups.length, totalGroups)
 
 				if (withinRetryBudget) {
 					this.logger.log(`${LOG_PREFIX}|retrying-deferred-groups`, {
@@ -316,25 +382,50 @@ export class ScheduleService {
 				})
 			}
 
-			// Phantom-skipped groups weren't fetched this run, so their events'
-			// lastSeenAt wasn't refreshed either -- without protecting them here
-			// the same way failed groups are, removeExtraEvents would delete
-			// their real events on the very first phantom-skip run.
-			const removedCount = await this.eventsProcessor.removeExtraEvents(runId, [
-				...failedGroupIds,
-				...skipSet,
-			])
+			// After an abort, unprocessed groups' events only look unseen: neither
+			// count them as stale nor delete them.
+			let removedCount = 0
+			if (!aborted) {
+				// Phantom-skipped groups weren't fetched this run, so their events'
+				// lastSeenAt wasn't refreshed either -- without protecting them here
+				// the same way failed groups are, removeExtraEvents would delete
+				// their real events on the very first phantom-skip run.
+				const protectedGroupIds = [...failedGroupIds, ...skipSet]
+				const [staleEvents, eventsBeforeDelete] = await Promise.all([
+					this.eventsProcessor.countExtraEvents(runId, protectedGroupIds),
+					this.countEvents(),
+				])
 
-			const [{ totalEvents }] = await this.db
-				.select({ totalEvents: drizzleSql<number>`count(*)::int` })
-				.from(eventTable)
+				if (
+					!guardsOverridden &&
+					exceedsDeleteRatio(staleEvents, eventsBeforeDelete)
+				) {
+					steps.deleteSkipped = { staleEvents, totalEvents: eventsBeforeDelete }
+					this.logger.warn(`${LOG_PREFIX}|remove-extra-events-skipped`, {
+						staleEvents,
+						totalEvents: eventsBeforeDelete,
+						maxRatio: DELETE_MAX_RATIO,
+					})
+				} else {
+					removedCount = await this.eventsProcessor.removeExtraEvents(
+						runId,
+						protectedGroupIds,
+					)
+				}
+			}
 
-			const finalStatus =
-				failedGroupIds.length === 0
+			const totalEvents = await this.countEvents()
+
+			// An aborted run never reached most groups, so it can't count as good.
+			const finalStatus = aborted
+				? 'failed'
+				: failedGroupIds.length === 0
 					? 'success'
 					: failedGroupIds.length === totalGroups
 						? 'failed'
 						: 'partial'
+
+			steps.cist = this.cistCrawler.getStats()
 
 			// Use allSettled so one failure doesn't hide the others, then rethrow.
 			const TAIL_NAMES = [
@@ -378,9 +469,23 @@ export class ScheduleService {
 
 			syncRunClosed = true
 
-			if (failedGroupIds.length) {
+			if (aborted) {
+				// A rejected key looks like an outage here (deferred as FETCH_FAILED).
+				const rejections = steps.cist.rejections
+				await this.webhookService.ping(
+					`:warning: schedule sync aborted after ${CIRCUIT_BREAKER_CONSECUTIVE_FAILURES} consecutive CIST fetch failures; ${failedGroupIds.length} group(s) failed, ${steps.circuitBreaker!.unprocessedGroups}/${totalGroups} not processed; events were kept.${rejections ? ` CIST key rejections: ${rejections} (check keys)` : ''}`,
+				)
+			} else if (failedGroupIds.length) {
 				await this.webhookService.ping(
 					`:warning: schedule sync finished with ${failedGroupIds.length}/${totalGroups} group(s) failed; their events were kept.`,
+				)
+			}
+
+			if (steps.deleteSkipped) {
+				const { staleEvents, totalEvents: eventsBeforeDelete } =
+					steps.deleteSkipped
+				await this.webhookService.ping(
+					`:warning: schedule sync skipped removing ${staleEvents}/${eventsBeforeDelete} unseen event(s) (over ${DELETE_MAX_RATIO * 100}%); they are kept until CIST lists them again or they are removed manually.`,
 				)
 			}
 
@@ -390,6 +495,7 @@ export class ScheduleService {
 			// Only write failed status if close() hasn't already recorded a result.
 			// This prevents the catch from clobbering a valid partial/success row.
 			if (!syncRunClosed) {
+				steps.cist = this.cistCrawler.getStats()
 				await Promise.allSettled([
 					this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.FAILED),
 					this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
@@ -504,6 +610,13 @@ export class ScheduleService {
 		} finally {
 			this.running = false
 		}
+	}
+
+	private async countEvents(): Promise<number> {
+		const [{ count }] = await this.db
+			.select({ count: drizzleSql<number>`count(*)::int` })
+			.from(eventTable)
+		return count
 	}
 
 	private async logProcessingException(

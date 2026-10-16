@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { cistHealthSchema } from 'src/components/cist-crawler/cist-health.schema'
 import z from 'zod'
 
 // Shared
@@ -13,6 +14,19 @@ const stepsSchema = z.object({
 	groups: stepResultSchema.optional(),
 	teachers: stepResultSchema.optional(),
 	phantomSkip: z.object({ count: z.number().int().nonnegative() }).optional(),
+	// Delete guard kept this many unseen events
+	deleteSkipped: z
+		.object({
+			staleEvents: z.number().int().nonnegative(),
+			totalEvents: z.number().int().nonnegative(),
+		})
+		.optional(),
+	// Run aborted after consecutive CIST fetch failures
+	circuitBreaker: z
+		.object({ unprocessedGroups: z.number().int().nonnegative() })
+		.optional(),
+	// One-shot guard override was consumed by this run
+	guardsOverridden: z.boolean().optional(),
 	manualRefetch: z
 		.object({
 			entityType: z.enum(['group', 'teacher']),
@@ -99,6 +113,10 @@ export const dashSummarySchema = z.object({
 	lastSuccessfulRun: syncRunSchema.nullable(),
 	nextCronAt: z.iso.datetime().nullable(),
 	totalRuns: z.number().int(),
+	// Groups whose latest run since the last good scheduled run failed (uncapped)
+	failingGroups: z.number().int(),
+	// Live row count of the event table
+	totalEvents: z.number().int(),
 	progress: z
 		.object({
 			current: z.number().int(),
@@ -162,6 +180,14 @@ export class DashRefetchResponseDto extends createZodDto(
 	z.object({
 		success: z.literal(true),
 		data: refetchResultSchema,
+		error: z.null(),
+	}),
+) {}
+
+export class DashCistHealthResponseDto extends createZodDto(
+	z.object({
+		success: z.literal(true),
+		data: cistHealthSchema,
 		error: z.null(),
 	}),
 ) {}
