@@ -62,6 +62,7 @@ export class CistGroupsParser implements CistParser<
 			specialities: [],
 			directions: [],
 		}
+		const seenGroups = new Set<number>()
 
 		const response = responseResult.unwrap()
 
@@ -72,17 +73,21 @@ export class CistGroupsParser implements CistParser<
 		const university = response.university!
 
 		for (const faculty of Array.orEmpty(university.faculties)) {
-			this.processFaculty(faculty, acc)
+			this.processFaculty(faculty, acc, seenGroups)
 		}
 
 		return Result.ok(acc)
 	}
 
-	private processFaculty(faculty: CistFaculty, acc: Accumulator): void {
+	private processFaculty(
+		faculty: CistFaculty,
+		acc: Accumulator,
+		seen: Set<number>,
+	): void {
 		if (!collectEntity(this.facultyMapper, faculty, acc.faculties)) return
 
 		for (const direction of Array.orEmpty(faculty.directions)) {
-			this.processDirection(direction, faculty.id, acc)
+			this.processDirection(direction, faculty.id, acc, seen)
 		}
 	}
 
@@ -90,6 +95,7 @@ export class CistGroupsParser implements CistParser<
 		direction: CistDirection,
 		facultyId: number,
 		acc: Accumulator,
+		seen: Set<number>,
 	): void {
 		const ok = collectEntity(
 			this.directionMapper,
@@ -99,14 +105,14 @@ export class CistGroupsParser implements CistParser<
 		if (!ok) return
 
 		for (const speciality of Array.orEmpty(direction.specialities)) {
-			this.processSpeciality(speciality, direction.id, acc)
+			this.processSpeciality(speciality, direction.id, acc, seen)
 		}
 
 		for (const group of Array.orEmpty(direction.groups)) {
-			collectEntity(
-				this.groupMapper,
+			this.processGroup(
 				{ ...group, directionId: direction.id, specialityId: null },
-				acc.groups,
+				acc,
+				seen,
 			)
 		}
 	}
@@ -115,6 +121,7 @@ export class CistGroupsParser implements CistParser<
 		speciality: CistSpeciality,
 		directionId: number,
 		acc: Accumulator,
+		seen: Set<number>,
 	): void {
 		const ok = collectEntity(
 			this.specialityMapper,
@@ -124,11 +131,27 @@ export class CistGroupsParser implements CistParser<
 		if (!ok) return
 
 		for (const group of Array.orEmpty(speciality.groups)) {
-			collectEntity(
-				this.groupMapper,
+			this.processGroup(
 				{ ...group, directionId, specialityId: speciality.id },
-				acc.groups,
+				acc,
+				seen,
 			)
+		}
+	}
+
+	// CIST lists the same group under both its speciality and its direction;
+	// keep the first (speciality) occurrence.
+	private processGroup(
+		group: Parameters<GroupMapper['toEntity']>[0],
+		acc: Accumulator,
+		seen: Set<number>,
+	): void {
+		if (seen.has(group.id)) {
+			return
+		}
+
+		if (collectEntity(this.groupMapper, group, acc.groups)) {
+			seen.add(group.id)
 		}
 	}
 }
