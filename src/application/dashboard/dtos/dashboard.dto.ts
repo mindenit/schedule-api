@@ -1,4 +1,5 @@
 import { createZodDto } from 'nestjs-zod'
+import { cistHealthSchema } from 'src/components/cist-crawler/cist-health.schema'
 import z from 'zod'
 
 // Shared
@@ -125,27 +126,6 @@ export const dashSummarySchema = z.object({
 })
 
 export type DashSummaryDto = z.infer<typeof dashSummarySchema>
-
-// CIST health probe. Keys are identified by 1-based position only.
-export const cistHealthSchema = z.object({
-	checkedAt: z.iso.datetime(),
-	servers: z.array(
-		z.object({
-			host: z.string(),
-			up: z.boolean(),
-			latencyMs: z.number().int().nonnegative().nullable(),
-			keys: z.array(
-				z.object({
-					index: z.number().int().positive(),
-					status: z.enum(['valid', 'rejected', 'unknown']),
-					reason: z.string().optional(),
-				}),
-			),
-		}),
-	),
-	// Every key rejected on every reachable server: revoked keys or CIST auth fault
-	ambiguous: z.boolean(),
-})
 
 // DTOs for Nest-Zod serializer
 export class DashSummaryResponseDto extends createZodDto(

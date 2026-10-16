@@ -47,11 +47,7 @@ describe('CistHealthService', () => {
 			} as unknown as ConfigService,
 			logger as unknown as LoggerService,
 		)
-		Object.assign(service, {
-			probeTimeoutMs: 20,
-			budgetMs: 1_000,
-			...overrides,
-		})
+		Object.assign(service, { probeTimeoutMs: 20, ...overrides })
 		return service
 	}
 
@@ -144,23 +140,6 @@ describe('CistHealthService', () => {
 				],
 			],
 		])
-	})
-
-	it('returns a timeout result when the overall budget runs out, uncached', async () => {
-		stubFetch(() => 'hang')
-		// Probe timeout above the budget: only the budget can end the check.
-		const service = build({ probeTimeoutMs: 1_000, budgetMs: 30 })
-
-		const health = await service.check()
-
-		expect(health.servers.every((s) => !s.up)).toBe(true)
-		expect(health.servers[0].keys[0]).toEqual({
-			index: 1,
-			status: 'unknown',
-			reason: 'timeout',
-		})
-		await service.check()
-		expect(fetchMock).toHaveBeenCalledTimes(8)
 	})
 
 	it('shares one in-flight check and caches the result', async () => {

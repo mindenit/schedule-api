@@ -3,14 +3,13 @@ import { Injectable } from '@nestjs/common'
 
 import { ConfigService } from '../config/config.service'
 import { LoggerService } from '../logger/logger.service'
+import type { CistHealth } from './cist-health.schema'
 import { fingerprintKey, KEY_REJECTED_CODE } from './multi-key-cist-crawler'
 import { redactClientId } from './redact-client-id.helper'
 
 // Constants
 const LOG_PREFIX = 'cist-health'
 export const CIST_HEALTH_PROBE_TIMEOUT_MS = 5_000
-// Upper bound for the whole check, so the request can never hang.
-export const CIST_HEALTH_BUDGET_MS = 8_000
 export const CIST_HEALTH_CACHE_TTL_MS = 10_000
 const LOGGED_BODY_CHARS = 60
 // 1-second window of a known group: ~2KB response, but still needs a key.
@@ -26,25 +25,6 @@ interface Probe {
 	// Fixed vocabulary only: 'timeout' | 'network' | 'http N' | 'ORA-NNNNN' | 'unrecognised'
 	reason?: string
 	ms: number
-}
-
-export interface CistHealthKey {
-	index: number
-	status: 'valid' | 'rejected' | 'unknown'
-	reason?: string
-}
-
-export interface CistHealthServer {
-	host: string
-	up: boolean
-	latencyMs: number | null
-	keys: CistHealthKey[]
-}
-
-export interface CistHealth {
-	checkedAt: string
-	servers: CistHealthServer[]
-	ambiguous: boolean
 }
 
 const classifyProbe = (
@@ -77,7 +57,6 @@ export class CistHealthService {
 	private readonly servers: readonly string[] = DEFAULT_CONFIG.servers
 	private readonly keys: readonly string[]
 	private readonly probeTimeoutMs = CIST_HEALTH_PROBE_TIMEOUT_MS
-	private readonly budgetMs = CIST_HEALTH_BUDGET_MS
 	private inFlight: Promise<CistHealth> | null = null
 	private cached: { at: number; value: CistHealth } | null = null
 
@@ -99,41 +78,17 @@ export class CistHealthService {
 		return this.inFlight
 	}
 
+	// Each probe is bounded by its own timeout (incl. body read), so this can't hang.
 	private async run(): Promise<CistHealth> {
-		let timer: NodeJS.Timeout | undefined
-		const budget = new Promise<null>((resolve) => {
-			timer = setTimeout(() => resolve(null), this.budgetMs)
-		})
-
-		try {
-			const probes = await Promise.race([
-				Promise.all(
-					this.servers.flatMap((host) =>
-						this.keys.map((key, i) => this.probe(host, key, i)),
-					),
+		const health = this.toHealth(
+			await Promise.all(
+				this.servers.flatMap((host) =>
+					this.keys.map((key, i) => this.probe(host, key, i)),
 				),
-				budget,
-			])
-			const health = this.toHealth(
-				probes ??
-					this.servers.flatMap((host) =>
-						this.keys.map(
-							(_, keyIndex): Probe => ({
-								host,
-								keyIndex,
-								verdict: 'unknown',
-								reason: 'timeout',
-								ms: this.budgetMs,
-							}),
-						),
-					),
-			)
-			// Only a completed check is worth reusing.
-			if (probes) this.cached = { at: Date.now(), value: health }
-			return health
-		} finally {
-			clearTimeout(timer)
-		}
+			),
+		)
+		this.cached = { at: Date.now(), value: health }
+		return health
 	}
 
 	private async probe(host: string, key: string, keyIndex: number) {
@@ -183,7 +138,7 @@ export class CistHealthService {
 	}
 
 	private toHealth(probes: Probe[]): CistHealth {
-		const servers = this.servers.map((host): CistHealthServer => {
+		const servers = this.servers.map((host): CistHealth['servers'][number] => {
 			const own = probes.filter((p) => p.host === host)
 			const upProbes = own.filter(provesUp)
 
