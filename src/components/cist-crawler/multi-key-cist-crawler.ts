@@ -8,7 +8,7 @@ import CistCrawler, {
 import { LoggerService } from '../logger/logger.service'
 
 const LOG_PREFIX = 'cist-keys'
-const KEY_REJECTED_CODE = 'ORA-20001'
+export const KEY_REJECTED_CODE = 'ORA-20001'
 
 // Server logs only: keys (and anything derived from them) stay out of HTTP responses.
 export const fingerprintKey = (key: string, index: number): string =>

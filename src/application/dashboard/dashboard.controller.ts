@@ -12,9 +12,11 @@ import {
 import { ApiExcludeController, ApiOperation } from '@nestjs/swagger'
 import { ZodResultResponse } from 'src/common/decorators/zod-result-response.decorator'
 import { DashKeyGuard } from 'src/common/guards/dash-key.guard'
+import { CistHealthService } from 'src/components/cist-crawler/cist-health.service'
 
 import { DashboardService } from './dashboard.service'
 import {
+	DashCistHealthResponseDto,
 	DashDismissFailureResponseDto,
 	DashFailuresResponseDto,
 	DashRefetchResponseDto,
@@ -28,7 +30,10 @@ import {
 @UseGuards(DashKeyGuard)
 @Controller('dash')
 export class DashboardController {
-	constructor(private readonly dashboardService: DashboardService) {}
+	constructor(
+		private readonly dashboardService: DashboardService,
+		private readonly cistHealthService: CistHealthService,
+	) {}
 
 	@ApiOperation({ summary: 'Current sync status and last run info' })
 	@ZodResultResponse({ status: HttpStatus.OK, type: DashSummaryResponseDto })
@@ -94,5 +99,12 @@ export class DashboardController {
 	@Get('table-sizes')
 	getTableSizes() {
 		return this.dashboardService.getTableSizes()
+	}
+
+	@ApiOperation({ summary: 'Live CIST server and API key probe' })
+	@ZodResultResponse({ status: HttpStatus.OK, type: DashCistHealthResponseDto })
+	@Get('cist-health')
+	getCistHealth() {
+		return this.cistHealthService.check()
 	}
 }
