@@ -4,6 +4,11 @@ import {
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
 
+// The crawler embeds the full request URL (incl. the CIST API key) into
+// fetch error messages; these end up in sync_run_group.error, logs and webhooks.
+const redactClientId = (message: string): string =>
+	message.replaceAll(/(idClient(?:=|%3D)\s*)[^&\s:"]+/gi, '$1***')
+
 // A CistCrawlerError carries a `.code` (set only for classified Oracle
 // exceptions, e.g. "ORA-20001") or a 400 status (malformed/unparseable
 // response). Neither is fixed by retrying -- CIST returned *something*,
@@ -16,12 +21,12 @@ export const classifyCrawlerError = (
 	if (e instanceof CistCrawlerError && (e.code || e.status === 400)) {
 		return new CistCrawlerException(
 			CistCrawlerErrorCodes.PARSE_FAILED,
-			e.message,
+			redactClientId(e.message),
 		)
 	}
 
 	return new CistCrawlerException(
 		CistCrawlerErrorCodes.FETCH_FAILED,
-		e instanceof Error ? e.message : fallbackMessage,
+		redactClientId(e instanceof Error ? e.message : fallbackMessage),
 	)
 }
