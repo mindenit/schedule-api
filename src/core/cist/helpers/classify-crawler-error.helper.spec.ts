@@ -1,5 +1,6 @@
 import { CistCrawlerError } from '@mindenit/cist-crawler'
 import { CistCrawlerErrorCodes } from 'src/common/exceptions/cist-crawler.exception'
+import { AllCistKeysRejectedError } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -58,6 +59,13 @@ describe('classifyCrawlerError', () => {
 
 		expect(result.code).toBe(CistCrawlerErrorCodes.FETCH_FAILED)
 		expect(result.message).toBe(text)
+	})
+
+	it('maps all-keys-rejected to deferrable FETCH_FAILED', () => {
+		const result = classifyCrawlerError(new AllCistKeysRejectedError(2), 'f')
+
+		expect(result.code).toBe(CistCrawlerErrorCodes.FETCH_FAILED)
+		expect(result.message).toBe('all 2 CIST keys rejected (ORA-20001)')
 	})
 
 	it('maps other errors to FETCH_FAILED with fallback for non-Error', () => {

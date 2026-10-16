@@ -1,6 +1,7 @@
 import { Module, Provider } from '@nestjs/common'
 
 import { ConfigModule } from '../config/config.module'
+import { LoggerModule } from '../logger/logger.module'
 import { CistCrawlerService } from './cist-crawler.service'
 import { CIST_CRAWLER_TOKEN } from './di-tokens'
 
@@ -12,7 +13,7 @@ const cistCrawlerProvider = {
 } satisfies Provider
 
 @Module({
-	imports: [ConfigModule],
+	imports: [ConfigModule, LoggerModule],
 	providers: [CistCrawlerService, cistCrawlerProvider],
 	exports: [cistCrawlerProvider],
 })

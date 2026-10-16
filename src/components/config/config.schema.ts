@@ -16,7 +16,18 @@ const EnvSchema = z.object({
 	CACHE_HOST: z.string().nonempty(),
 	CACHE_PORT: PortSchema,
 
-	CIST_CLIENT_ID: z.string().nonempty(),
+	// Comma-separated CIST API keys; tried in order on ORA-20001 (key rejected).
+	CIST_CLIENT_ID: z
+		.string()
+		.transform((s) => [
+			...new Set(
+				s
+					.split(',')
+					.map((k) => k.trim())
+					.filter(Boolean),
+			),
+		])
+		.pipe(z.array(z.string()).min(1)),
 	MOODLE_BASE_URL: z.url().optional(),
 	PROXY_BASE_URL: z.url().optional(),
 
@@ -53,7 +64,7 @@ const toConfig = (env: Env) => ({
 		port: env.CACHE_PORT,
 	},
 	integrations: {
-		cist: { clientId: env.CIST_CLIENT_ID },
+		cist: { clientIds: env.CIST_CLIENT_ID },
 		moodle: { baseUrl: env.MOODLE_BASE_URL },
 		proxy: { baseUrl: env.PROXY_BASE_URL },
 	},
