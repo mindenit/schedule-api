@@ -9,16 +9,29 @@ import {
 const redactClientId = (message: string): string =>
 	message.replaceAll(/(idClient(?:=|%3D)\s*)[^&\s:"]+/gi, '$1***')
 
+// Oracle errors the crawler itself documents as server-side resource/shutdown
+// conditions; prod saw them in short bursts between successful fetches.
+export const TRANSIENT_ORA_CODES: readonly string[] = [
+	'ORA-04030',
+	'ORA-01089',
+	'ORA-01652',
+	'ORA-08103',
+]
+
 // A CistCrawlerError carries a `.code` (set only for classified Oracle
 // exceptions, e.g. "ORA-20001") or a 400 status (malformed/unparseable
 // response). Neither is fixed by retrying -- CIST returned *something*,
-// it just wasn't usable. Anything else (no servers, network error, fetch
-// aborted) is a genuine transient availability issue, worth retrying.
+// it just wasn't usable -- except the transient Oracle codes above.
+// Anything else (no servers, network error, fetch aborted) is a genuine
+// transient availability issue, worth retrying.
 export const classifyCrawlerError = (
 	e: unknown,
 	fallbackMessage: string,
 ): CistCrawlerException => {
-	if (e instanceof CistCrawlerError && (e.code || e.status === 400)) {
+	if (
+		e instanceof CistCrawlerError &&
+		((e.code && !TRANSIENT_ORA_CODES.includes(e.code)) || e.status === 400)
+	) {
 		return new CistCrawlerException(
 			CistCrawlerErrorCodes.PARSE_FAILED,
 			redactClientId(e.message),

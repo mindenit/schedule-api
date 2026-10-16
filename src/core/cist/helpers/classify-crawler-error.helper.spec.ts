@@ -2,7 +2,10 @@ import { CistCrawlerError } from '@mindenit/cist-crawler'
 import { CistCrawlerErrorCodes } from 'src/common/exceptions/cist-crawler.exception'
 import { describe, expect, it } from 'vitest'
 
-import { classifyCrawlerError } from './classify-crawler-error.helper'
+import {
+	classifyCrawlerError,
+	TRANSIENT_ORA_CODES,
+} from './classify-crawler-error.helper'
 
 const URL =
 	'https://cist.nure.ua/ias/app/tt/P_API_EVEN_JSON?type_id=1&timetable_id=1&time_from=1&time_to=2'
@@ -33,8 +36,8 @@ describe('classifyCrawlerError', () => {
 		)
 	})
 
-	it('maps Oracle and parse errors to PARSE_FAILED', () => {
-		const oracle = new CistCrawlerError('ORA', 502, 'ORA-04030')
+	it('maps non-transient Oracle and parse errors to PARSE_FAILED', () => {
+		const oracle = new CistCrawlerError('ORA', 502, 'ORA-20001')
 		const parse = new CistCrawlerError('bad json', 400)
 
 		expect(classifyCrawlerError(oracle, 'f').code).toBe(
@@ -43,6 +46,18 @@ describe('classifyCrawlerError', () => {
 		expect(classifyCrawlerError(parse, 'f').code).toBe(
 			CistCrawlerErrorCodes.PARSE_FAILED,
 		)
+	})
+
+	it.each(TRANSIENT_ORA_CODES)('maps transient %s to FETCH_FAILED', (code) => {
+		const text = `Cist returned an Oracle exception for 'schedule_1_1': x (${code})`
+
+		const result = classifyCrawlerError(
+			new CistCrawlerError(text, 502, code),
+			'f',
+		)
+
+		expect(result.code).toBe(CistCrawlerErrorCodes.FETCH_FAILED)
+		expect(result.message).toBe(text)
 	})
 
 	it('maps other errors to FETCH_FAILED with fallback for non-Error', () => {
