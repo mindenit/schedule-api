@@ -13,6 +13,19 @@ const stepsSchema = z.object({
 	groups: stepResultSchema.optional(),
 	teachers: stepResultSchema.optional(),
 	phantomSkip: z.object({ count: z.number().int().nonnegative() }).optional(),
+	// Delete guard kept this many unseen events
+	deleteSkipped: z
+		.object({
+			staleEvents: z.number().int().nonnegative(),
+			totalEvents: z.number().int().nonnegative(),
+		})
+		.optional(),
+	// Run aborted after consecutive CIST fetch failures
+	circuitBreaker: z
+		.object({ unprocessedGroups: z.number().int().nonnegative() })
+		.optional(),
+	// One-shot guard override was consumed by this run
+	guardsOverridden: z.boolean().optional(),
 	manualRefetch: z
 		.object({
 			entityType: z.enum(['group', 'teacher']),
