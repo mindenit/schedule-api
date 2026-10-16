@@ -2,6 +2,7 @@ import { setTimeout } from 'node:timers/promises'
 
 import { ConflictException, Inject, Injectable } from '@nestjs/common'
 import { Cron } from '@nestjs/schedule'
+import { Result } from 'better-result'
 import { sql as drizzleSql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
@@ -36,6 +37,11 @@ import { CistGroupsProcessor } from 'src/core/cist/implementations/groups/groups
 import { CistTeachersProcessor } from 'src/core/cist/implementations/teachers/teachers.cist-processor'
 import { academicGroupTable, eventTable } from 'src/db/schema'
 
+import {
+	DELETE_MAX_RATIO,
+	exceedsDeleteRatio,
+	getGroupsListError,
+} from './helpers/sync-guards.helper'
 import { PhantomSkipService } from './phantom-skip.service'
 import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
 
@@ -112,7 +118,23 @@ export class ScheduleService {
 			// during a seed run and keep the event loop responsive for HTTP handlers.
 			const auditoriumsResult = await this.auditoriumsProcessor.process()
 			await new Promise(setImmediate)
-			const groupsResult = await this.groupsProcessor.process()
+			const lastGoodGroupsCount =
+				await this.syncRunsService.getLastGoodGroupsCount()
+			// An empty/truncated list must take the same DB-fallback path as an
+			// error; otherwise every unlisted group's events get deleted below.
+			const groupsResult = (await this.groupsProcessor.process()).andThen(
+				(groups) => {
+					const error = getGroupsListError(groups.length, lastGoodGroupsCount)
+					return error
+						? Result.err(
+								new CistCrawlerException(
+									CistCrawlerErrorCodes.PARSE_FAILED,
+									error,
+								),
+							)
+						: Result.ok(groups)
+				},
+			)
 			await new Promise(setImmediate)
 			const teachersResult = await this.teachersProcessor.process()
 			await new Promise(setImmediate)
@@ -320,14 +342,28 @@ export class ScheduleService {
 			// lastSeenAt wasn't refreshed either -- without protecting them here
 			// the same way failed groups are, removeExtraEvents would delete
 			// their real events on the very first phantom-skip run.
-			const removedCount = await this.eventsProcessor.removeExtraEvents(runId, [
-				...failedGroupIds,
-				...skipSet,
+			const protectedGroupIds = [...failedGroupIds, ...skipSet]
+			const [staleEvents, eventsBeforeDelete] = await Promise.all([
+				this.eventsProcessor.countExtraEvents(runId, protectedGroupIds),
+				this.countEvents(),
 			])
 
-			const [{ totalEvents }] = await this.db
-				.select({ totalEvents: drizzleSql<number>`count(*)::int` })
-				.from(eventTable)
+			let removedCount = 0
+			if (exceedsDeleteRatio(staleEvents, eventsBeforeDelete)) {
+				steps.deleteSkipped = { staleEvents, totalEvents: eventsBeforeDelete }
+				this.logger.warn(`${LOG_PREFIX}|remove-extra-events-skipped`, {
+					staleEvents,
+					totalEvents: eventsBeforeDelete,
+					maxRatio: DELETE_MAX_RATIO,
+				})
+			} else {
+				removedCount = await this.eventsProcessor.removeExtraEvents(
+					runId,
+					protectedGroupIds,
+				)
+			}
+
+			const totalEvents = await this.countEvents()
 
 			const finalStatus =
 				failedGroupIds.length === 0
@@ -381,6 +417,12 @@ export class ScheduleService {
 			if (failedGroupIds.length) {
 				await this.webhookService.ping(
 					`:warning: schedule sync finished with ${failedGroupIds.length}/${totalGroups} group(s) failed; their events were kept.`,
+				)
+			}
+
+			if (steps.deleteSkipped) {
+				await this.webhookService.ping(
+					`:warning: schedule sync skipped removing ${staleEvents}/${eventsBeforeDelete} unseen event(s) (over ${DELETE_MAX_RATIO * 100}%); they are kept until CIST lists them again or they are removed manually.`,
 				)
 			}
 
@@ -504,6 +546,13 @@ export class ScheduleService {
 		} finally {
 			this.running = false
 		}
+	}
+
+	private async countEvents(): Promise<number> {
+		const [{ count }] = await this.db
+			.select({ count: drizzleSql<number>`count(*)::int` })
+			.from(eventTable)
+		return count
 	}
 
 	private async logProcessingException(

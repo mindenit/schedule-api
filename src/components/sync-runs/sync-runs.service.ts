@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common'
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
@@ -20,6 +20,7 @@ export interface SyncSteps {
 	groups?: StepResult
 	teachers?: StepResult
 	phantomSkip?: { count: number }
+	deleteSkipped?: { staleEvents: number; totalEvents: number }
 	manualRefetch?: {
 		entityType: 'group' | 'teacher'
 		entityId: number
@@ -122,6 +123,27 @@ export class SyncRunsService {
 			)
 			.returning({ runId: syncRunGroupTable.runId })
 		return result.length > 0
+	}
+
+	// CIST groups list size (steps.groups.count) of the latest good scheduled
+	// run. total_groups is unusable here: it's post phantom-skip, and after a
+	// DB fallback it counts every known group, not the CIST list.
+	async getLastGoodGroupsCount(): Promise<number | null> {
+		const [row] = await this.db
+			.select({
+				count: sql<number>`(${syncRunTable.steps}->'groups'->>'count')::int`,
+			})
+			.from(syncRunTable)
+			.where(
+				and(
+					ne(syncRunTable.trigger, 'manual'),
+					inArray(syncRunTable.status, ['success', 'partial']),
+					sql`(${syncRunTable.steps}->'groups'->>'ok')::boolean`,
+				),
+			)
+			.orderBy(desc(syncRunTable.id))
+			.limit(1)
+		return row?.count ?? null
 	}
 
 	async getRuns(limit = 20): Promise<(typeof syncRunTable.$inferSelect)[]> {

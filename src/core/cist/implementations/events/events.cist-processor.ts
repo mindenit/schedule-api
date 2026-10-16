@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { Result } from 'better-result'
-import { and, eq, inArray, lt, notInArray } from 'drizzle-orm'
+import { and, eq, inArray, lt, notInArray, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import { CistCrawlerException } from 'src/common/exceptions/cist-crawler.exception'
 import { PromiseResult } from 'src/common/types'
@@ -121,26 +121,36 @@ export class CistEventsProcessor extends CistAbstractProcessor<
 		runId: number,
 		failedGroupIds: number[] = [],
 	): Promise<number> {
+		const deleted = await this.db
+			.delete(eventTable)
+			.where(this.extraEventsWhere(runId, failedGroupIds))
+			.returning({ id: eventTable.id })
+		return deleted.length
+	}
+
+	// Same predicate as removeExtraEvents, without deleting
+	async countExtraEvents(
+		runId: number,
+		failedGroupIds: number[] = [],
+	): Promise<number> {
+		const [{ count }] = await this.db
+			.select({ count: sql<number>`count(*)::int` })
+			.from(eventTable)
+			.where(this.extraEventsWhere(runId, failedGroupIds))
+		return count
+	}
+
+	private extraEventsWhere(runId: number, failedGroupIds: number[]) {
 		const isStale = lt(eventTable.lastSeenAt, runId)
 
-		if (!failedGroupIds.length) {
-			const deleted = await this.db
-				.delete(eventTable)
-				.where(isStale)
-				.returning({ id: eventTable.id })
-			return deleted.length
-		}
+		if (!failedGroupIds.length) return isStale
 
 		const eventsOfFailedGroups = this.db
 			.selectDistinct({ id: eventToAcademicGroupTable.eventId })
 			.from(eventToAcademicGroupTable)
 			.where(inArray(eventToAcademicGroupTable.groudId, failedGroupIds))
 
-		const deleted = await this.db
-			.delete(eventTable)
-			.where(and(isStale, notInArray(eventTable.id, eventsOfFailedGroups)))
-			.returning({ id: eventTable.id })
-		return deleted.length
+		return and(isStale, notInArray(eventTable.id, eventsOfFailedGroups))
 	}
 
 	private async processEvent(
