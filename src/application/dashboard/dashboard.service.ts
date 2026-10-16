@@ -57,6 +57,28 @@ const toRunDto = (row: typeof syncRunTable.$inferSelect): SyncRunDto => ({
 	steps: row.steps as SyncSteps,
 })
 
+// Latest sync_run_group row per group, scoped to runs since the last good
+// scheduled run (or all history if there is none). Only the latest row counts,
+// so a group that failed before but has since succeeded is not a failure, and
+// groups that dropped out of CIST don't keep stale failures from older runs.
+const latestGroupRunsCte = sql`
+	WITH boundary AS (
+		SELECT COALESCE(MAX(id), 0) AS run_id
+		FROM sync_run
+		WHERE trigger <> 'manual'
+			AND status IN ('success', 'partial')
+			AND total_groups > 0
+	),
+	latest_per_group AS (
+		SELECT DISTINCT ON (g.group_id)
+			g.run_id, g.group_id, g.status, g.error, g.finished_at, g.dismissed
+		FROM sync_run_group g
+		CROSS JOIN boundary b
+		WHERE g.run_id >= b.run_id
+		ORDER BY g.group_id, g.run_id DESC
+	)
+`
+
 @Injectable()
 export class DashboardService {
 	constructor(
@@ -174,8 +196,6 @@ export class DashboardService {
 
 	async getFailures(limit?: number): Promise<FailedGroupEntryDto[]> {
 		const n = Math.min(Math.max(limit ?? 50, 1), 100)
-		// Only the *latest* run per group is considered: a group that failed
-		// before but has since succeeded should not keep showing up here.
 		const rows = await this.db.execute<{
 			run_id: number
 			group_id: number
@@ -183,12 +203,7 @@ export class DashboardService {
 			error: string | null
 			finished_at: Date
 		}>(sql`
-			WITH latest_per_group AS (
-				SELECT DISTINCT ON (g.group_id)
-					g.run_id, g.group_id, g.status, g.error, g.finished_at, g.dismissed
-				FROM sync_run_group g
-				ORDER BY g.group_id, g.run_id DESC
-			)
+			${latestGroupRunsCte}
 			SELECT l.run_id, l.group_id, ag.name AS group_name, l.error, l.finished_at
 			FROM latest_per_group l
 			LEFT JOIN academic_group ag ON ag.id = l.group_id
