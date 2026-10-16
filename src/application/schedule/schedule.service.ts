@@ -49,7 +49,11 @@ import {
 	shouldTripBreaker,
 } from './helpers/sync-guards.helper'
 import { PhantomSkipService } from './phantom-skip.service'
-import { SCHEDULE_ENTITY, ScheduleEntity } from './schedule.constants'
+import {
+	GUARD_OVERRIDE_KEY,
+	SCHEDULE_ENTITY,
+	ScheduleEntity,
+} from './schedule.constants'
 
 // Constants
 const LOG_PREFIX = 'schedule-service'
@@ -109,6 +113,14 @@ export class ScheduleService {
 
 			await this.syncRunsService.open(runId, trigger)
 
+			// Consumed even if this run aborts, so it never outlives one run.
+			const guardsOverridden =
+				(await this.cache.getdel(GUARD_OVERRIDE_KEY)) !== null
+			if (guardsOverridden) {
+				steps.guardsOverridden = true
+				this.logger.warn(`${LOG_PREFIX}|guards-overridden`, { runId })
+			}
+
 			// Evaluated up-front, before auditoriums/groups/teachers processing --
 			// if checked later, a long-running earlier step could push execution
 			// past the Sunday-00:00 boundary and silently skip that week's
@@ -124,9 +136,13 @@ export class ScheduleService {
 				await this.syncRunsService.getLastGoodGroupsCount()
 			// An empty/truncated list must take the same DB-fallback path as an
 			// error; otherwise every unlisted group's events get deleted below.
+			// The override skips only the ratio check: an empty list is never real.
 			const groupsResult = (await this.groupsProcessor.process()).andThen(
 				(groups) => {
-					const error = getGroupsListError(groups.length, lastGoodGroupsCount)
+					const error = getGroupsListError(
+						groups.length,
+						guardsOverridden ? null : lastGoodGroupsCount,
+					)
 					return error
 						? Result.err(
 								new CistCrawlerException(
@@ -380,7 +396,10 @@ export class ScheduleService {
 					this.countEvents(),
 				])
 
-				if (exceedsDeleteRatio(staleEvents, eventsBeforeDelete)) {
+				if (
+					!guardsOverridden &&
+					exceedsDeleteRatio(staleEvents, eventsBeforeDelete)
+				) {
 					steps.deleteSkipped = { staleEvents, totalEvents: eventsBeforeDelete }
 					this.logger.warn(`${LOG_PREFIX}|remove-extra-events-skipped`, {
 						staleEvents,

@@ -23,6 +23,7 @@ export interface SyncSteps {
 	phantomSkip?: { count: number }
 	deleteSkipped?: { staleEvents: number; totalEvents: number }
 	circuitBreaker?: { unprocessedGroups: number }
+	guardsOverridden?: boolean
 	cist?: CistKeyStats
 	manualRefetch?: {
 		entityType: 'group' | 'teacher'

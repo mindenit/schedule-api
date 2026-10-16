@@ -42,6 +42,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		ReturnType<typeof vi.fn>
 	>
 	let ping: ReturnType<typeof vi.fn>
+	let cache: Record<'set' | 'getdel', ReturnType<typeof vi.fn>>
 	let service: ScheduleService
 
 	beforeEach(() => {
@@ -76,6 +77,10 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 			getLastGoodGroupsCount: vi.fn().mockResolvedValue(null),
 		}
 		ping = vi.fn()
+		cache = {
+			set: vi.fn().mockResolvedValue('OK'),
+			getdel: vi.fn().mockResolvedValue(null),
+		}
 		const stats = {
 			keySwitches: 0,
 			rejections: 0,
@@ -85,7 +90,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 
 		service = new ScheduleService(
 			db as never,
-			{ set: vi.fn().mockResolvedValue('OK') } as never,
+			cache as never,
 			okList as never,
 			eventsProcessor as never,
 			groupsProcessor as never,
@@ -114,6 +119,7 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		expect(eventsProcessor.removeExtraEvents).toHaveBeenCalledOnce()
 		expect(closed()).toMatchObject({ status: 'success', removedEvents: 10 })
 		expect(closed().steps.deleteSkipped).toBeUndefined()
+		expect(closed().steps.guardsOverridden).toBeUndefined()
 		expect(ping).not.toHaveBeenCalled()
 	})
 
@@ -169,5 +175,43 @@ describe('ScheduleService.processSchedule (orchestration)', () => {
 		expect(eventsProcessor.process).toHaveBeenCalledTimes(100)
 		expect(closed().steps.groups).toMatchObject({ ok: false, count: 0 })
 		expect(closed().steps.groups?.error).toContain('groups list too small')
+	})
+
+	describe('with the one-shot guard override set', () => {
+		beforeEach(() => {
+			cache.getdel.mockResolvedValueOnce('1')
+		})
+
+		it('bypasses the groups ratio and delete guards for one run', async () => {
+			existingGroups = groupsOf(100)
+			syncRuns.getLastGoodGroupsCount.mockResolvedValue(100)
+			groupsProcessor.process.mockResolvedValue(Result.ok(groupsOf(79)))
+			eventsProcessor.countExtraEvents.mockResolvedValue(300)
+
+			await service.processSchedule()
+
+			expect(cache.getdel).toHaveBeenCalledWith('sync:guard-override')
+			expect(eventsProcessor.process).toHaveBeenCalledTimes(79)
+			expect(eventsProcessor.removeExtraEvents).toHaveBeenCalledOnce()
+			expect(closed().steps).toMatchObject({
+				guardsOverridden: true,
+				groups: { ok: true, count: 79 },
+			})
+			expect(closed().steps.deleteSkipped).toBeUndefined()
+
+			// Consumed: the next run is guarded again.
+			await service.processSchedule()
+			expect(closed().steps.groups?.ok).toBe(false)
+			expect(closed().steps.deleteSkipped).toBeDefined()
+		})
+
+		it('still rejects an empty groups list', async () => {
+			groupsProcessor.process.mockResolvedValue(Result.ok([]))
+
+			await service.processSchedule()
+
+			expect(closed().steps.groups?.error).toBe('groups list is empty')
+			expect(eventsProcessor.process).toHaveBeenCalledTimes(5)
+		})
 	})
 })
