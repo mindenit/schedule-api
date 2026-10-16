@@ -40,6 +40,7 @@ type CreateCrawler = (clientId: string) => CistCrawler
  * construction.
  */
 export class MultiKeyCistCrawler extends CistCrawler {
+	private readonly keys: readonly string[]
 	private readonly crawlers: CistCrawler[]
 	private readonly fingerprints: string[]
 	private activeIndex = 0
@@ -52,6 +53,7 @@ export class MultiKeyCistCrawler extends CistCrawler {
 		createCrawler: CreateCrawler = (clientId) => new CistCrawler({ clientId }),
 	) {
 		super({ clientId: keys[0] })
+		this.keys = keys
 		this.crawlers = keys.map((key) => createCrawler(key))
 		this.fingerprints = keys.map((key, i) => fingerprintKey(key, i))
 	}
@@ -83,9 +85,8 @@ export class MultiKeyCistCrawler extends CistCrawler {
 
 				return response
 			} catch (e: unknown) {
-				if (!(e instanceof CistCrawlerError) || e.code !== KEY_REJECTED_CODE) {
-					throw e
-				}
+				if (!(e instanceof CistCrawlerError)) throw e
+				if (e.code !== KEY_REJECTED_CODE) throw this.maskKeys(e)
 
 				this.rejections++
 				this.logger.warn(`${LOG_PREFIX}|rejected`, {
@@ -99,6 +100,17 @@ export class MultiKeyCistCrawler extends CistCrawler {
 			tried: this.fingerprints,
 		})
 		throw new AllCistKeysRejectedError(this.crawlers.length)
+	}
+
+	// Exact-match backstop for redactClientId's regex. A fresh error drops the
+	// original stack, whose first line repeats the unmasked message.
+	private maskKeys(e: CistCrawlerError): CistCrawlerError {
+		const message = this.keys
+			.flatMap((key) => [key, encodeURIComponent(key)])
+			// Longest first, so a key that contains another is masked whole.
+			.toSorted((a, b) => b.length - a.length)
+			.reduce((m, key) => m.replaceAll(key, '***'), e.message)
+		return new CistCrawlerError(message, e.status, e.code)
 	}
 
 	getStats(): CistKeyStats {

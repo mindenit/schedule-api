@@ -95,12 +95,20 @@ describe('MultiKeyCistCrawler', () => {
 		expect(crawler.getStats().activeKeyIndex).toBe(1)
 	})
 
-	it('rethrows other errors unchanged without trying other keys', async () => {
+	it('rethrows other errors as-is without trying other keys', async () => {
 		const crawler = build(KEYS)
-		const err = new CistCrawlerError('No available servers', 503)
-		fake(KEYS[0]).mockRejectedValue(err)
+		fake(KEYS[0]).mockRejectedValue(
+			new CistCrawlerError('No available servers', 503),
+		)
 
-		await expect(crawler.getSchedule(1, 1)).rejects.toBe(err)
+		const err = await crawler.getSchedule(1, 1).catch((e: unknown) => e)
+
+		expect(err).toBeInstanceOf(CistCrawlerError)
+		expect(err).toMatchObject({
+			message: 'No available servers',
+			status: 503,
+			code: undefined,
+		})
 		expect(fake(KEYS[1])).not.toHaveBeenCalled()
 	})
 
@@ -143,6 +151,36 @@ describe('MultiKeyCistCrawler', () => {
 			expect(classified.message).not.toContain(key)
 			expect(logged).not.toContain(key)
 		}
+	})
+
+	it('masks every configured key in passed-through errors', async () => {
+		// Second key contains the first: must still be masked whole.
+		const keys = ['Zq9-UNIQUE-k3y', 'Zq9-UNIQUE-k3y+longer/€']
+		const crawler = build(keys)
+		const leaky = `url idClient=${encodeURIComponent(keys[1])}&x=1; also ${keys[0]} and ${keys[1]}`
+		fake(keys[0]).mockRejectedValue(rejected())
+		fake(keys[1]).mockRejectedValue(new CistCrawlerError(leaky, 500, 'X-1'))
+
+		const err = await crawler.getSchedule(1, 1).catch((e: unknown) => e)
+
+		expect(err).toBeInstanceOf(CistCrawlerError)
+		const { message, stack, status, code } = err as CistCrawlerError
+		expect({ status, code }).toEqual({ status: 500, code: 'X-1' })
+		expect(message).toBe('url idClient=***&x=1; also *** and ***')
+		for (const text of [message, stack, JSON.stringify(err)]) {
+			expect(text).not.toContain('UNIQUE')
+		}
+	})
+
+	it('keeps keys out of the all-rejected error', async () => {
+		const crawler = build(KEYS)
+		for (const key of KEYS) fake(key).mockRejectedValue(rejected())
+
+		const err = (await crawler
+			.getSchedule(1, 1)
+			.catch((e: unknown) => e)) as Error
+
+		expect(`${err.message}${err.stack}`).not.toContain('SECRET')
 	})
 
 	it('treats a rejected single key as all keys rejected', async () => {

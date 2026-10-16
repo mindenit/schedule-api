@@ -1,10 +1,10 @@
 import { DEFAULT_CONFIG } from '@mindenit/cist-crawler'
 import { Injectable } from '@nestjs/common'
-import { redactClientId } from 'src/core/cist/helpers/classify-crawler-error.helper'
 
 import { ConfigService } from '../config/config.service'
 import { LoggerService } from '../logger/logger.service'
 import { fingerprintKey, KEY_REJECTED_CODE } from './multi-key-cist-crawler'
+import { redactClientId } from './redact-client-id.helper'
 
 // Constants
 const LOG_PREFIX = 'cist-health'

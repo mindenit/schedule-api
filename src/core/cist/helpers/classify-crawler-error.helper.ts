@@ -3,11 +3,7 @@ import {
 	CistCrawlerErrorCodes,
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
-
-// The crawler embeds the full request URL (incl. the CIST API key) into
-// fetch error messages; these end up in sync_run_group.error, logs and webhooks.
-export const redactClientId = (message: string): string =>
-	message.replaceAll(/(idClient(?:=|%3D)\s*)[^&\s:"]+/gi, '$1***')
+import { redactClientId } from 'src/components/cist-crawler/redact-client-id.helper'
 
 // Oracle errors the crawler itself documents as server-side resource/shutdown
 // conditions; prod saw them in short bursts between successful fetches.
