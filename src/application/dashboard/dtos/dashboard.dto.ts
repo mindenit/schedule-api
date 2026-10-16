@@ -99,6 +99,10 @@ export const dashSummarySchema = z.object({
 	lastSuccessfulRun: syncRunSchema.nullable(),
 	nextCronAt: z.iso.datetime().nullable(),
 	totalRuns: z.number().int(),
+	// Groups whose latest run since the last good scheduled run failed (uncapped)
+	failingGroups: z.number().int(),
+	// Live row count of the event table
+	totalEvents: z.number().int(),
 	progress: z
 		.object({
 			current: z.number().int(),

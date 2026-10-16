@@ -1,5 +1,5 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common'
-import { desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
 import Redis from 'ioredis'
 import {
@@ -15,6 +15,7 @@ import {
 import { SCHEDULE_TYPE } from 'src/core/cist/implementations/events/events.cist-parser'
 import {
 	academicGroupTable,
+	eventTable,
 	syncRunGroupTable,
 	syncRunTable,
 	teacherTable,
@@ -103,13 +104,32 @@ export class DashboardService {
 		const [lastSuccessfulRun] = await this.db
 			.select()
 			.from(syncRunTable)
-			.where(eq(syncRunTable.status, 'success'))
+			.where(
+				and(
+					ne(syncRunTable.trigger, 'manual'),
+					inArray(syncRunTable.status, ['success', 'partial']),
+				),
+			)
 			.orderBy(desc(syncRunTable.startedAt))
 			.limit(1)
 
 		const [{ count }] = await this.db
 			.select({ count: sql<number>`count(*)::int` })
 			.from(syncRunTable)
+
+		const [{ failingGroups }] = await this.db.execute<{
+			failingGroups: number
+		}>(sql`
+			${latestGroupRunsCte}
+			SELECT count(*)::int AS "failingGroups"
+			FROM latest_per_group
+			WHERE status = 'failed' AND dismissed = false
+		`)
+
+		// Exact count: event table is small (~36k rows), n_live_tup lags.
+		const [{ totalEvents }] = await this.db
+			.select({ totalEvents: sql<number>`count(*)::int` })
+			.from(eventTable)
 
 		// Progress: how many groups recorded so far in the running run
 		let progress: DashSummaryDto['progress'] = null
@@ -134,6 +154,8 @@ export class DashboardService {
 			lastSuccessfulRun: lastSuccessfulRun ? toRunDto(lastSuccessfulRun) : null,
 			nextCronAt: getNextCronAt(),
 			totalRuns: count,
+			failingGroups,
+			totalEvents,
 			progress,
 		}
 	}
