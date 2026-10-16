@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common'
 import { CacheModule } from 'src/components/cache/cache.module'
+import { CistCrawlerModule } from 'src/components/cist-crawler/cist-crawler.module'
 import { ConfigModule } from 'src/components/config/config.module'
 import { DatabaseModule } from 'src/components/database/database.module'
 import { LoggerModule } from 'src/components/logger/logger.module'
@@ -13,6 +14,7 @@ import { ScheduleService } from './schedule.service'
 @Module({
 	imports: [
 		CacheModule,
+		CistCrawlerModule,
 		CistModule,
 		ConfigModule,
 		DatabaseModule,

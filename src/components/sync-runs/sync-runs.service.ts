@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common'
 import { and, desc, eq, inArray, ne, sql } from 'drizzle-orm'
 import { PostgresJsDatabase } from 'drizzle-orm/postgres-js'
+import type { CistKeyStats } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { syncRunGroupTable, syncRunTable } from 'src/db/schema'
 
@@ -22,6 +23,7 @@ export interface SyncSteps {
 	phantomSkip?: { count: number }
 	deleteSkipped?: { staleEvents: number; totalEvents: number }
 	circuitBreaker?: { unprocessedGroups: number }
+	cist?: CistKeyStats
 	manualRefetch?: {
 		entityType: 'group' | 'teacher'
 		entityId: number

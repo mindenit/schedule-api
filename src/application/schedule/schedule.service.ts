@@ -18,6 +18,8 @@ import {
 	CistCrawlerException,
 } from 'src/common/exceptions/cist-crawler.exception'
 import { CACHE_CONNECTION_TOKEN } from 'src/components/cache/di-tokens'
+import { CIST_CRAWLER_TOKEN } from 'src/components/cist-crawler/di-tokens'
+import { MultiKeyCistCrawler } from 'src/components/cist-crawler/multi-key-cist-crawler'
 import { ConfigService } from 'src/components/config/config.service'
 import { DATABASE_CONNECTION_TOKEN } from 'src/components/database/di-tokens'
 import { LoggerService } from 'src/components/logger/logger.service'
@@ -76,6 +78,8 @@ export class ScheduleService {
 		private readonly logger: LoggerService,
 		private readonly configService: ConfigService,
 		private readonly phantomSkipService: PhantomSkipService,
+		@Inject(CIST_CRAWLER_TOKEN)
+		private readonly cistCrawler: MultiKeyCistCrawler,
 	) {}
 
 	@Cron('0 */12 * * *', {
@@ -88,6 +92,7 @@ export class ScheduleService {
 			return
 		}
 		this.running = true
+		this.cistCrawler.resetStats()
 
 		const runId = Date.now()
 
@@ -396,6 +401,8 @@ export class ScheduleService {
 						? 'failed'
 						: 'partial'
 
+			steps.cist = this.cistCrawler.getStats()
+
 			// Use allSettled so one failure doesn't hide the others, then rethrow.
 			const TAIL_NAMES = [
 				'cache:health',
@@ -460,6 +467,7 @@ export class ScheduleService {
 			// Only write failed status if close() hasn't already recorded a result.
 			// This prevents the catch from clobbering a valid partial/success row.
 			if (!syncRunClosed) {
+				steps.cist = this.cistCrawler.getStats()
 				await Promise.allSettled([
 					this.cache.set(HEALTH_CHECK_KEY, SYSTEM_HEALTH_STATUS.FAILED),
 					this.cache.set(IS_UPDATE_IN_PROGRESS_KEY, UPDATE_STATUS.FINISHED),
